@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
       schema: TranslationSchema,
       schemaName: "translation",
       jsonSchema: TranslationJsonSchema as Record<string, unknown>,
+      model: "gpt-4o-mini",
     });
     return jsonOk({
       translation: result.translation,
