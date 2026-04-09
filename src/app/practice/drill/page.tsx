@@ -180,6 +180,12 @@ export default function DrillPage() {
                   ref={inputRef}
                   value={answer}
                   onChange={(e) => setAnswer(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      submit();
+                    }
+                  }}
                   placeholder="…"
                   autoFocus
                   autoComplete="off"
