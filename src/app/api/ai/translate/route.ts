@@ -65,6 +65,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     console.error("Translate error:", err);
-    return jsonError("Translation unavailable. Try again.", 502);
+    const msg = err instanceof Error ? err.message : String(err);
+    return jsonError(`Translation failed: ${msg}`, 502);
   }
 }
