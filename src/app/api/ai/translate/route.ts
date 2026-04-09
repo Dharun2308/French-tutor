@@ -56,7 +56,6 @@ export async function POST(req: NextRequest) {
       schema: TranslationSchema,
       schemaName: "translation",
       jsonSchema: TranslationJsonSchema as Record<string, unknown>,
-      temperature: 0.3,
     });
     return jsonOk({
       translation: result.translation,
@@ -65,7 +64,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     console.error("Translate error:", err);
-    const msg = err instanceof Error ? err.message : String(err);
-    return jsonError(`Translation failed: ${msg}`, 502);
+    return jsonError("Translation unavailable. Try again.", 502);
   }
 }
