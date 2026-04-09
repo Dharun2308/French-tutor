@@ -19,6 +19,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { TranslateBox } from "@/components/translate-box";
 import { guessTimezone } from "@/lib/utils";
 
 interface Stats {
@@ -163,11 +164,15 @@ export default function DashboardPage() {
 
   return (
     <div className="container max-w-4xl py-8">
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-3xl font-semibold tracking-tight">Bonjour 👋</h1>
         <p className="mt-1 text-muted-foreground">
           Let&apos;s keep your French muscles warm.
         </p>
+      </div>
+
+      <div className="mb-8">
+        <TranslateBox />
       </div>
 
       {isEmpty && (

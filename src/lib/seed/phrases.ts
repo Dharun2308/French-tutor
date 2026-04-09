@@ -180,4 +180,187 @@ export const PHRASES: PhraseDef[] = [
   { category: "phrase", french: "C'est ça", english: "That's right", level: "A1", frequencyRank: 46 },
   { category: "phrase", french: "Ce n'est pas grave", english: "It's not a big deal", level: "A1", frequencyRank: 47 },
   { category: "phrase", french: "À votre santé", english: "To your health (cheers)", level: "A1", frequencyRank: 48 },
+
+  // ========================================================
+  // Extended numbers — edge cases (21-99, hundreds, large)
+  // ========================================================
+  // "et un" only at 21, 31, 41, 51, 61. After that: trait d'union only.
+  { category: "number", french: "vingt et un", english: "21", notes: "'et un' — only in 21, 31, 41, 51, 61", level: "A1", frequencyRank: 31 },
+  { category: "number", french: "vingt-deux", english: "22", level: "A1", frequencyRank: 32 },
+  { category: "number", french: "vingt-cinq", english: "25", level: "A1", frequencyRank: 33 },
+  { category: "number", french: "trente et un", english: "31", notes: "'et un' pattern", level: "A1", frequencyRank: 34 },
+  { category: "number", french: "trente-trois", english: "33", level: "A1", frequencyRank: 35 },
+  { category: "number", french: "quarante et un", english: "41", level: "A1", frequencyRank: 36 },
+  { category: "number", french: "cinquante-cinq", english: "55", level: "A1", frequencyRank: 37 },
+  { category: "number", french: "soixante et un", english: "61", level: "A1", frequencyRank: 38 },
+  // 70s: soixante-dix + teen pattern
+  { category: "number", french: "soixante et onze", english: "71", notes: "60 + 11 — note 'et'", level: "A1", frequencyRank: 39 },
+  { category: "number", french: "soixante-douze", english: "72", notes: "60 + 12", level: "A1", frequencyRank: 40 },
+  { category: "number", french: "soixante-quinze", english: "75", notes: "60 + 15", level: "A1", frequencyRank: 41 },
+  { category: "number", french: "soixante-dix-neuf", english: "79", notes: "60 + 19", level: "A1", frequencyRank: 42 },
+  // 80s: quatre-vingts + units (drop the 's' when followed by a number)
+  { category: "number", french: "quatre-vingt-un", english: "81", notes: "no 'et' — no 's' on vingt before a number", level: "A1", frequencyRank: 43 },
+  { category: "number", french: "quatre-vingt-cinq", english: "85", level: "A1", frequencyRank: 44 },
+  // 90s: quatre-vingt-dix + teen pattern
+  { category: "number", french: "quatre-vingt-onze", english: "91", notes: "80 + 11", level: "A1", frequencyRank: 45 },
+  { category: "number", french: "quatre-vingt-quinze", english: "95", notes: "80 + 15", level: "A1", frequencyRank: 46 },
+  { category: "number", french: "quatre-vingt-dix-neuf", english: "99", notes: "80 + 19", level: "A1", frequencyRank: 47 },
+  // Hundreds
+  { category: "number", french: "deux cents", english: "200", notes: "'cents' takes 's' when round", level: "A1", frequencyRank: 48 },
+  { category: "number", french: "deux cent un", english: "201", notes: "'cent' drops 's' before a number", level: "A1", frequencyRank: 49 },
+  { category: "number", french: "trois cents", english: "300", level: "A1", frequencyRank: 50 },
+  { category: "number", french: "cinq cents", english: "500", level: "A1", frequencyRank: 51 },
+  { category: "number", french: "cinq cent cinquante", english: "550", level: "A1", frequencyRank: 52 },
+  // Large numbers
+  { category: "number", french: "mille un", english: "1 001", notes: "'mille' never takes 's'", level: "A1", frequencyRank: 53 },
+  { category: "number", french: "deux mille", english: "2 000", notes: "'mille' is invariable", level: "A1", frequencyRank: 54 },
+  { category: "number", french: "dix mille", english: "10 000", level: "A1", frequencyRank: 55 },
+  { category: "number", french: "cent mille", english: "100 000", level: "A1", frequencyRank: 56 },
+  { category: "number", french: "un million", english: "1 000 000", notes: "'million' is a noun — un million de personnes", level: "A2", frequencyRank: 57 },
+  { category: "number", french: "un milliard", english: "1 000 000 000", notes: "'milliard' = billion (US)", level: "A2", frequencyRank: 58 },
+  { category: "number", french: "premier / première", english: "first (m./f.)", notes: "ordinal — le premier étage", level: "A1", frequencyRank: 59 },
+  { category: "number", french: "deuxième", english: "second", level: "A1", frequencyRank: 60 },
+  { category: "number", french: "troisième", english: "third", level: "A1", frequencyRank: 61 },
+
+  // ========================================================
+  // Countries — gender + correct preposition (en/au/aux)
+  // ========================================================
+  // Feminine countries → "en" (most countries ending in -e)
+  { category: "country", french: "la France — en France", english: "France — in/to France", notes: "feminine → en", level: "A1", frequencyRank: 1 },
+  { category: "country", french: "l'Italie — en Italie", english: "Italy — in/to Italy", notes: "feminine → en", level: "A1", frequencyRank: 2 },
+  { category: "country", french: "l'Espagne — en Espagne", english: "Spain — in/to Spain", notes: "feminine → en", level: "A1", frequencyRank: 3 },
+  { category: "country", french: "l'Allemagne — en Allemagne", english: "Germany — in/to Germany", notes: "feminine → en", level: "A1", frequencyRank: 4 },
+  { category: "country", french: "l'Angleterre — en Angleterre", english: "England — in/to England", notes: "feminine → en", level: "A1", frequencyRank: 5 },
+  { category: "country", french: "la Chine — en Chine", english: "China — in/to China", notes: "feminine → en", level: "A1", frequencyRank: 6 },
+  { category: "country", french: "l'Inde — en Inde", english: "India — in/to India", notes: "feminine → en", level: "A1", frequencyRank: 7 },
+  { category: "country", french: "la Russie — en Russie", english: "Russia — in/to Russia", notes: "feminine → en", level: "A1", frequencyRank: 8 },
+  { category: "country", french: "la Belgique — en Belgique", english: "Belgium — in/to Belgium", notes: "feminine → en", level: "A1", frequencyRank: 9 },
+  { category: "country", french: "la Suisse — en Suisse", english: "Switzerland — in/to Switzerland", notes: "feminine → en", level: "A1", frequencyRank: 10 },
+  // Masculine countries → "au"
+  { category: "country", french: "le Canada — au Canada", english: "Canada — in/to Canada", notes: "masculine → au", level: "A1", frequencyRank: 11 },
+  { category: "country", french: "le Japon — au Japon", english: "Japan — in/to Japan", notes: "masculine → au", level: "A1", frequencyRank: 12 },
+  { category: "country", french: "le Brésil — au Brésil", english: "Brazil — in/to Brazil", notes: "masculine → au", level: "A1", frequencyRank: 13 },
+  { category: "country", french: "le Portugal — au Portugal", english: "Portugal — in/to Portugal", notes: "masculine → au", level: "A1", frequencyRank: 14 },
+  { category: "country", french: "le Maroc — au Maroc", english: "Morocco — in/to Morocco", notes: "masculine → au", level: "A1", frequencyRank: 15 },
+  { category: "country", french: "le Mexique — au Mexique", english: "Mexico — in/to Mexico", notes: "masculine ending in -e but still masc → au", level: "A1", frequencyRank: 16 },
+  { category: "country", french: "le Sénégal — au Sénégal", english: "Senegal — in/to Senegal", notes: "masculine → au", level: "A1", frequencyRank: 17 },
+  // Masculine vowel-start → "en" (exception!)
+  { category: "country", french: "l'Iran — en Iran", english: "Iran — in/to Iran", notes: "masculine BUT starts with vowel → en (not au)", level: "A2", frequencyRank: 18 },
+  { category: "country", french: "l'Irak — en Irak", english: "Iraq — in/to Iraq", notes: "masculine + vowel → en", level: "A2", frequencyRank: 19 },
+  // Plural countries → "aux"
+  { category: "country", french: "les États-Unis — aux États-Unis", english: "USA — in/to the USA", notes: "plural → aux", level: "A1", frequencyRank: 20 },
+  { category: "country", french: "les Pays-Bas — aux Pays-Bas", english: "Netherlands — in/to the Netherlands", notes: "plural → aux", level: "A1", frequencyRank: 21 },
+  { category: "country", french: "les Philippines — aux Philippines", english: "Philippines — in/to the Philippines", notes: "plural → aux", level: "A2", frequencyRank: 22 },
+  // Islands and special cases
+  { category: "country", french: "l'Australie — en Australie", english: "Australia — in/to Australia", notes: "feminine → en", level: "A1", frequencyRank: 23 },
+
+  // ========================================================
+  // Cities — always use "à" (no gender)
+  // ========================================================
+  { category: "city", french: "à Paris", english: "in/to Paris", notes: "cities always use 'à' — no article", level: "A1", frequencyRank: 1 },
+  { category: "city", french: "à Lyon", english: "in/to Lyon", notes: "second largest French city", level: "A1", frequencyRank: 2 },
+  { category: "city", french: "à Marseille", english: "in/to Marseille", level: "A1", frequencyRank: 3 },
+  { category: "city", french: "à Toulouse", english: "in/to Toulouse", level: "A1", frequencyRank: 4 },
+  { category: "city", french: "à Nice", english: "in/to Nice", level: "A1", frequencyRank: 5 },
+  { category: "city", french: "à Bordeaux", english: "in/to Bordeaux", level: "A1", frequencyRank: 6 },
+  { category: "city", french: "à Bruxelles", english: "in/to Brussels", notes: "Belgium — still 'à'", level: "A1", frequencyRank: 7 },
+  { category: "city", french: "à Genève", english: "in/to Geneva", level: "A1", frequencyRank: 8 },
+  { category: "city", french: "à Montréal", english: "in/to Montreal", level: "A1", frequencyRank: 9 },
+  { category: "city", french: "à Londres", english: "in/to London", level: "A1", frequencyRank: 10 },
+  { category: "city", french: "à New York", english: "in/to New York", level: "A1", frequencyRank: 11 },
+  { category: "city", french: "à Tokyo", english: "in/to Tokyo", level: "A1", frequencyRank: 12 },
+  // Special: cities with article
+  { category: "city", french: "au Caire", english: "in/to Cairo", notes: "rare — le Caire takes 'au'", level: "A2", frequencyRank: 13 },
+  { category: "city", french: "au Havre", english: "in/to Le Havre", notes: "le Havre → au Havre", level: "A2", frequencyRank: 14 },
+  { category: "city", french: "à La Nouvelle-Orléans", english: "in/to New Orleans", notes: "article stays: 'à La'", level: "A2", frequencyRank: 15 },
+  // "de" for origin
+  { category: "city", french: "de Paris", english: "from Paris", notes: "'de' for origin — je viens de Paris", level: "A1", frequencyRank: 16 },
+  { category: "city", french: "du Caire", english: "from Cairo", notes: "de + le = du", level: "A2", frequencyRank: 17 },
+
+  // ========================================================
+  // Time expressions
+  // ========================================================
+  // Parts of the day
+  { category: "time", french: "le matin", english: "the morning / in the morning", level: "A1", frequencyRank: 1 },
+  { category: "time", french: "l'après-midi", english: "the afternoon", notes: "masculine or feminine — both accepted", level: "A1", frequencyRank: 2 },
+  { category: "time", french: "le soir", english: "the evening", level: "A1", frequencyRank: 3 },
+  { category: "time", french: "la nuit", english: "the night", level: "A1", frequencyRank: 4 },
+  // "ce" / "cette" for today's time
+  { category: "time", french: "ce matin", english: "this morning", notes: "'ce' = this (masc)", level: "A1", frequencyRank: 5 },
+  { category: "time", french: "cet après-midi", english: "this afternoon", notes: "'cet' before vowel/h", level: "A1", frequencyRank: 6 },
+  { category: "time", french: "ce soir", english: "this evening / tonight", level: "A1", frequencyRank: 7 },
+  { category: "time", french: "cette nuit", english: "tonight / last night", notes: "'cette' = this (fem)", level: "A1", frequencyRank: 8 },
+  // Relative days
+  { category: "time", french: "aujourd'hui", english: "today", level: "A1", frequencyRank: 9 },
+  { category: "time", french: "demain", english: "tomorrow", level: "A1", frequencyRank: 10 },
+  { category: "time", french: "demain matin", english: "tomorrow morning", level: "A1", frequencyRank: 11 },
+  { category: "time", french: "demain soir", english: "tomorrow evening", level: "A1", frequencyRank: 12 },
+  { category: "time", french: "hier", english: "yesterday", level: "A1", frequencyRank: 13 },
+  { category: "time", french: "hier soir", english: "last night / yesterday evening", level: "A1", frequencyRank: 14 },
+  { category: "time", french: "avant-hier", english: "the day before yesterday", level: "A2", frequencyRank: 15 },
+  { category: "time", french: "après-demain", english: "the day after tomorrow", level: "A2", frequencyRank: 16 },
+  // Clock time — telling the time
+  { category: "time", french: "Il est une heure", english: "It is 1 o'clock", notes: "'une' — only hour that's feminine", level: "A1", frequencyRank: 17 },
+  { category: "time", french: "Il est deux heures", english: "It is 2 o'clock", level: "A1", frequencyRank: 18 },
+  { category: "time", french: "Il est midi", english: "It is noon", notes: "no 'heures' — midi/minuit stand alone", level: "A1", frequencyRank: 19 },
+  { category: "time", french: "Il est minuit", english: "It is midnight", level: "A1", frequencyRank: 20 },
+  // The critical half/quarter/minus patterns
+  { category: "time", french: "et quart", english: "quarter past", notes: "Il est trois heures et quart = 3:15", level: "A1", frequencyRank: 21 },
+  { category: "time", french: "et demie", english: "half past", notes: "Il est trois heures et demie = 3:30. 'demie' takes -e after 'heure'", level: "A1", frequencyRank: 22 },
+  { category: "time", french: "moins le quart", english: "quarter to", notes: "Il est quatre heures moins le quart = 3:45", level: "A1", frequencyRank: 23 },
+  { category: "time", french: "moins cinq", english: "five to", notes: "Il est quatre heures moins cinq = 3:55", level: "A1", frequencyRank: 24 },
+  { category: "time", french: "moins dix", english: "ten to", notes: "Il est quatre heures moins dix = 3:50", level: "A1", frequencyRank: 25 },
+  { category: "time", french: "moins vingt", english: "twenty to", notes: "Il est quatre heures moins vingt = 3:40", level: "A1", frequencyRank: 26 },
+  { category: "time", french: "et cinq", english: "five past", notes: "Il est trois heures cinq = 3:05", level: "A1", frequencyRank: 27 },
+  { category: "time", french: "et dix", english: "ten past", notes: "Il est trois heures dix = 3:10", level: "A1", frequencyRank: 28 },
+  { category: "time", french: "midi et demi", english: "12:30 PM", notes: "'demi' — no -e after midi/minuit (masc)", level: "A1", frequencyRank: 29 },
+  { category: "time", french: "minuit et demi", english: "12:30 AM", level: "A1", frequencyRank: 30 },
+  // Frequency / duration
+  { category: "time", french: "maintenant", english: "now", level: "A1", frequencyRank: 31 },
+  { category: "time", french: "tout de suite", english: "right away / immediately", level: "A1", frequencyRank: 32 },
+  { category: "time", french: "bientôt", english: "soon", level: "A1", frequencyRank: 33 },
+  { category: "time", french: "toujours", english: "always / still", level: "A1", frequencyRank: 34 },
+  { category: "time", french: "souvent", english: "often", level: "A1", frequencyRank: 35 },
+  { category: "time", french: "parfois", english: "sometimes", level: "A1", frequencyRank: 36 },
+  { category: "time", french: "rarement", english: "rarely", level: "A1", frequencyRank: 37 },
+  { category: "time", french: "jamais", english: "never", notes: "ne… jamais — je ne mange jamais", level: "A1", frequencyRank: 38 },
+  { category: "time", french: "déjà", english: "already", level: "A1", frequencyRank: 39 },
+  { category: "time", french: "pas encore", english: "not yet", level: "A1", frequencyRank: 40 },
+  { category: "time", french: "en retard", english: "late", level: "A1", frequencyRank: 41 },
+  { category: "time", french: "en avance", english: "early", level: "A1", frequencyRank: 42 },
+  { category: "time", french: "à l'heure", english: "on time", level: "A1", frequencyRank: 43 },
+  // Days of the week
+  { category: "time", french: "lundi", english: "Monday", notes: "no capital letter in French", level: "A1", frequencyRank: 44 },
+  { category: "time", french: "mardi", english: "Tuesday", level: "A1", frequencyRank: 45 },
+  { category: "time", french: "mercredi", english: "Wednesday", level: "A1", frequencyRank: 46 },
+  { category: "time", french: "jeudi", english: "Thursday", level: "A1", frequencyRank: 47 },
+  { category: "time", french: "vendredi", english: "Friday", level: "A1", frequencyRank: 48 },
+  { category: "time", french: "samedi", english: "Saturday", level: "A1", frequencyRank: 49 },
+  { category: "time", french: "dimanche", english: "Sunday", level: "A1", frequencyRank: 50 },
+  // Months
+  { category: "time", french: "janvier", english: "January", notes: "no capital letter in French", level: "A1", frequencyRank: 51 },
+  { category: "time", french: "février", english: "February", level: "A1", frequencyRank: 52 },
+  { category: "time", french: "mars", english: "March", level: "A1", frequencyRank: 53 },
+  { category: "time", french: "avril", english: "April", level: "A1", frequencyRank: 54 },
+  { category: "time", french: "mai", english: "May", level: "A1", frequencyRank: 55 },
+  { category: "time", french: "juin", english: "June", level: "A1", frequencyRank: 56 },
+  { category: "time", french: "juillet", english: "July", level: "A1", frequencyRank: 57 },
+  { category: "time", french: "août", english: "August", level: "A1", frequencyRank: 58 },
+  { category: "time", french: "septembre", english: "September", level: "A1", frequencyRank: 59 },
+  { category: "time", french: "octobre", english: "October", level: "A1", frequencyRank: 60 },
+  { category: "time", french: "novembre", english: "November", level: "A1", frequencyRank: 61 },
+  { category: "time", french: "décembre", english: "December", level: "A1", frequencyRank: 62 },
+  // Useful time phrases
+  { category: "time", french: "le week-end", english: "the weekend", level: "A1", frequencyRank: 63 },
+  { category: "time", french: "la semaine prochaine", english: "next week", level: "A1", frequencyRank: 64 },
+  { category: "time", french: "la semaine dernière", english: "last week", level: "A1", frequencyRank: 65 },
+  { category: "time", french: "le mois prochain", english: "next month", level: "A1", frequencyRank: 66 },
+  { category: "time", french: "l'année prochaine", english: "next year", level: "A1", frequencyRank: 67 },
+  { category: "time", french: "l'année dernière", english: "last year", level: "A1", frequencyRank: 68 },
+  { category: "time", french: "tous les jours", english: "every day", level: "A1", frequencyRank: 69 },
+  { category: "time", french: "chaque semaine", english: "every week", level: "A1", frequencyRank: 70 },
+  { category: "time", french: "pendant", english: "during / for (duration)", notes: "pendant deux heures = for two hours", level: "A1", frequencyRank: 71 },
+  { category: "time", french: "depuis", english: "since / for (ongoing)", notes: "depuis trois ans = for three years (and still)", level: "A2", frequencyRank: 72 },
+  { category: "time", french: "il y a", english: "ago", notes: "il y a deux jours = two days ago", level: "A2", frequencyRank: 73 },
+  { category: "time", french: "dans", english: "in (future)", notes: "dans une heure = in one hour", level: "A2", frequencyRank: 74 },
 ];
