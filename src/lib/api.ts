@@ -18,6 +18,14 @@ export async function getSettings() {
     preferredRegister: "all",
     ttsMode: "browser",
     ttsVoice: "alloy",
+    learningStage: "present",
+    activePhraseCategories: [
+      "article",
+      "number",
+      "question",
+      "greeting",
+      "phrase",
+    ],
     timezone: "UTC",
   });
   const fresh = await db.select().from(settings).where(eq(settings.id, 1)).limit(1);

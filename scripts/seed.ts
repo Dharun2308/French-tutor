@@ -1,12 +1,20 @@
 // Local seed script. Run with `npm run seed`.
 //
-// Idempotent:
-//   - Verbs: insert if not present, match by infinitive.
-//   - Conjugations: insert if not present, match by (verb_id, tense, person).
-//   - Cards: one per conjugation that doesn't already have one.
-//   - Settings: ensure the singleton row exists.
+// Idempotent: picks up from wherever the last run left off, and is safe to
+// re-run any time.
 //
-// Safe to re-run after adding new verbs — it won't reset SRS state.
+// Performance: this version does everything in bulk.
+//   1) One SELECT for all verbs → map by infinitive.
+//   2) One SELECT for all conjugations → set of (verbId,tense,person) keys.
+//   3) Batch INSERT for missing verbs (small).
+//   4) Re-SELECT verbs if any were inserted (so we have new IDs).
+//   5) Batch INSERT for missing conjugations (chunked at 200 rows).
+//   6) One SELECT for all conjugation IDs, one SELECT for all cards → diff
+//      the set, batch INSERT for missing cards.
+//   7) Ensure the singleton settings row exists.
+//
+// This replaces the old "await per row" approach which could take minutes
+// over a high-latency connection.
 
 import "dotenv/config";
 import { config as loadEnv } from "dotenv";
@@ -14,14 +22,23 @@ loadEnv({ path: ".env.local" });
 
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
-import { eq, and, isNull } from "drizzle-orm";
 import {
   verbs,
   conjugations,
   cards,
+  phrases,
   settings,
 } from "../src/lib/db/schema";
 import { build, runSanityChecks } from "../src/lib/seed/build";
+import { PHRASES } from "../src/lib/seed/phrases";
+
+const CHUNK = 200;
+
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+}
 
 async function main() {
   const url = process.env.TURSO_DATABASE_URL;
@@ -41,83 +58,160 @@ async function main() {
   console.log("→ Building verb seed…");
   const built = build();
   runSanityChecks(built);
-  console.log(`  Sanity checks passed. ${built.length} verbs, ${built.reduce((a, v) => a + v.conjugations.length, 0)} conjugations.`);
+  const totalConj = built.reduce((a, v) => a + v.conjugations.length, 0);
+  console.log(
+    `  Sanity checks passed. ${built.length} verbs, ${totalConj} conjugations.`
+  );
 
-  // Verbs
-  let verbsInserted = 0;
-  for (const v of built) {
-    const existing = await db
-      .select({ id: verbs.id })
-      .from(verbs)
-      .where(eq(verbs.infinitive, v.infinitive))
-      .limit(1);
-    if (existing.length === 0) {
-      await db.insert(verbs).values({
-        infinitive: v.infinitive,
-        english: v.english,
-        group: v.group,
-        level: v.level,
-        auxiliary: v.auxiliary,
-        frequencyRank: v.frequencyRank,
-      });
-      verbsInserted++;
-    }
+  // --- 1. Verbs ---
+  const existingVerbs = await db.select().from(verbs);
+  const verbIdByInfinitive = new Map<string, number>(
+    existingVerbs.map((v) => [v.infinitive, v.id])
+  );
+
+  const verbsToInsert = built
+    .filter((v) => !verbIdByInfinitive.has(v.infinitive))
+    .map((v) => ({
+      infinitive: v.infinitive,
+      english: v.english,
+      group: v.group,
+      level: v.level,
+      auxiliary: v.auxiliary,
+      frequencyRank: v.frequencyRank,
+    }));
+
+  if (verbsToInsert.length > 0) {
+    await db.insert(verbs).values(verbsToInsert);
+    console.log(`→ Verbs: inserted ${verbsToInsert.length} new.`);
+    // Re-read to pick up the new IDs.
+    const refreshed = await db.select().from(verbs);
+    verbIdByInfinitive.clear();
+    for (const v of refreshed) verbIdByInfinitive.set(v.infinitive, v.id);
+  } else {
+    console.log(`→ Verbs: all ${built.length} already present.`);
   }
-  console.log(`→ Verbs: ${verbsInserted} new, ${built.length - verbsInserted} existing.`);
 
-  // Conjugations
-  let conjInserted = 0;
+  // --- 2. Conjugations ---
+  const existingConj = await db
+    .select({
+      id: conjugations.id,
+      verbId: conjugations.verbId,
+      tense: conjugations.tense,
+      person: conjugations.person,
+    })
+    .from(conjugations);
+
+  const conjKey = (verbId: number, tense: string, person: string) =>
+    `${verbId}|${tense}|${person}`;
+  const existingConjSet = new Set(
+    existingConj.map((c) => conjKey(c.verbId, c.tense, c.person))
+  );
+
+  const conjToInsert: {
+    verbId: number;
+    tense: string;
+    person: string;
+    form: string;
+    isIrregular: boolean;
+  }[] = [];
+
   for (const v of built) {
-    const [row] = await db
-      .select({ id: verbs.id })
-      .from(verbs)
-      .where(eq(verbs.infinitive, v.infinitive))
-      .limit(1);
-    if (!row) continue;
-
+    const verbId = verbIdByInfinitive.get(v.infinitive);
+    if (!verbId) continue;
     for (const c of v.conjugations) {
-      const existing = await db
-        .select({ id: conjugations.id })
-        .from(conjugations)
-        .where(
-          and(
-            eq(conjugations.verbId, row.id),
-            eq(conjugations.tense, c.tense),
-            eq(conjugations.person, c.person)
-          )
-        )
-        .limit(1);
-      if (existing.length === 0) {
-        await db.insert(conjugations).values({
-          verbId: row.id,
-          tense: c.tense,
-          person: c.person,
-          form: c.form,
-          isIrregular: c.isIrregular,
-        });
-        conjInserted++;
-      }
+      if (existingConjSet.has(conjKey(verbId, c.tense, c.person))) continue;
+      conjToInsert.push({
+        verbId,
+        tense: c.tense,
+        person: c.person,
+        form: c.form,
+        isIrregular: c.isIrregular,
+      });
     }
   }
-  console.log(`→ Conjugations: ${conjInserted} new.`);
 
-  // Cards: one per conjugation (left join to find missing)
-  const missingCards = await db
-    .select({ id: conjugations.id })
-    .from(conjugations)
-    .leftJoin(cards, eq(cards.conjugationId, conjugations.id))
-    .where(isNull(cards.id));
-  let cardsInserted = 0;
-  for (const row of missingCards) {
-    await db.insert(cards).values({
-      conjugationId: row.id,
-    });
-    cardsInserted++;
+  if (conjToInsert.length > 0) {
+    let done = 0;
+    for (const batch of chunk(conjToInsert, CHUNK)) {
+      await db.insert(conjugations).values(batch);
+      done += batch.length;
+      process.stdout.write(
+        `\r→ Conjugations: ${done} / ${conjToInsert.length}`
+      );
+    }
+    console.log(`  ✓`);
+  } else {
+    console.log(`→ Conjugations: all ${totalConj} already present.`);
   }
-  console.log(`→ Cards: ${cardsInserted} new.`);
 
-  // Settings singleton
-  const existingSettings = await db.select().from(settings).limit(1);
+  // --- 3. Cards ---
+  const allConj = await db
+    .select({ id: conjugations.id })
+    .from(conjugations);
+  const existingCards = await db
+    .select({ conjugationId: cards.conjugationId })
+    .from(cards);
+  const existingCardConjIds = new Set(
+    existingCards.map((c) => c.conjugationId)
+  );
+
+  const cardsToInsert = allConj
+    .filter((c) => !existingCardConjIds.has(c.id))
+    .map((c) => ({ conjugationId: c.id }));
+
+  if (cardsToInsert.length > 0) {
+    let done = 0;
+    for (const batch of chunk(cardsToInsert, CHUNK)) {
+      await db.insert(cards).values(batch);
+      done += batch.length;
+      process.stdout.write(
+        `\r→ Cards: ${done} / ${cardsToInsert.length}`
+      );
+    }
+    console.log(`  ✓`);
+  } else {
+    console.log(`→ Cards: all ${allConj.length} already present.`);
+  }
+
+  // --- 4. Phrases (articles, numbers, greetings, etc.) ---
+  const existingPhrases = await db
+    .select({
+      id: phrases.id,
+      french: phrases.french,
+      category: phrases.category,
+    })
+    .from(phrases);
+  const phraseKey = (french: string, category: string) =>
+    `${category}|${french}`;
+  const existingPhraseSet = new Set(
+    existingPhrases.map((p) => phraseKey(p.french, p.category))
+  );
+
+  const phrasesToInsert = PHRASES.filter(
+    (p) => !existingPhraseSet.has(phraseKey(p.french, p.category))
+  ).map((p) => ({
+    category: p.category,
+    french: p.french,
+    english: p.english,
+    notes: p.notes ?? null,
+    level: p.level,
+    frequencyRank: p.frequencyRank,
+  }));
+
+  if (phrasesToInsert.length > 0) {
+    let done = 0;
+    for (const batch of chunk(phrasesToInsert, CHUNK)) {
+      await db.insert(phrases).values(batch);
+      done += batch.length;
+      process.stdout.write(`\r→ Phrases: ${done} / ${phrasesToInsert.length}`);
+    }
+    console.log(`  ✓`);
+  } else {
+    console.log(`→ Phrases: all ${PHRASES.length} already present.`);
+  }
+
+  // --- 5. Settings ---
+  const existingSettings = await db.select().from(settings);
   if (existingSettings.length === 0) {
     await db.insert(settings).values({
       id: 1,
@@ -125,6 +219,16 @@ async function main() {
       activeTenses: ["present"],
       activeLevels: ["A1"],
       preferredRegister: "all",
+      ttsMode: "browser",
+      ttsVoice: "alloy",
+      learningStage: "present",
+      activePhraseCategories: [
+        "article",
+        "number",
+        "question",
+        "greeting",
+        "phrase",
+      ],
       timezone: "UTC",
     });
     console.log("→ Settings: singleton row created.");

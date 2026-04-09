@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Check, Loader2, Volume2 } from "lucide-react";
+import { Check, Loader2, Sparkles, Volume2 } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -15,7 +15,19 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useTts } from "@/components/tts-provider";
 import { speak } from "@/lib/client-tts";
-import { TENSES, TENSE_LABELS, LEVELS, type Tense, type Level } from "@/types";
+import {
+  TENSES,
+  TENSE_LABELS,
+  LEVELS,
+  LEARNING_STAGES,
+  STAGE_PRESETS,
+  PHRASE_CATEGORIES,
+  PHRASE_CATEGORY_LABELS,
+  type Tense,
+  type Level,
+  type LearningStage,
+  type PhraseCategory,
+} from "@/types";
 
 const VOICES = [
   "alloy",
@@ -39,6 +51,8 @@ interface Settings {
   modelOverride: string | null;
   ttsMode: TtsMode;
   ttsVoice: string;
+  learningStage: LearningStage;
+  activePhraseCategories: PhraseCategory[];
   timezone: string;
 }
 
@@ -59,16 +73,42 @@ export default function SettingsPage() {
       const data = await res.json();
       setSettings({
         dailyTarget: data.dailyTarget,
-        activeTenses: data.activeTenses,
+        activeTenses: data.activeTenses ?? [],
         activeLevels: data.activeLevels,
         preferredRegister: data.preferredRegister,
         modelOverride: data.modelOverride,
         ttsMode: data.ttsMode ?? "browser",
         ttsVoice: data.ttsVoice ?? "alloy",
+        learningStage: data.learningStage ?? "present",
+        activePhraseCategories:
+          data.activePhraseCategories ?? [
+            "article",
+            "number",
+            "question",
+            "greeting",
+            "phrase",
+          ],
         timezone: data.timezone,
       });
     })();
   }, []);
+
+  // Apply a preset from the Learning Stage selector. Overwrites tenses,
+  // levels, and phrase categories in one go.
+  const applyStage = (stage: LearningStage) => {
+    const preset = STAGE_PRESETS[stage];
+    setSettings((s) =>
+      s
+        ? {
+            ...s,
+            learningStage: stage,
+            activeTenses: preset.activeTenses,
+            activeLevels: preset.activeLevels,
+            activePhraseCategories: preset.activePhraseCategories,
+          }
+        : s
+    );
+  };
 
   const save = async () => {
     if (!settings) return;
@@ -138,6 +178,16 @@ export default function SettingsPage() {
     });
   };
 
+  const togglePhraseCategory = (cat: PhraseCategory) => {
+    setSettings((s) => {
+      if (!s) return s;
+      const active = s.activePhraseCategories.includes(cat)
+        ? s.activePhraseCategories.filter((x) => x !== cat)
+        : [...s.activePhraseCategories, cat];
+      return { ...s, activePhraseCategories: active };
+    });
+  };
+
   return (
     <div className="container max-w-2xl py-8">
       <div className="mb-8">
@@ -148,6 +198,58 @@ export default function SettingsPage() {
       </div>
 
       <div className="space-y-6">
+        <Card className="border-primary/30 bg-primary/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5" />
+              Where are you in your French journey?
+            </CardTitle>
+            <CardDescription>
+              Pick the stage that best matches what you&apos;ve learned so far.
+              This configures tenses, levels, and foundation categories in one
+              click. You can still fine-tune each below.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {LEARNING_STAGES.map((stage) => {
+                const preset = STAGE_PRESETS[stage];
+                const active = settings.learningStage === stage;
+                return (
+                  <button
+                    key={stage}
+                    type="button"
+                    onClick={() => applyStage(stage)}
+                    className={cn(
+                      "rounded-lg border p-3 text-left transition-all",
+                      active
+                        ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                        : "border-input bg-background hover:border-primary/50 hover:bg-accent"
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold">{preset.label}</span>
+                      {active && <Check className="h-4 w-4" />}
+                    </div>
+                    <p
+                      className={cn(
+                        "mt-1 text-xs leading-relaxed",
+                        active ? "opacity-80" : "text-muted-foreground"
+                      )}
+                    >
+                      {preset.description}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Tip: start one stage below where you feel — the SRS will quickly
+              surface what you already know and let you move up.
+            </p>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Daily target</CardTitle>
@@ -179,7 +281,9 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle>Active tenses</CardTitle>
             <CardDescription>
-              Only forms in these tenses will appear in practice.
+              Only verb forms in these tenses will appear in verb practice
+              modes. Leave empty to skip verb practice entirely (Newcomer /
+              Foundations stage).
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -194,6 +298,33 @@ export default function SettingsPage() {
                     onClick={() => toggleTense(t)}
                   >
                     {TENSE_LABELS[t]}
+                  </Button>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Foundation categories</CardTitle>
+            <CardDescription>
+              Non-verb content for the Phrases practice mode: articles,
+              numbers, question words, greetings, and common phrases.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {PHRASE_CATEGORIES.map((c) => {
+                const active = settings.activePhraseCategories.includes(c);
+                return (
+                  <Button
+                    key={c}
+                    variant={active ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => togglePhraseCategory(c)}
+                  >
+                    {PHRASE_CATEGORY_LABELS[c]}
                   </Button>
                 );
               })}

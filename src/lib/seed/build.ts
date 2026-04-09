@@ -123,6 +123,72 @@ const EXPECTATIONS: Expect[] = [
   // arriver — être aux, regular -er
   { infinitive: "arriver", tense: "passe_compose", person: "1s", form: "suis arrivé" },
   { infinitive: "arriver", tense: "passe_compose", person: "1p", form: "sommes arrivés" },
+
+  // ----- Cheatsheet additions -----
+
+  // devoir — irregular, stem change
+  { infinitive: "devoir", tense: "present", person: "1s", form: "dois" },
+  { infinitive: "devoir", tense: "present", person: "3p", form: "doivent" },
+  { infinitive: "devoir", tense: "futur_simple", person: "1s", form: "devrai" },
+  { infinitive: "devoir", tense: "passe_compose", person: "1s", form: "ai dû" },
+
+  // descendre — -re, être aux
+  { infinitive: "descendre", tense: "present", person: "1s", form: "descends" },
+  { infinitive: "descendre", tense: "present", person: "3s", form: "descend" },
+  { infinitive: "descendre", tense: "futur_simple", person: "1s", form: "descendrai" },
+  { infinitive: "descendre", tense: "passe_compose", person: "1s", form: "suis descendu" },
+
+  // acheter — e → è stem change
+  { infinitive: "acheter", tense: "present", person: "1s", form: "achète" },
+  { infinitive: "acheter", tense: "present", person: "1p", form: "achetons" },
+  { infinitive: "acheter", tense: "present", person: "3p", form: "achètent" },
+  { infinitive: "acheter", tense: "futur_simple", person: "1s", form: "achèterai" },
+  { infinitive: "acheter", tense: "imparfait", person: "1p", form: "achetions" },
+
+  // payer — y → i variant
+  { infinitive: "payer", tense: "present", person: "1s", form: "paie" },
+  { infinitive: "payer", tense: "present", person: "1p", form: "payons" },
+  { infinitive: "payer", tense: "present", person: "3p", form: "paient" },
+  { infinitive: "payer", tense: "futur_simple", person: "1s", form: "paierai" },
+
+  // More regular -er
+  { infinitive: "jouer", tense: "present", person: "1p", form: "jouons" },
+  { infinitive: "chanter", tense: "present", person: "3p", form: "chantent" },
+  { infinitive: "porter", tense: "passe_compose", person: "1s", form: "ai porté" },
+
+  // se réveiller — reflexive, consonant start
+  { infinitive: "se réveiller", tense: "present", person: "1s", form: "me réveille" },
+  { infinitive: "se réveiller", tense: "present", person: "2s", form: "te réveilles" },
+  { infinitive: "se réveiller", tense: "present", person: "3s", form: "se réveille" },
+  { infinitive: "se réveiller", tense: "present", person: "1p", form: "nous réveillons" },
+  { infinitive: "se réveiller", tense: "present", person: "3p", form: "se réveillent" },
+  { infinitive: "se réveiller", tense: "passe_compose", person: "1s", form: "me suis réveillé" },
+  { infinitive: "se réveiller", tense: "passe_compose", person: "2s", form: "t'es réveillé" },
+  { infinitive: "se réveiller", tense: "passe_compose", person: "3s", form: "s'est réveillé" },
+  { infinitive: "se réveiller", tense: "passe_compose", person: "1p", form: "nous sommes réveillés" },
+  { infinitive: "se réveiller", tense: "futur_simple", person: "1s", form: "me réveillerai" },
+  { infinitive: "se réveiller", tense: "futur_proche", person: "1s", form: "vais me réveiller" },
+
+  // s'habiller — reflexive, vowel start (silent h) → elision everywhere
+  { infinitive: "s'habiller", tense: "present", person: "1s", form: "m'habille" },
+  { infinitive: "s'habiller", tense: "present", person: "2s", form: "t'habilles" },
+  { infinitive: "s'habiller", tense: "present", person: "3s", form: "s'habille" },
+  { infinitive: "s'habiller", tense: "present", person: "1p", form: "nous habillons" },
+  { infinitive: "s'habiller", tense: "present", person: "3p", form: "s'habillent" },
+  { infinitive: "s'habiller", tense: "passe_compose", person: "1s", form: "me suis habillé" },
+  { infinitive: "s'habiller", tense: "passe_compose", person: "2s", form: "t'es habillé" },
+  { infinitive: "s'habiller", tense: "passe_compose", person: "3s", form: "s'est habillé" },
+  { infinitive: "s'habiller", tense: "futur_proche", person: "1s", form: "vais m'habiller" },
+
+  // se coucher — reflexive, consonant start
+  { infinitive: "se coucher", tense: "present", person: "1s", form: "me couche" },
+  { infinitive: "se coucher", tense: "passe_compose", person: "3s", form: "s'est couché" },
+
+  // More -ir/-iss
+  { infinitive: "réussir", tense: "present", person: "1p", form: "réussissons" },
+  { infinitive: "réfléchir", tense: "present", person: "1s", form: "réfléchis" },
+  { infinitive: "réfléchir", tense: "present", person: "3p", form: "réfléchissent" },
+  { infinitive: "obéir", tense: "present", person: "1s", form: "obéis" },
 ];
 
 export function runSanityChecks(built: BuiltVerb[]): void {

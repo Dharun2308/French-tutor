@@ -21,6 +21,7 @@ export type VerbPattern =
   | "er" // parler
   | "er_ger" // manger (keep 'e' before a/o)
   | "er_ier" // étudier (double 'i' in imparfait nous/vous)
+  | "er_reflexive" // se réveiller, s'habiller, se coucher
   | "ir_iss" // finir, choisir
   | "irregular"; // full control via overrides
 
@@ -193,9 +194,102 @@ function futurProche(infinitive: string): SixForms {
   return six(ALLER_PRESENT.map((a) => `${a} ${infinitive}`));
 }
 
+// ---- Reflexive verbs (se réveiller, s'habiller, etc.) ----
+
+const REFLEXIVE_PRONOUNS: SixForms = ["me", "te", "se", "nous", "vous", "se"];
+
+function startsWithVowelOrSilentH(s: string): boolean {
+  const first = s.trimStart().charAt(0).toLowerCase();
+  return "aeiouyéèêâàôîïëüh".includes(first);
+}
+
+/**
+ * Join a reflexive pronoun with whatever comes next, applying elision for
+ * me/te/se before a vowel or silent h (me → m', te → t', se → s').
+ */
+function joinReflexive(pronoun: string, next: string): string {
+  const elidable = pronoun === "me" || pronoun === "te" || pronoun === "se";
+  if (elidable && startsWithVowelOrSilentH(next)) {
+    return pronoun.slice(0, -1) + "'" + next;
+  }
+  return pronoun + " " + next;
+}
+
+function stripReflexivePrefix(infinitive: string): string {
+  if (infinitive.startsWith("s'")) return infinitive.slice(2);
+  if (infinitive.startsWith("se ")) return infinitive.slice(3);
+  return infinitive;
+}
+
+function conjugateReflexive(verb: VerbDef): ConjugationRow[] {
+  const bareInf = stripReflexivePrefix(verb.infinitive);
+
+  // Assume the bare verb is regular -er unless the def provides overrides.
+  const barePresent = verb.present ?? presentGroup1(bareInf);
+  const bareImparfait = verb.imparfait ?? imparfaitFromNous(barePresent[3]);
+  const bareFuturStem = verb.futurStem ?? defaultFuturStem(bareInf);
+  const bareFutur = futurFromStem(bareFuturStem);
+  const bareCond = conditionnelFromStem(bareFuturStem);
+  const barePastParticiple = verb.pastParticiple ?? bareInf.slice(0, -2) + "é";
+
+  // Simple tenses: reflexive pronoun + conjugated form
+  const refPresent = six(
+    REFLEXIVE_PRONOUNS.map((p, i) => joinReflexive(p, barePresent[i]))
+  );
+  const refImparfait = six(
+    REFLEXIVE_PRONOUNS.map((p, i) => joinReflexive(p, bareImparfait[i]))
+  );
+  const refFutur = six(
+    REFLEXIVE_PRONOUNS.map((p, i) => joinReflexive(p, bareFutur[i]))
+  );
+  const refCond = six(
+    REFLEXIVE_PRONOUNS.map((p, i) => joinReflexive(p, bareCond[i]))
+  );
+
+  // Passé composé: reflexive verbs always take être. Masculine agreement;
+  // plural participle for nous/vous/ils to match the seed's conventions.
+  // Elision happens per être form: "t'es", "s'est" (vowel-initial aux) but
+  // "me suis", "nous sommes", "vous êtes", "se sont" otherwise.
+  const refPasse = six(
+    REFLEXIVE_PRONOUNS.map((p, i) => {
+      const aux = ETRE_PRESENT[i];
+      const participle =
+        i >= 3 ? barePastParticiple + "s" : barePastParticiple;
+      return joinReflexive(p, `${aux} ${participle}`);
+    })
+  );
+
+  // Futur proche: aller(present) + reflexive pronoun + infinitive
+  // "je vais me réveiller" / "je vais m'habiller"
+  const refFuturProche = six(
+    ALLER_PRESENT.map((a, i) => {
+      const p = REFLEXIVE_PRONOUNS[i];
+      return `${a} ${joinReflexive(p, bareInf)}`;
+    })
+  );
+
+  const rows: ConjugationRow[] = [];
+  for (let i = 0; i < 6; i++) {
+    const person = PERSONS[i];
+    rows.push({ tense: "present", person, form: refPresent[i], isIrregular: false });
+    rows.push({ tense: "imparfait", person, form: refImparfait[i], isIrregular: false });
+    rows.push({ tense: "passe_compose", person, form: refPasse[i], isIrregular: true });
+    rows.push({ tense: "futur_proche", person, form: refFuturProche[i], isIrregular: false });
+    rows.push({ tense: "futur_simple", person, form: refFutur[i], isIrregular: false });
+    rows.push({ tense: "conditionnel", person, form: refCond[i], isIrregular: false });
+  }
+  return rows;
+}
+
 // ---- Main entry point ----
 
 export function conjugate(verb: VerbDef): ConjugationRow[] {
+  // Reflexive verbs have a completely different structure (pronoun +
+  // verb, être auxiliary, elision). Handle them in a dedicated helper.
+  if (verb.pattern === "er_reflexive") {
+    return conjugateReflexive(verb);
+  }
+
   let present: SixForms;
   let imparfait: SixForms;
   let futurStem: string;
@@ -281,7 +375,8 @@ export function conjugate(verb: VerbDef): ConjugationRow[] {
 }
 
 export function groupFromPattern(p: VerbPattern): "1" | "2" | "irregular" {
-  if (p === "er" || p === "er_ger" || p === "er_ier") return "1";
+  if (p === "er" || p === "er_ger" || p === "er_ier" || p === "er_reflexive")
+    return "1";
   if (p === "ir_iss") return "2";
   return "irregular";
 }

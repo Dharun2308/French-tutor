@@ -114,12 +114,64 @@ export const settings = sqliteTable("settings", {
   // "browser" (Web Speech API) or "openai" (gpt-4o-mini-tts)
   ttsMode: text("tts_mode").notNull().default("browser"),
   ttsVoice: text("tts_voice").notNull().default("alloy"),
+  // "newcomer" | "foundations" | "present" | "past" | "advanced"
+  // UI-only concept; selecting a stage presets activeTenses + activePhraseCategories.
+  learningStage: text("learning_stage").notNull().default("present"),
+  // Which phrase categories to include in phrases practice.
+  // Default as a string literal so it's a constant (SQLite won't ALTER TABLE
+  // ADD COLUMN with a non-constant default like json_array(...)).
+  activePhraseCategories: text("active_phrase_categories", { mode: "json" })
+    .$type<string[]>()
+    .notNull()
+    .default(
+      sql`'["article","number","question","greeting","phrase"]'`
+    ),
   // IANA timezone, e.g. "America/Los_Angeles"
   timezone: text("timezone").notNull().default("UTC"),
   updatedAt: integer("updated_at", { mode: "timestamp_ms" })
     .notNull()
     .default(sql`(unixepoch() * 1000)`),
 });
+
+// ---------- phrases ----------
+// Foundational content that isn't verb-conjugation: articles, numbers,
+// alphabet, question words, greetings, common phrases. SRS state lives
+// directly on the row because it's a 1:1 relationship (unlike verbs which
+// have 36 conjugations each).
+export const phrases = sqliteTable(
+  "phrases",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    // "article" | "number" | "alphabet" | "question" | "greeting" | "phrase"
+    category: text("category").notNull(),
+    french: text("french").notNull(),
+    english: text("english").notNull(),
+    notes: text("notes"),
+    level: text("level").notNull(),
+    frequencyRank: integer("frequency_rank").notNull().default(999),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch() * 1000)`),
+    // SRS state (same SM-2 math as cards)
+    easeFactor: integer("ease_factor_x100").notNull().default(250),
+    intervalDays: integer("interval_days").notNull().default(0),
+    repetitions: integer("repetitions").notNull().default(0),
+    nextReviewAt: integer("next_review_at", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch() * 1000)`),
+    lastReviewedAt: integer("last_reviewed_at", { mode: "timestamp_ms" }),
+    correctCount: integer("correct_count").notNull().default(0),
+    wrongCount: integer("wrong_count").notNull().default(0),
+    suspended: integer("suspended", { mode: "boolean" })
+      .notNull()
+      .default(false),
+  },
+  (t) => ({
+    categoryIdx: index("phrases_category_idx").on(t.category),
+    dueIdx: index("phrases_due_idx").on(t.nextReviewAt, t.suspended),
+    uniq: uniqueIndex("phrases_french_category_idx").on(t.french, t.category),
+  })
+);
 
 // ---------- sentence_examples (AI cache) ----------
 export const sentenceExamples = sqliteTable(
@@ -157,4 +209,6 @@ export type Card = typeof cards.$inferSelect;
 export type NewCard = typeof cards.$inferInsert;
 export type Session = typeof sessions.$inferSelect;
 export type Settings = typeof settings.$inferSelect;
+export type Phrase = typeof phrases.$inferSelect;
+export type NewPhrase = typeof phrases.$inferInsert;
 export type SentenceExample = typeof sentenceExamples.$inferSelect;

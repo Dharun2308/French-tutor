@@ -7,13 +7,19 @@ import { z } from "zod";
 import { db } from "@/lib/db/client";
 import { settings } from "@/lib/db/schema";
 import { getSettings, jsonError, jsonOk } from "@/lib/api";
-import { TENSES, LEVELS } from "@/types";
+import {
+  TENSES,
+  LEVELS,
+  PHRASE_CATEGORIES,
+  LEARNING_STAGES,
+} from "@/types";
 
 export const runtime = "nodejs";
 
 const UpdateBody = z.object({
   dailyTarget: z.number().int().min(1).max(500).optional(),
-  activeTenses: z.array(z.enum(TENSES)).min(1).optional(),
+  // activeTenses can be empty now (Newcomer / Foundations stages have no verbs).
+  activeTenses: z.array(z.enum(TENSES)).optional(),
   activeLevels: z.array(z.enum(LEVELS)).min(1).optional(),
   preferredRegister: z.enum(["formal", "neutral", "informal", "all"]).optional(),
   modelOverride: z.string().max(64).nullable().optional(),
@@ -21,6 +27,8 @@ const UpdateBody = z.object({
   ttsVoice: z
     .enum(["alloy", "ash", "ballad", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer"])
     .optional(),
+  learningStage: z.enum(LEARNING_STAGES).optional(),
+  activePhraseCategories: z.array(z.enum(PHRASE_CATEGORIES)).optional(),
   timezone: z.string().max(64).optional(),
 });
 
@@ -52,6 +60,9 @@ export async function PUT(req: NextRequest) {
   if (patch.modelOverride !== undefined) update.modelOverride = patch.modelOverride;
   if (patch.ttsMode !== undefined) update.ttsMode = patch.ttsMode;
   if (patch.ttsVoice !== undefined) update.ttsVoice = patch.ttsVoice;
+  if (patch.learningStage !== undefined) update.learningStage = patch.learningStage;
+  if (patch.activePhraseCategories !== undefined)
+    update.activePhraseCategories = patch.activePhraseCategories;
   if (patch.timezone !== undefined) update.timezone = patch.timezone;
 
   await db.update(settings).set(update).where(eq(settings.id, 1));

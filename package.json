@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "tsx scripts/seed.ts",
+    "check": "tsx scripts/check.ts",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"
   },

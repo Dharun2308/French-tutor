@@ -7,6 +7,7 @@ import {
   ListChecks,
   Sparkles,
   AlertCircle,
+  Hash,
 } from "lucide-react";
 import {
   Card,
@@ -24,6 +25,12 @@ interface Stats {
   dueNow: number;
   dueTodayTotal: number;
   totalActive: number;
+  dueNowVerb: number;
+  dueTodayVerb: number;
+  totalActiveVerb: number;
+  dueNowPhrase: number;
+  dueTodayPhrase: number;
+  totalActivePhrase: number;
   dailyTarget: number;
   retention: number;
   correctTotal: number;
@@ -31,35 +38,57 @@ interface Stats {
   weakest: Array<{ verbId: number; infinitive: string; english: string; wrong: number; correct: number }>;
   activeTenses: string[];
   activeLevels: string[];
+  activePhraseCategories: string[];
+  learningStage: string;
   timezone: string;
 }
 
-const MODES = [
+type Mode = {
+  href: string;
+  title: string;
+  description: string;
+  icon: typeof BookOpen;
+  kind: "verb" | "phrase";
+};
+
+const VERB_MODES: Mode[] = [
   {
     href: "/practice/drill",
     title: "Fill-in-the-blank",
     description: "Type the correct conjugation.",
     icon: BookOpen,
+    kind: "verb",
   },
   {
     href: "/practice/flashcards",
     title: "Flashcards",
     description: "Reveal and rate how well you knew it.",
     icon: Sparkles,
+    kind: "verb",
   },
   {
     href: "/practice/multiple-choice",
     title: "Multiple choice",
     description: "Pick the right form from four options.",
     icon: ListChecks,
+    kind: "verb",
   },
   {
     href: "/practice/sentence",
     title: "AI sentence builder",
     description: "Translate with formal / neutral / informal variants.",
     icon: MessageSquare,
+    kind: "verb",
   },
 ];
+
+const PHRASE_MODE: Mode = {
+  href: "/practice/phrases",
+  title: "Foundations",
+  description: "Articles, numbers, question words, greetings, common phrases.",
+  icon: Hash,
+  kind: "phrase",
+};
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -199,44 +228,116 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <div className="mt-6 flex flex-wrap gap-2">
-        <div className="text-sm text-muted-foreground">Active:</div>
-        {stats.activeTenses.map((t) => (
-          <Badge key={t} variant="secondary">
-            {t}
-          </Badge>
-        ))}
-        {stats.activeLevels.map((l) => (
-          <Badge key={l} variant="outline">
-            {l}
-          </Badge>
-        ))}
+      <div className="mt-6 flex flex-wrap items-center gap-2">
+        <div className="text-sm text-muted-foreground">Stage:</div>
+        <Badge variant="default" className="capitalize">
+          {stats.learningStage.replace(/_/g, " ")}
+        </Badge>
+        {stats.activeTenses.length > 0 && (
+          <>
+            <div className="ml-2 text-sm text-muted-foreground">Tenses:</div>
+            {stats.activeTenses.map((t) => (
+              <Badge key={t} variant="secondary">
+                {t}
+              </Badge>
+            ))}
+          </>
+        )}
+        {stats.activePhraseCategories.length > 0 && (
+          <>
+            <div className="ml-2 text-sm text-muted-foreground">Foundations:</div>
+            {stats.activePhraseCategories.map((c) => (
+              <Badge key={c} variant="outline">
+                {c}
+              </Badge>
+            ))}
+          </>
+        )}
         <Button variant="link" size="sm" asChild className="h-6 px-2">
           <Link href="/settings">Edit</Link>
         </Button>
       </div>
 
-      <h2 className="mt-10 text-lg font-semibold tracking-tight">
-        Practice modes
-      </h2>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        {MODES.map((m) => {
-          const Icon = m.icon;
-          return (
-            <Link key={m.href} href={m.href} className="group">
-              <Card className="h-full transition-all group-hover:border-primary/50 group-hover:shadow-md">
-                <CardHeader>
-                  <div className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-secondary">
-                    <Icon className="h-5 w-5" />
+      {stats.totalActivePhrase > 0 && (
+        <>
+          <h2 className="mt-10 text-lg font-semibold tracking-tight">
+            Foundations
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Non-verb vocab: articles, numbers, questions, greetings, phrases.
+            {stats.dueNowPhrase > 0 && (
+              <> <span className="text-foreground font-medium">{stats.dueNowPhrase}</span> due now.</>
+            )}
+          </p>
+          <div className="mt-4">
+            <Link href={PHRASE_MODE.href} className="group">
+              <Card className="transition-all group-hover:border-primary/50 group-hover:shadow-md">
+                <CardHeader className="flex flex-row items-center gap-4">
+                  <div className="inline-flex h-12 w-12 items-center justify-center rounded-lg bg-secondary">
+                    <PHRASE_MODE.icon className="h-6 w-6" />
                   </div>
-                  <CardTitle>{m.title}</CardTitle>
-                  <CardDescription>{m.description}</CardDescription>
+                  <div className="flex-1">
+                    <CardTitle>{PHRASE_MODE.title}</CardTitle>
+                    <CardDescription>{PHRASE_MODE.description}</CardDescription>
+                  </div>
+                  <Badge
+                    variant={stats.dueNowPhrase > 0 ? "default" : "outline"}
+                  >
+                    {stats.dueNowPhrase} due
+                  </Badge>
                 </CardHeader>
               </Card>
             </Link>
-          );
-        })}
-      </div>
+          </div>
+        </>
+      )}
+
+      {stats.totalActiveVerb > 0 && (
+        <>
+          <h2 className="mt-10 text-lg font-semibold tracking-tight">
+            Verb practice
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Conjugation drills.
+            {stats.dueNowVerb > 0 && (
+              <> <span className="text-foreground font-medium">{stats.dueNowVerb}</span> due now.</>
+            )}
+          </p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            {VERB_MODES.map((m) => {
+              const Icon = m.icon;
+              return (
+                <Link key={m.href} href={m.href} className="group">
+                  <Card className="h-full transition-all group-hover:border-primary/50 group-hover:shadow-md">
+                    <CardHeader>
+                      <div className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-secondary">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <CardTitle>{m.title}</CardTitle>
+                      <CardDescription>{m.description}</CardDescription>
+                    </CardHeader>
+                  </Card>
+                </Link>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {stats.totalActiveVerb === 0 && stats.totalActivePhrase === 0 && (
+        <Card className="mt-10 border-primary/30 bg-primary/5">
+          <CardHeader>
+            <CardTitle>Nothing active yet</CardTitle>
+            <CardDescription>
+              Head to{" "}
+              <Link href="/settings" className="underline">
+                Settings
+              </Link>{" "}
+              and pick a Learning Stage to get started.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
 
       {stats.weakest.length > 0 && (
         <div className="mt-10">

@@ -429,4 +429,243 @@ export const VERBS: VerbDef[] = [
     auxiliary: "avoir",
     frequencyRank: 40,
   },
+
+  // ==========================================================
+  // Additions from the cheatsheet
+  // ==========================================================
+
+  // ----- More irregulars -----
+  {
+    infinitive: "devoir",
+    english: "to have to / must",
+    pattern: "irregular",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 41,
+    present: ["dois", "dois", "doit", "devons", "devez", "doivent"],
+    futurStem: "devr",
+    pastParticiple: "dû",
+  },
+  {
+    infinitive: "descendre",
+    english: "to go down",
+    pattern: "irregular",
+    level: "A2",
+    auxiliary: "etre",
+    frequencyRank: 42,
+    present: [
+      "descends",
+      "descends",
+      "descend",
+      "descendons",
+      "descendez",
+      "descendent",
+    ],
+    // futurStem default = "descendr" ✓
+    pastParticiple: "descendu",
+  },
+
+  // ----- More regular -er -----
+  {
+    infinitive: "dîner",
+    english: "to dine",
+    pattern: "er",
+    level: "A1",
+    auxiliary: "avoir",
+    frequencyRank: 43,
+  },
+  {
+    infinitive: "chanter",
+    english: "to sing",
+    pattern: "er",
+    level: "A1",
+    auxiliary: "avoir",
+    frequencyRank: 44,
+  },
+  {
+    infinitive: "danser",
+    english: "to dance",
+    pattern: "er",
+    level: "A1",
+    auxiliary: "avoir",
+    frequencyRank: 45,
+  },
+  {
+    infinitive: "jouer",
+    english: "to play",
+    pattern: "er",
+    level: "A1",
+    auxiliary: "avoir",
+    frequencyRank: 46,
+  },
+  {
+    infinitive: "demander",
+    english: "to ask",
+    pattern: "er",
+    level: "A1",
+    auxiliary: "avoir",
+    frequencyRank: 47,
+  },
+  {
+    infinitive: "porter",
+    english: "to wear / to carry",
+    pattern: "er",
+    level: "A1",
+    auxiliary: "avoir",
+    frequencyRank: 48,
+  },
+
+  // ----- Quirky -er: stem changes and y→i -----
+  {
+    // e → è in stressed syllables (singular + 3rd plural). The futur stem
+    // keeps the è: achèterai, achèteras, etc.
+    infinitive: "acheter",
+    english: "to buy",
+    pattern: "irregular",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 49,
+    present: ["achète", "achètes", "achète", "achetons", "achetez", "achètent"],
+    // imparfait default from "achetons" → "achet-" → achetais, achetions, etc. ✓
+    futurStem: "achèter",
+    pastParticiple: "acheté",
+  },
+  {
+    // y → i in singular + 3rd plural. Both forms (je paye/je paie) are
+    // accepted; we use the more common "i" variant.
+    infinitive: "payer",
+    english: "to pay",
+    pattern: "irregular",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 50,
+    present: ["paie", "paies", "paie", "payons", "payez", "paient"],
+    // imparfait from "payons" → "pay-" → payais, payions, etc. ✓
+    futurStem: "paier",
+    pastParticiple: "payé",
+  },
+
+  // ----- Reflexive -er -----
+  {
+    infinitive: "se réveiller",
+    english: "to wake up",
+    pattern: "er_reflexive",
+    level: "A2",
+    auxiliary: "etre",
+    frequencyRank: 51,
+  },
+  {
+    infinitive: "se coucher",
+    english: "to go to bed",
+    pattern: "er_reflexive",
+    level: "A2",
+    auxiliary: "etre",
+    frequencyRank: 52,
+  },
+  {
+    infinitive: "s'habiller",
+    english: "to get dressed",
+    pattern: "er_reflexive",
+    level: "A2",
+    auxiliary: "etre",
+    frequencyRank: 53,
+  },
+
+  // ----- More group 2 -ir/-iss- -----
+  {
+    infinitive: "réussir",
+    english: "to succeed",
+    pattern: "ir_iss",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 54,
+  },
+  {
+    infinitive: "grandir",
+    english: "to grow up",
+    pattern: "ir_iss",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 55,
+  },
+  {
+    infinitive: "grossir",
+    english: "to gain weight",
+    pattern: "ir_iss",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 56,
+  },
+  {
+    infinitive: "maigrir",
+    english: "to lose weight",
+    pattern: "ir_iss",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 57,
+  },
+  {
+    infinitive: "rougir",
+    english: "to blush",
+    pattern: "ir_iss",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 58,
+  },
+  {
+    infinitive: "obéir",
+    english: "to obey",
+    pattern: "ir_iss",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 59,
+  },
+  {
+    infinitive: "réfléchir",
+    english: "to reflect / to think",
+    pattern: "ir_iss",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 60,
+  },
+  {
+    infinitive: "remplir",
+    english: "to fill",
+    pattern: "ir_iss",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 61,
+  },
+  {
+    infinitive: "punir",
+    english: "to punish",
+    pattern: "ir_iss",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 62,
+  },
+  {
+    infinitive: "bâtir",
+    english: "to build",
+    pattern: "ir_iss",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 63,
+  },
+  {
+    infinitive: "guérir",
+    english: "to heal / to cure",
+    pattern: "ir_iss",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 64,
+  },
+  {
+    infinitive: "applaudir",
+    english: "to applaud",
+    pattern: "ir_iss",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 65,
+  },
 ];
