@@ -74,6 +74,10 @@ export const PHRASE_CATEGORIES = [
   "country",
   "city",
   "time",
+  "fill_article",
+  "fill_preposition",
+  "fill_question",
+  "fill_phrase",
 ] as const;
 export type PhraseCategory = (typeof PHRASE_CATEGORIES)[number];
 
@@ -87,7 +91,19 @@ export const PHRASE_CATEGORY_LABELS: Record<PhraseCategory, string> = {
   country: "Countries & prepositions",
   city: "Cities",
   time: "Time expressions",
+  fill_article: "Fill: Articles",
+  fill_preposition: "Fill: Prepositions",
+  fill_question: "Fill: Questions",
+  fill_phrase: "Fill: Phrases",
 };
+
+/** Categories that are fill-in-the-blank exercises (not flashcard-style). */
+export const FILL_BLANK_CATEGORIES: PhraseCategory[] = [
+  "fill_article",
+  "fill_preposition",
+  "fill_question",
+  "fill_phrase",
+];
 
 export const LEARNING_STAGES = [
   "newcomer",
@@ -122,10 +138,10 @@ export const STAGE_PRESETS: Record<LearningStage, StagePreset> = {
   foundations: {
     label: "Foundations",
     description:
-      "Basic vocabulary: articles, numbers, question words, greetings, common phrases, countries, cities, time expressions.",
+      "Basic vocabulary: articles, numbers, question words, greetings, common phrases, countries, cities, time expressions + fill-in-the-blank drills.",
     activeTenses: [],
     activeLevels: ["A1"],
-    activePhraseCategories: ["article", "number", "question", "greeting", "phrase", "country", "city", "time"],
+    activePhraseCategories: ["article", "number", "question", "greeting", "phrase", "country", "city", "time", "fill_article", "fill_preposition", "fill_question", "fill_phrase"],
   },
   present: {
     label: "Present tense verbs",
@@ -133,7 +149,7 @@ export const STAGE_PRESETS: Record<LearningStage, StagePreset> = {
       "Foundations plus present-tense verb conjugations. Recommended if you've learned subject pronouns + basic verb forms.",
     activeTenses: ["present"],
     activeLevels: ["A1"],
-    activePhraseCategories: ["article", "number", "question", "greeting", "phrase", "country", "city", "time"],
+    activePhraseCategories: ["article", "number", "question", "greeting", "phrase", "country", "city", "time", "fill_article", "fill_preposition", "fill_question", "fill_phrase"],
   },
   past: {
     label: "Past tenses",
@@ -141,7 +157,7 @@ export const STAGE_PRESETS: Record<LearningStage, StagePreset> = {
       "Add passé composé, imparfait, and futur proche to your active tenses.",
     activeTenses: ["present", "passe_compose", "imparfait", "futur_proche"],
     activeLevels: ["A1", "A2"],
-    activePhraseCategories: ["article", "number", "question", "greeting", "phrase", "country", "city", "time"],
+    activePhraseCategories: ["article", "number", "question", "greeting", "phrase", "country", "city", "time", "fill_article", "fill_preposition", "fill_question", "fill_phrase"],
   },
   advanced: {
     label: "Advanced",
@@ -156,6 +172,6 @@ export const STAGE_PRESETS: Record<LearningStage, StagePreset> = {
       "conditionnel",
     ],
     activeLevels: ["A1", "A2"],
-    activePhraseCategories: ["article", "number", "question", "greeting", "phrase", "country", "city", "time"],
+    activePhraseCategories: ["article", "number", "question", "greeting", "phrase", "country", "city", "time", "fill_article", "fill_preposition", "fill_question", "fill_phrase"],
   },
 };

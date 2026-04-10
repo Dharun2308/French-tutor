@@ -432,4 +432,96 @@ export const PHRASES: PhraseDef[] = [
   { category: "time", french: "depuis", english: "since / for (ongoing)", notes: "depuis trois ans = for three years (and still)", level: "A2", frequencyRank: 72 },
   { category: "time", french: "il y a", english: "ago", notes: "il y a deux jours = two days ago", level: "A2", frequencyRank: 73 },
   { category: "time", french: "dans", english: "in (future)", notes: "dans une heure = in one hour", level: "A2", frequencyRank: 74 },
+
+  // ========================================================
+  // Fill-in-the-blank: Articles (type the correct article)
+  // english = sentence with ___, french = the answer
+  // ========================================================
+  { category: "fill_article", french: "le", english: "___ chat est noir. (the cat is black)", notes: "chat = masculine", level: "A1", frequencyRank: 1 },
+  { category: "fill_article", french: "la", english: "___ maison est grande. (the house is big)", notes: "maison = feminine", level: "A1", frequencyRank: 2 },
+  { category: "fill_article", french: "l'", english: "___ école est fermée. (the school is closed)", notes: "école starts with vowel → l'", level: "A1", frequencyRank: 3 },
+  { category: "fill_article", french: "les", english: "___ enfants jouent dehors. (the children play outside)", notes: "plural → les", level: "A1", frequencyRank: 4 },
+  { category: "fill_article", french: "un", english: "J'ai ___ frère. (I have a brother)", notes: "frère = masculine", level: "A1", frequencyRank: 5 },
+  { category: "fill_article", french: "une", english: "J'ai ___ sœur. (I have a sister)", notes: "sœur = feminine", level: "A1", frequencyRank: 6 },
+  { category: "fill_article", french: "des", english: "Il y a ___ pommes sur la table. (there are some apples)", notes: "plural indefinite → des", level: "A1", frequencyRank: 7 },
+  { category: "fill_article", french: "du", english: "Je veux ___ pain. (I want some bread)", notes: "pain = masc → partitive du", level: "A1", frequencyRank: 8 },
+  { category: "fill_article", french: "de la", english: "Je bois ___ eau. (I drink some water)", notes: "eau = fem → de la (or de l')", level: "A1", frequencyRank: 9 },
+  { category: "fill_article", french: "le", english: "___ livre est sur la table. (the book is on the table)", notes: "livre = masculine", level: "A1", frequencyRank: 10 },
+  { category: "fill_article", french: "la", english: "___ voiture est rouge. (the car is red)", notes: "voiture = feminine", level: "A1", frequencyRank: 11 },
+  { category: "fill_article", french: "l'", english: "___ homme est grand. (the man is tall)", notes: "homme starts with silent h → l'", level: "A1", frequencyRank: 12 },
+  { category: "fill_article", french: "les", english: "J'aime ___ chats. (I like cats)", notes: "general statement + plural → les", level: "A1", frequencyRank: 13 },
+  { category: "fill_article", french: "un", english: "C'est ___ bon film. (it's a good movie)", notes: "film = masculine", level: "A1", frequencyRank: 14 },
+  { category: "fill_article", french: "une", english: "C'est ___ bonne idée. (it's a good idea)", notes: "idée = feminine", level: "A1", frequencyRank: 15 },
+  { category: "fill_article", french: "du", english: "Tu veux ___ fromage ? (do you want some cheese?)", notes: "fromage = masc → partitive du", level: "A1", frequencyRank: 16 },
+  { category: "fill_article", french: "de la", english: "Elle mange ___ salade. (she eats some salad)", notes: "salade = fem → de la", level: "A1", frequencyRank: 17 },
+  { category: "fill_article", french: "des", english: "J'achète ___ fleurs. (I'm buying some flowers)", notes: "plural → des", level: "A1", frequencyRank: 18 },
+  { category: "fill_article", french: "le", english: "Je regarde ___ ciel. (I look at the sky)", notes: "ciel = masculine", level: "A1", frequencyRank: 19 },
+  { category: "fill_article", french: "la", english: "___ musique est belle. (the music is beautiful)", notes: "musique = feminine", level: "A1", frequencyRank: 20 },
+
+  // ========================================================
+  // Fill-in-the-blank: Prepositions (en/au/aux/à/de)
+  // ========================================================
+  { category: "fill_preposition", french: "en", english: "Je vais ___ France. (I'm going to France)", notes: "feminine country → en", level: "A1", frequencyRank: 1 },
+  { category: "fill_preposition", french: "au", english: "Il habite ___ Canada. (He lives in Canada)", notes: "masculine country → au", level: "A1", frequencyRank: 2 },
+  { category: "fill_preposition", french: "aux", english: "Elle voyage ___ États-Unis. (She travels to the USA)", notes: "plural country → aux", level: "A1", frequencyRank: 3 },
+  { category: "fill_preposition", french: "à", english: "Nous allons ___ Paris. (We're going to Paris)", notes: "city → à", level: "A1", frequencyRank: 4 },
+  { category: "fill_preposition", french: "de", english: "Je viens ___ Paris. (I come from Paris)", notes: "origin from city → de", level: "A1", frequencyRank: 5 },
+  { category: "fill_preposition", french: "en", english: "Elle est ___ Italie. (She is in Italy)", notes: "feminine country → en", level: "A1", frequencyRank: 6 },
+  { category: "fill_preposition", french: "au", english: "Tu vas ___ Japon ? (Are you going to Japan?)", notes: "masculine country → au", level: "A1", frequencyRank: 7 },
+  { category: "fill_preposition", french: "en", english: "Il travaille ___ Allemagne. (He works in Germany)", notes: "feminine country → en", level: "A1", frequencyRank: 8 },
+  { category: "fill_preposition", french: "au", english: "Nous habitons ___ Maroc. (We live in Morocco)", notes: "masculine country → au", level: "A1", frequencyRank: 9 },
+  { category: "fill_preposition", french: "en", english: "Ils vont ___ Espagne. (They're going to Spain)", notes: "feminine country → en", level: "A1", frequencyRank: 10 },
+  { category: "fill_preposition", french: "à", english: "Elle habite ___ Londres. (She lives in London)", notes: "city → à", level: "A1", frequencyRank: 11 },
+  { category: "fill_preposition", french: "au", english: "Je vais ___ cinéma. (I'm going to the cinema)", notes: "à + le = au", level: "A1", frequencyRank: 12 },
+  { category: "fill_preposition", french: "à la", english: "Il va ___ boulangerie. (He's going to the bakery)", notes: "à + la stays separate (feminine)", level: "A1", frequencyRank: 13 },
+  { category: "fill_preposition", french: "aux", english: "Nous allons ___ Pays-Bas. (We're going to the Netherlands)", notes: "plural → aux", level: "A1", frequencyRank: 14 },
+  { category: "fill_preposition", french: "en", english: "Je suis ___ Iran. (I am in Iran)", notes: "masc + vowel → en (exception!)", level: "A2", frequencyRank: 15 },
+  { category: "fill_preposition", french: "à", english: "On se retrouve ___ Tokyo. (Let's meet in Tokyo)", notes: "city → à", level: "A1", frequencyRank: 16 },
+  { category: "fill_preposition", french: "du", english: "Il vient ___ Brésil. (He comes from Brazil)", notes: "de + le = du (masculine country)", level: "A1", frequencyRank: 17 },
+  { category: "fill_preposition", french: "de", english: "Elle vient ___ Lyon. (She comes from Lyon)", notes: "origin from city → de", level: "A1", frequencyRank: 18 },
+  { category: "fill_preposition", french: "en", english: "Nous vivons ___ Chine. (We live in China)", notes: "feminine country → en", level: "A1", frequencyRank: 19 },
+  { category: "fill_preposition", french: "au", english: "Tu habites ___ Portugal ? (Do you live in Portugal?)", notes: "masculine country → au", level: "A1", frequencyRank: 20 },
+
+  // ========================================================
+  // Fill-in-the-blank: Question words
+  // ========================================================
+  { category: "fill_question", french: "Où", english: "___ est-ce que tu habites ? (Where do you live?)", notes: "where → où", level: "A1", frequencyRank: 1 },
+  { category: "fill_question", french: "Quand", english: "___ est-ce que tu arrives ? (When are you arriving?)", notes: "when → quand", level: "A1", frequencyRank: 2 },
+  { category: "fill_question", french: "Comment", english: "___ tu t'appelles ? (What's your name?)", notes: "how → comment", level: "A1", frequencyRank: 3 },
+  { category: "fill_question", french: "Pourquoi", english: "___ est-ce que tu pleures ? (Why are you crying?)", notes: "why → pourquoi", level: "A1", frequencyRank: 4 },
+  { category: "fill_question", french: "Combien", english: "___ ça coûte ? (How much does it cost?)", notes: "how much → combien", level: "A1", frequencyRank: 5 },
+  { category: "fill_question", french: "Qui", english: "___ est-ce ? (Who is it?)", notes: "who → qui", level: "A1", frequencyRank: 6 },
+  { category: "fill_question", french: "Que", english: "___ fais-tu ? (What are you doing?)", notes: "what (object) → que", level: "A1", frequencyRank: 7 },
+  { category: "fill_question", french: "Quelle", english: "___ heure est-il ? (What time is it?)", notes: "which (fem) → quelle", level: "A1", frequencyRank: 8 },
+  { category: "fill_question", french: "Quel", english: "___ est ton nom ? (What is your name?)", notes: "which (masc) → quel", level: "A1", frequencyRank: 9 },
+  { category: "fill_question", french: "Où", english: "___ sont les toilettes ? (Where are the toilets?)", notes: "where → où", level: "A1", frequencyRank: 10 },
+  { category: "fill_question", french: "Comment", english: "___ allez-vous ? (How are you?)", notes: "how → comment", level: "A1", frequencyRank: 11 },
+  { category: "fill_question", french: "Pourquoi", english: "___ tu apprends le français ? (Why are you learning French?)", notes: "why → pourquoi", level: "A1", frequencyRank: 12 },
+  { category: "fill_question", french: "Combien", english: "___ de frères as-tu ? (How many brothers do you have?)", notes: "how many → combien de", level: "A1", frequencyRank: 13 },
+  { category: "fill_question", french: "Quand", english: "___ est-ce que le train arrive ? (When does the train arrive?)", notes: "when → quand", level: "A1", frequencyRank: 14 },
+  { category: "fill_question", french: "Qui", english: "___ parle français ici ? (Who speaks French here?)", notes: "who → qui", level: "A1", frequencyRank: 15 },
+
+  // ========================================================
+  // Fill-in-the-blank: Phrase completion
+  // ========================================================
+  { category: "fill_phrase", french: "beaucoup", english: "Merci ___. (Thank you very much)", notes: "beaucoup = very much / a lot", level: "A1", frequencyRank: 1 },
+  { category: "fill_phrase", french: "plaît", english: "S'il vous ___. (Please — formal)", notes: "plaît from plaire (to please)", level: "A1", frequencyRank: 2 },
+  { category: "fill_phrase", french: "rien", english: "De ___. (You're welcome)", notes: "rien = nothing", level: "A1", frequencyRank: 3 },
+  { category: "fill_phrase", french: "va", english: "Comment ça ___ ? (How's it going?)", notes: "va from aller (to go)", level: "A1", frequencyRank: 4 },
+  { category: "fill_phrase", french: "appelle", english: "Je m'___ Marie. (My name is Marie)", notes: "s'appeler = to be called", level: "A1", frequencyRank: 5 },
+  { category: "fill_phrase", french: "revoir", english: "Au ___. (Goodbye)", notes: "revoir = to see again", level: "A1", frequencyRank: 6 },
+  { category: "fill_phrase", french: "bientôt", english: "À ___. (See you soon)", notes: "bientôt = soon", level: "A1", frequencyRank: 7 },
+  { category: "fill_phrase", french: "faim", english: "J'ai ___. (I'm hungry)", notes: "avoir faim = to be hungry (literally: to have hunger)", level: "A1", frequencyRank: 8 },
+  { category: "fill_phrase", french: "soif", english: "J'ai ___. (I'm thirsty)", notes: "avoir soif = to be thirsty", level: "A1", frequencyRank: 9 },
+  { category: "fill_phrase", french: "besoin", english: "J'ai ___ d'aide. (I need help)", notes: "avoir besoin de = to need", level: "A1", frequencyRank: 10 },
+  { category: "fill_phrase", french: "voudrais", english: "Je ___ un café. (I would like a coffee)", notes: "voudrais = would like (polite)", level: "A1", frequencyRank: 11 },
+  { category: "fill_phrase", french: "comprends", english: "Je ne ___ pas. (I don't understand)", notes: "comprendre = to understand", level: "A1", frequencyRank: 12 },
+  { category: "fill_phrase", french: "sais", english: "Je ne ___ pas. (I don't know)", notes: "savoir = to know (a fact)", level: "A1", frequencyRank: 13 },
+  { category: "fill_phrase", french: "demain", english: "À ___. (See you tomorrow)", notes: "demain = tomorrow", level: "A1", frequencyRank: 14 },
+  { category: "fill_phrase", french: "grave", english: "Ce n'est pas ___. (It's not a big deal)", notes: "grave = serious", level: "A1", frequencyRank: 15 },
+  { category: "fill_phrase", french: "accord", english: "D'___. (OK / Agreed)", notes: "d'accord = agreed", level: "A1", frequencyRank: 16 },
+  { category: "fill_phrase", french: "prie", english: "Je vous en ___. (You're welcome — formal)", notes: "prier = to pray / to request", level: "A1", frequencyRank: 17 },
+  { category: "fill_phrase", french: "santé", english: "À votre ___. (Cheers — to your health)", notes: "santé = health", level: "A1", frequencyRank: 18 },
+  { category: "fill_phrase", french: "lentement", english: "Parlez plus ___. (Speak more slowly)", notes: "lentement = slowly", level: "A1", frequencyRank: 19 },
+  { category: "fill_phrase", french: "anglais", english: "Parlez-vous ___ ? (Do you speak English?)", notes: "anglais = English", level: "A1", frequencyRank: 20 },
 ];

@@ -169,7 +169,11 @@ export const phrases = sqliteTable(
   (t) => ({
     categoryIdx: index("phrases_category_idx").on(t.category),
     dueIdx: index("phrases_due_idx").on(t.nextReviewAt, t.suspended),
-    uniq: uniqueIndex("phrases_french_category_idx").on(t.french, t.category),
+    uniq: uniqueIndex("phrases_french_category_english_idx").on(
+      t.french,
+      t.category,
+      t.english
+    ),
   })
 );
 

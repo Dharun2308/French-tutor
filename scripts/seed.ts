@@ -179,16 +179,17 @@ async function main() {
       id: phrases.id,
       french: phrases.french,
       category: phrases.category,
+      english: phrases.english,
     })
     .from(phrases);
-  const phraseKey = (french: string, category: string) =>
-    `${category}|${french}`;
+  const phraseKey = (french: string, category: string, english: string) =>
+    `${category}|${french}|${english}`;
   const existingPhraseSet = new Set(
-    existingPhrases.map((p) => phraseKey(p.french, p.category))
+    existingPhrases.map((p) => phraseKey(p.french, p.category, p.english))
   );
 
   const phrasesToInsert = PHRASES.filter(
-    (p) => !existingPhraseSet.has(phraseKey(p.french, p.category))
+    (p) => !existingPhraseSet.has(phraseKey(p.french, p.category, p.english))
   ).map((p) => ({
     category: p.category,
     french: p.french,
