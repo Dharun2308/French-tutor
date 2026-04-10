@@ -253,6 +253,41 @@ export const PHRASES: PhraseDef[] = [
   { category: "country", french: "les Philippines — aux Philippines", english: "Philippines — in/to the Philippines", notes: "plural → aux", level: "A2", frequencyRank: 22 },
   // Islands and special cases
   { category: "country", french: "l'Australie — en Australie", english: "Australia — in/to Australia", notes: "feminine → en", level: "A1", frequencyRank: 23 },
+  // More feminine → en
+  { category: "country", french: "la Tunisie — en Tunisie", english: "Tunisia — in/to Tunisia", notes: "feminine → en", level: "A1", frequencyRank: 24 },
+  { category: "country", french: "l'Algérie — en Algérie", english: "Algeria — in/to Algeria", notes: "feminine → en", level: "A1", frequencyRank: 25 },
+  { category: "country", french: "la Turquie — en Turquie", english: "Turkey — in/to Turkey", notes: "feminine → en", level: "A1", frequencyRank: 26 },
+  { category: "country", french: "la Grèce — en Grèce", english: "Greece — in/to Greece", notes: "feminine → en", level: "A1", frequencyRank: 27 },
+  { category: "country", french: "la Pologne — en Pologne", english: "Poland — in/to Poland", notes: "feminine → en", level: "A1", frequencyRank: 28 },
+  { category: "country", french: "la Suède — en Suède", english: "Sweden — in/to Sweden", notes: "feminine → en", level: "A1", frequencyRank: 29 },
+  { category: "country", french: "la Norvège — en Norvège", english: "Norway — in/to Norway", notes: "feminine → en", level: "A1", frequencyRank: 30 },
+  { category: "country", french: "la Thaïlande — en Thaïlande", english: "Thailand — in/to Thailand", notes: "feminine → en", level: "A1", frequencyRank: 31 },
+  { category: "country", french: "la Colombie — en Colombie", english: "Colombia — in/to Colombia", notes: "feminine → en", level: "A1", frequencyRank: 32 },
+  { category: "country", french: "l'Argentine — en Argentine", english: "Argentina — in/to Argentina", notes: "feminine → en", level: "A1", frequencyRank: 33 },
+  { category: "country", french: "la Corée du Sud — en Corée du Sud", english: "South Korea — in/to South Korea", notes: "feminine → en", level: "A1", frequencyRank: 34 },
+  { category: "country", french: "l'Égypte — en Égypte", english: "Egypt — in/to Egypt", notes: "feminine → en", level: "A1", frequencyRank: 35 },
+  { category: "country", french: "la Côte d'Ivoire — en Côte d'Ivoire", english: "Ivory Coast — in/to Ivory Coast", notes: "feminine → en", level: "A2", frequencyRank: 36 },
+  { category: "country", french: "la Nouvelle-Zélande — en Nouvelle-Zélande", english: "New Zealand — in/to New Zealand", notes: "feminine → en", level: "A1", frequencyRank: 37 },
+  // More masculine → au
+  { category: "country", french: "le Pakistan — au Pakistan", english: "Pakistan — in/to Pakistan", notes: "masculine → au", level: "A1", frequencyRank: 38 },
+  { category: "country", french: "le Liban — au Liban", english: "Lebanon — in/to Lebanon", notes: "masculine → au", level: "A1", frequencyRank: 39 },
+  { category: "country", french: "le Pérou — au Pérou", english: "Peru — in/to Peru", notes: "masculine → au", level: "A1", frequencyRank: 40 },
+  { category: "country", french: "le Danemark — au Danemark", english: "Denmark — in/to Denmark", notes: "masculine → au", level: "A1", frequencyRank: 41 },
+  { category: "country", french: "le Viêt Nam — au Viêt Nam", english: "Vietnam — in/to Vietnam", notes: "masculine → au", level: "A1", frequencyRank: 42 },
+  { category: "country", french: "le Cameroun — au Cameroun", english: "Cameroon — in/to Cameroon", notes: "masculine → au", level: "A2", frequencyRank: 43 },
+  { category: "country", french: "le Kenya — au Kenya", english: "Kenya — in/to Kenya", notes: "masculine → au", level: "A2", frequencyRank: 44 },
+  { category: "country", french: "le Nigéria — au Nigéria", english: "Nigeria — in/to Nigeria", notes: "masculine → au", level: "A2", frequencyRank: 45 },
+  { category: "country", french: "le Chili — au Chili", english: "Chile — in/to Chile", notes: "masculine → au", level: "A1", frequencyRank: 46 },
+  // More masculine + vowel → en (exception)
+  { category: "country", french: "l'Israël — en Israël", english: "Israel — in/to Israel", notes: "masculine + vowel → en", level: "A2", frequencyRank: 47 },
+  { category: "country", french: "l'Équateur — en Équateur", english: "Ecuador — in/to Ecuador", notes: "masculine + vowel → en", level: "A2", frequencyRank: 48 },
+  { category: "country", french: "l'Ouganda — en Ouganda", english: "Uganda — in/to Uganda", notes: "masculine + vowel → en", level: "A2", frequencyRank: 49 },
+  // More plural → aux
+  { category: "country", french: "les Émirats arabes unis — aux Émirats arabes unis", english: "UAE — in/to the UAE", notes: "plural → aux", level: "A2", frequencyRank: 50 },
+  // Islands — special prepositions
+  { category: "country", french: "Cuba — à Cuba", english: "Cuba — in/to Cuba", notes: "no article for small islands → à", level: "A2", frequencyRank: 51 },
+  { category: "country", french: "Madagascar — à Madagascar", english: "Madagascar — in/to Madagascar", notes: "no article → à", level: "A2", frequencyRank: 52 },
+  { category: "country", french: "Haïti — en Haïti", english: "Haiti — in/to Haiti", notes: "en — treated like feminine", level: "A2", frequencyRank: 53 },
 
   // ========================================================
   // Cities — always use "à" (no gender)
@@ -276,6 +311,40 @@ export const PHRASES: PhraseDef[] = [
   // "de" for origin
   { category: "city", french: "de Paris", english: "from Paris", notes: "'de' for origin — je viens de Paris", level: "A1", frequencyRank: 16 },
   { category: "city", french: "du Caire", english: "from Cairo", notes: "de + le = du", level: "A2", frequencyRank: 17 },
+  // More major French cities
+  { category: "city", french: "à Strasbourg", english: "in/to Strasbourg", notes: "near the German border — Alsace", level: "A1", frequencyRank: 18 },
+  { category: "city", french: "à Lille", english: "in/to Lille", notes: "northern France, near Belgium", level: "A1", frequencyRank: 19 },
+  { category: "city", french: "à Nantes", english: "in/to Nantes", level: "A1", frequencyRank: 20 },
+  { category: "city", french: "à Montpellier", english: "in/to Montpellier", level: "A1", frequencyRank: 21 },
+  // Major world cities
+  { category: "city", french: "à Berlin", english: "in/to Berlin", level: "A1", frequencyRank: 22 },
+  { category: "city", french: "à Madrid", english: "in/to Madrid", level: "A1", frequencyRank: 23 },
+  { category: "city", french: "à Rome", english: "in/to Rome", level: "A1", frequencyRank: 24 },
+  { category: "city", french: "à Lisbonne", english: "in/to Lisbon", notes: "French name: Lisbonne", level: "A1", frequencyRank: 25 },
+  { category: "city", french: "à Amsterdam", english: "in/to Amsterdam", level: "A1", frequencyRank: 26 },
+  { category: "city", french: "à Moscou", english: "in/to Moscow", notes: "French name: Moscou", level: "A1", frequencyRank: 27 },
+  { category: "city", french: "à Pékin", english: "in/to Beijing", notes: "French name: Pékin", level: "A1", frequencyRank: 28 },
+  { category: "city", french: "à Séoul", english: "in/to Seoul", level: "A1", frequencyRank: 29 },
+  { category: "city", french: "à Sydney", english: "in/to Sydney", level: "A1", frequencyRank: 30 },
+  { category: "city", french: "à Dubaï", english: "in/to Dubai", level: "A1", frequencyRank: 31 },
+  { category: "city", french: "à Mumbai", english: "in/to Mumbai", level: "A1", frequencyRank: 32 },
+  { category: "city", french: "à Bangkok", english: "in/to Bangkok", level: "A1", frequencyRank: 33 },
+  { category: "city", french: "à Buenos Aires", english: "in/to Buenos Aires", level: "A1", frequencyRank: 34 },
+  { category: "city", french: "à São Paulo", english: "in/to São Paulo", level: "A1", frequencyRank: 35 },
+  { category: "city", french: "à Toronto", english: "in/to Toronto", level: "A1", frequencyRank: 36 },
+  { category: "city", french: "à Los Angeles", english: "in/to Los Angeles", level: "A1", frequencyRank: 37 },
+  { category: "city", french: "à San Francisco", english: "in/to San Francisco", level: "A1", frequencyRank: 38 },
+  { category: "city", french: "à Washington", english: "in/to Washington", level: "A1", frequencyRank: 39 },
+  // Francophone cities
+  { category: "city", french: "à Dakar", english: "in/to Dakar", notes: "Senegal — francophone Africa", level: "A2", frequencyRank: 40 },
+  { category: "city", french: "à Alger", english: "in/to Algiers", notes: "French name: Alger", level: "A2", frequencyRank: 41 },
+  { category: "city", french: "à Tunis", english: "in/to Tunis", level: "A2", frequencyRank: 42 },
+  { category: "city", french: "à Casablanca", english: "in/to Casablanca", notes: "Morocco — francophone", level: "A2", frequencyRank: 43 },
+  { category: "city", french: "à Québec", english: "in/to Quebec City", notes: "not 'au' — city, not province", level: "A2", frequencyRank: 44 },
+  // Special forms — origin (de)
+  { category: "city", french: "de Londres", english: "from London", notes: "je viens de Londres", level: "A1", frequencyRank: 45 },
+  { category: "city", french: "de New York", english: "from New York", level: "A1", frequencyRank: 46 },
+  { category: "city", french: "de Tokyo", english: "from Tokyo", level: "A1", frequencyRank: 47 },
 
   // ========================================================
   // Time expressions
