@@ -49,6 +49,14 @@ interface Stats {
     wrong: number;
     correct: number;
   }>;
+  weakestPhrases: Array<{
+    phraseId: number;
+    french: string;
+    english: string;
+    category: string;
+    wrong: number;
+    correct: number;
+  }>;
   activeTenses: string[];
   activeLevels: string[];
   activePhraseCategories: string[];
@@ -350,14 +358,14 @@ export default function DashboardPage() {
             </Card>
           )}
 
-          {/* ── Weakest verbs ── */}
-          {stats.weakest.length > 0 && (
+          {/* ── Needs attention ── */}
+          {(stats.weakest.length > 0 || stats.weakestPhrases.length > 0) && (
             <div>
               <h2 className="text-lg font-semibold tracking-tight">
                 Needs attention
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Your trickiest verbs — they&apos;ll surface more often.
+                Your trickiest items — they&apos;ll surface more often.
               </p>
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 {stats.weakest.map((w) => {
@@ -366,7 +374,7 @@ export default function DashboardPage() {
                     total > 0 ? Math.round((w.wrong / total) * 100) : 0;
                   return (
                     <div
-                      key={w.verbId}
+                      key={`verb-${w.verbId}`}
                       className="flex items-center justify-between rounded-lg border px-4 py-2.5"
                     >
                       <div>
@@ -375,6 +383,29 @@ export default function DashboardPage() {
                         </span>
                         <span className="ml-2 text-xs text-muted-foreground">
                           {w.english}
+                        </span>
+                      </div>
+                      <Badge variant="destructive" className="text-[10px]">
+                        {pctWrong}%
+                      </Badge>
+                    </div>
+                  );
+                })}
+                {stats.weakestPhrases.map((p) => {
+                  const total = p.wrong + p.correct;
+                  const pctWrong =
+                    total > 0 ? Math.round((p.wrong / total) * 100) : 0;
+                  return (
+                    <div
+                      key={`phrase-${p.phraseId}`}
+                      className="flex items-center justify-between rounded-lg border px-4 py-2.5"
+                    >
+                      <div>
+                        <span className="font-serif text-base">
+                          {p.french}
+                        </span>
+                        <span className="ml-2 text-xs text-muted-foreground">
+                          {p.english}
                         </span>
                       </div>
                       <Badge variant="destructive" className="text-[10px]">

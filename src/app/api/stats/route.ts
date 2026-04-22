@@ -121,67 +121,171 @@ export async function GET() {
   const dueTodayTotal = { count: dueTodayVerb + dueTodayPhrase };
   const totalActive = { count: totalActiveVerb + totalActivePhrase };
 
-  // Seen cards (at least 1 review) — combine verb cards and phrase cards.
-  const seenVerb = await db
-    .select({
-      correct: sql<number>`coalesce(sum(${cards.correctCount}), 0)`,
-      wrong: sql<number>`coalesce(sum(${cards.wrongCount}), 0)`,
-    })
-    .from(cards)
-    .where(gt(cards.repetitions, 0));
+  // Seen cards — scoped to active tenses/levels/categories.
+  let seenVerbCorrect = 0;
+  let seenVerbWrong = 0;
+  if (hasActiveTenses) {
+    const seenVerb = await db
+      .select({
+        correct: sql<number>`coalesce(sum(${cards.correctCount}), 0)`,
+        wrong: sql<number>`coalesce(sum(${cards.wrongCount}), 0)`,
+      })
+      .from(cards)
+      .innerJoin(conjugations, eq(conjugations.id, cards.conjugationId))
+      .innerJoin(verbs, eq(verbs.id, conjugations.verbId))
+      .where(
+        and(
+          gt(cards.repetitions, 0),
+          inArray(conjugations.tense, activeTenses),
+          inArray(verbs.level, activeLevels)
+        )
+      );
+    seenVerbCorrect = Number(seenVerb[0]?.correct ?? 0);
+    seenVerbWrong = Number(seenVerb[0]?.wrong ?? 0);
+  }
 
-  const seenPhrase = await db
-    .select({
-      correct: sql<number>`coalesce(sum(${phrases.correctCount}), 0)`,
-      wrong: sql<number>`coalesce(sum(${phrases.wrongCount}), 0)`,
-    })
-    .from(phrases)
-    .where(gt(phrases.repetitions, 0));
+  let seenPhraseCorrect = 0;
+  let seenPhraseWrong = 0;
+  if (activePhraseCategories.length > 0) {
+    const seenPhrase = await db
+      .select({
+        correct: sql<number>`coalesce(sum(${phrases.correctCount}), 0)`,
+        wrong: sql<number>`coalesce(sum(${phrases.wrongCount}), 0)`,
+      })
+      .from(phrases)
+      .where(
+        and(
+          gt(phrases.repetitions, 0),
+          inArray(phrases.category, activePhraseCategories),
+          inArray(phrases.level, activeLevels)
+        )
+      );
+    seenPhraseCorrect = Number(seenPhrase[0]?.correct ?? 0);
+    seenPhraseWrong = Number(seenPhrase[0]?.wrong ?? 0);
+  }
 
-  // Reviews completed today (since the start of the user's local day).
-  const reviewedTodayVerbRow = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(cards)
-    .where(
-      and(gt(cards.repetitions, 0), gte(cards.lastReviewedAt, todayStart))
-    );
-  const reviewedTodayPhraseRow = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(phrases)
-    .where(
-      and(gt(phrases.repetitions, 0), gte(phrases.lastReviewedAt, todayStart))
-    );
-  const reviewedToday =
-    Number(reviewedTodayVerbRow[0]?.count ?? 0) +
-    Number(reviewedTodayPhraseRow[0]?.count ?? 0);
+  // Reviews completed today — scoped to active settings.
+  let reviewedTodayVerb = 0;
+  if (hasActiveTenses) {
+    const row = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(cards)
+      .innerJoin(conjugations, eq(conjugations.id, cards.conjugationId))
+      .innerJoin(verbs, eq(verbs.id, conjugations.verbId))
+      .where(
+        and(
+          gt(cards.repetitions, 0),
+          gte(cards.lastReviewedAt, todayStart),
+          inArray(conjugations.tense, activeTenses),
+          inArray(verbs.level, activeLevels)
+        )
+      );
+    reviewedTodayVerb = Number(row[0]?.count ?? 0);
+  }
+  let reviewedTodayPhrase = 0;
+  if (activePhraseCategories.length > 0) {
+    const row = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(phrases)
+      .where(
+        and(
+          gt(phrases.repetitions, 0),
+          gte(phrases.lastReviewedAt, todayStart),
+          inArray(phrases.category, activePhraseCategories),
+          inArray(phrases.level, activeLevels)
+        )
+      );
+    reviewedTodayPhrase = Number(row[0]?.count ?? 0);
+  }
+  const reviewedToday = reviewedTodayVerb + reviewedTodayPhrase;
 
-  const correctTotal =
-    Number(seenVerb[0]?.correct ?? 0) + Number(seenPhrase[0]?.correct ?? 0);
-  const wrongTotal =
-    Number(seenVerb[0]?.wrong ?? 0) + Number(seenPhrase[0]?.wrong ?? 0);
+  const correctTotal = seenVerbCorrect + seenPhraseCorrect;
+  const wrongTotal = seenVerbWrong + seenPhraseWrong;
   const retention =
     correctTotal + wrongTotal > 0
       ? Math.round((correctTotal / (correctTotal + wrongTotal)) * 100)
       : 0;
 
-  // Weakest verbs (by wrong-count, among seen cards)
-  const weakest = await db
-    .select({
-      verbId: verbs.id,
-      infinitive: verbs.infinitive,
-      english: verbs.english,
-      wrongSum: sql<number>`sum(${cards.wrongCount})`,
-      correctSum: sql<number>`sum(${cards.correctCount})`,
-    })
-    .from(cards)
-    .innerJoin(conjugations, eq(conjugations.id, cards.conjugationId))
-    .innerJoin(verbs, eq(verbs.id, conjugations.verbId))
-    .where(gt(cards.repetitions, 0))
-    .groupBy(verbs.id, verbs.infinitive, verbs.english)
-    .orderBy(desc(sql`sum(${cards.wrongCount})`))
-    .limit(10);
+  // Weakest verbs — scoped to active tenses/levels.
+  let weakestFiltered: Array<{
+    verbId: number;
+    infinitive: string;
+    english: string;
+    wrongSum: number;
+    correctSum: number;
+  }> = [];
+  if (hasActiveTenses) {
+    const weakest = await db
+      .select({
+        verbId: verbs.id,
+        infinitive: verbs.infinitive,
+        english: verbs.english,
+        wrongSum: sql<number>`sum(${cards.wrongCount})`,
+        correctSum: sql<number>`sum(${cards.correctCount})`,
+      })
+      .from(cards)
+      .innerJoin(conjugations, eq(conjugations.id, cards.conjugationId))
+      .innerJoin(verbs, eq(verbs.id, conjugations.verbId))
+      .where(
+        and(
+          gt(cards.repetitions, 0),
+          inArray(conjugations.tense, activeTenses),
+          inArray(verbs.level, activeLevels)
+        )
+      )
+      .groupBy(verbs.id, verbs.infinitive, verbs.english)
+      .orderBy(desc(sql`sum(${cards.wrongCount})`))
+      .limit(10);
+    weakestFiltered = weakest
+      .filter((w) => Number(w.wrongSum ?? 0) > 0)
+      .map((w) => ({
+        verbId: w.verbId,
+        infinitive: w.infinitive,
+        english: w.english,
+        wrongSum: Number(w.wrongSum ?? 0),
+        correctSum: Number(w.correctSum ?? 0),
+      }));
+  }
 
-  const weakestFiltered = weakest.filter((w) => Number(w.wrongSum ?? 0) > 0);
+  // Weakest phrases — scoped to active categories/levels.
+  let weakestPhrases: Array<{
+    phraseId: number;
+    french: string;
+    english: string;
+    category: string;
+    wrongCount: number;
+    correctCount: number;
+  }> = [];
+  if (activePhraseCategories.length > 0) {
+    const wp = await db
+      .select({
+        phraseId: phrases.id,
+        french: phrases.french,
+        english: phrases.english,
+        category: phrases.category,
+        wrongCount: phrases.wrongCount,
+        correctCount: phrases.correctCount,
+      })
+      .from(phrases)
+      .where(
+        and(
+          gt(phrases.repetitions, 0),
+          gt(phrases.wrongCount, 0),
+          inArray(phrases.category, activePhraseCategories),
+          inArray(phrases.level, activeLevels)
+        )
+      )
+      .orderBy(desc(phrases.wrongCount))
+      .limit(10);
+    weakestPhrases = wp.map((p) => ({
+      phraseId: p.phraseId,
+      french: p.french,
+      english: p.english,
+      category: p.category,
+      wrongCount: p.wrongCount,
+      correctCount: p.correctCount,
+    }));
+  }
 
   return jsonOk({
     dueNow: dueNow.count,
@@ -203,8 +307,16 @@ export async function GET() {
       verbId: w.verbId,
       infinitive: w.infinitive,
       english: w.english,
-      wrong: Number(w.wrongSum ?? 0),
-      correct: Number(w.correctSum ?? 0),
+      wrong: w.wrongSum,
+      correct: w.correctSum,
+    })),
+    weakestPhrases: weakestPhrases.map((p) => ({
+      phraseId: p.phraseId,
+      french: p.french,
+      english: p.english,
+      category: p.category,
+      wrong: p.wrongCount,
+      correct: p.correctCount,
     })),
     activeTenses,
     activeLevels,
