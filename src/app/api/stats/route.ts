@@ -1,7 +1,7 @@
 // GET /api/stats
 // Returns dashboard stats: due count, streak, retention, weakest verbs.
 
-import { and, desc, eq, gt, inArray, lte, sql } from "drizzle-orm";
+import { and, desc, eq, gt, gte, inArray, lte, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { cards, conjugations, phrases, verbs } from "@/lib/db/schema";
 import { getSettings, jsonOk } from "@/lib/api";
@@ -138,6 +138,23 @@ export async function GET() {
     .from(phrases)
     .where(gt(phrases.repetitions, 0));
 
+  // Reviews completed today (since the start of the user's local day).
+  const reviewedTodayVerbRow = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(cards)
+    .where(
+      and(gt(cards.repetitions, 0), gte(cards.lastReviewedAt, todayStart))
+    );
+  const reviewedTodayPhraseRow = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(phrases)
+    .where(
+      and(gt(phrases.repetitions, 0), gte(phrases.lastReviewedAt, todayStart))
+    );
+  const reviewedToday =
+    Number(reviewedTodayVerbRow[0]?.count ?? 0) +
+    Number(reviewedTodayPhraseRow[0]?.count ?? 0);
+
   const correctTotal =
     Number(seenVerb[0]?.correct ?? 0) + Number(seenPhrase[0]?.correct ?? 0);
   const wrongTotal =
@@ -178,6 +195,7 @@ export async function GET() {
     dueTodayPhrase,
     totalActivePhrase,
     dailyTarget: s.dailyTarget,
+    reviewedToday,
     retention,
     correctTotal,
     wrongTotal,

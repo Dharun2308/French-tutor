@@ -6,8 +6,9 @@
 import { NextRequest } from "next/server";
 import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { verbs, conjugations, cards, settings } from "@/lib/db/schema";
+import { verbs, conjugations, cards, phrases, settings } from "@/lib/db/schema";
 import { build, runSanityChecks } from "@/lib/seed/build";
+import { PHRASES } from "@/lib/seed/phrases";
 import { jsonError, jsonOk } from "@/lib/api";
 
 export const runtime = "nodejs";
@@ -95,6 +96,27 @@ export async function POST(req: NextRequest) {
     cardsInserted++;
   }
 
+  // Phrases
+  const existingPhrases = await db.select().from(phrases);
+  const phraseKeys = new Set(
+    existingPhrases.map((p) => `${p.french}|${p.category}|${p.english}`)
+  );
+  let phrasesInserted = 0;
+  for (const p of PHRASES) {
+    const key = `${p.french}|${p.category}|${p.english}`;
+    if (!phraseKeys.has(key)) {
+      await db.insert(phrases).values({
+        category: p.category,
+        french: p.french,
+        english: p.english,
+        notes: p.notes ?? null,
+        level: p.level,
+        frequencyRank: p.frequencyRank,
+      });
+      phrasesInserted++;
+    }
+  }
+
   const existingSettings = await db.select().from(settings).limit(1);
   if (existingSettings.length === 0) {
     await db.insert(settings).values({
@@ -111,5 +133,6 @@ export async function POST(req: NextRequest) {
     verbsInserted,
     conjInserted,
     cardsInserted,
+    phrasesInserted,
   });
 }

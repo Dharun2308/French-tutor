@@ -193,6 +193,7 @@ export const ExplanationJsonSchema = {
     examples: {
       type: "array",
       items: { type: "string" },
+      maxItems: 4,
     },
   },
 } as const;

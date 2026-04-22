@@ -38,6 +38,7 @@ interface Stats {
   dueTodayPhrase: number;
   totalActivePhrase: number;
   dailyTarget: number;
+  reviewedToday: number;
   retention: number;
   correctTotal: number;
   wrongTotal: number;
@@ -107,7 +108,7 @@ function getMotivation(stats: Stats): string {
   const reviewed = stats.correctTotal + stats.wrongTotal;
   if (reviewed === 0) return "Ready to start your first session?";
   if (stats.dueNow === 0) return "All caught up — nice work! Come back later.";
-  if (stats.correctTotal >= stats.dailyTarget)
+  if (stats.reviewedToday >= stats.dailyTarget)
     return `Daily target hit! ${stats.dueNow} more if you're feeling ambitious.`;
   if (stats.retention >= 90) return `${stats.retention}% retention — you're crushing it.`;
   if (stats.retention >= 70)
@@ -179,7 +180,7 @@ export default function DashboardPage() {
     );
   }
 
-  const dailyDone = Math.min(stats.dailyTarget, stats.correctTotal);
+  const dailyDone = Math.min(stats.dailyTarget, stats.reviewedToday);
   const dailyPct =
     stats.dailyTarget > 0
       ? Math.min(100, Math.round((dailyDone / stats.dailyTarget) * 100))
