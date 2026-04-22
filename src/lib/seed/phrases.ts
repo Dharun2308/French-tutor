@@ -434,6 +434,112 @@ export const PHRASES: PhraseDef[] = [
   { category: "time", french: "dans", english: "in (future)", notes: "dans une heure = in one hour", level: "A2", frequencyRank: 74 },
 
   // ========================================================
+  // Food (general / staples)
+  // ========================================================
+  { category: "food", french: "le pain", english: "bread", notes: "masc. — le pain, du pain", level: "A1", frequencyRank: 1 },
+  { category: "food", french: "le beurre", english: "butter", level: "A1", frequencyRank: 2 },
+  { category: "food", french: "le fromage", english: "cheese", level: "A1", frequencyRank: 3 },
+  { category: "food", french: "le lait", english: "milk", level: "A1", frequencyRank: 4 },
+  { category: "food", french: "l'œuf (m.)", english: "egg", notes: "masc. — un œuf, des œufs (silent f/s)", level: "A1", frequencyRank: 5 },
+  { category: "food", french: "le riz", english: "rice", level: "A1", frequencyRank: 6 },
+  { category: "food", french: "les pâtes (f.)", english: "pasta", notes: "always plural in French", level: "A1", frequencyRank: 7 },
+  { category: "food", french: "la soupe", english: "soup", level: "A1", frequencyRank: 8 },
+  { category: "food", french: "la salade", english: "salad", level: "A1", frequencyRank: 9 },
+  { category: "food", french: "le sucre", english: "sugar", level: "A1", frequencyRank: 10 },
+  { category: "food", french: "le sel", english: "salt", level: "A1", frequencyRank: 11 },
+  { category: "food", french: "le poivre", english: "pepper (spice)", level: "A1", frequencyRank: 12 },
+  { category: "food", french: "l'huile (f.)", english: "oil", notes: "fem. — de l'huile d'olive", level: "A1", frequencyRank: 13 },
+  { category: "food", french: "la confiture", english: "jam", level: "A1", frequencyRank: 14 },
+  { category: "food", french: "le miel", english: "honey", level: "A1", frequencyRank: 15 },
+  { category: "food", french: "la farine", english: "flour", level: "A1", frequencyRank: 16 },
+  { category: "food", french: "le chocolat", english: "chocolate", level: "A1", frequencyRank: 17 },
+  { category: "food", french: "le gâteau", english: "cake", level: "A1", frequencyRank: 18 },
+  { category: "food", french: "la glace", english: "ice cream", notes: "also means 'ice' or 'mirror'", level: "A1", frequencyRank: 19 },
+  { category: "food", french: "les céréales (f.)", english: "cereal", notes: "always plural", level: "A1", frequencyRank: 20 },
+  { category: "food", french: "le yaourt", english: "yogurt", level: "A1", frequencyRank: 21 },
+  { category: "food", french: "la crêpe", english: "crêpe / pancake", level: "A1", frequencyRank: 22 },
+  { category: "food", french: "le sandwich", english: "sandwich", level: "A1", frequencyRank: 23 },
+  { category: "food", french: "la pizza", english: "pizza", level: "A1", frequencyRank: 24 },
+  { category: "food", french: "les frites (f.)", english: "fries / chips", notes: "always plural — des frites", level: "A1", frequencyRank: 25 },
+
+  // ========================================================
+  // Fruits & vegetables
+  // ========================================================
+  { category: "fruit_vegetable", french: "la pomme", english: "apple", level: "A1", frequencyRank: 1 },
+  { category: "fruit_vegetable", french: "la banane", english: "banana", level: "A1", frequencyRank: 2 },
+  { category: "fruit_vegetable", french: "l'orange (f.)", english: "orange", notes: "fem. — une orange", level: "A1", frequencyRank: 3 },
+  { category: "fruit_vegetable", french: "la fraise", english: "strawberry", level: "A1", frequencyRank: 4 },
+  { category: "fruit_vegetable", french: "le raisin", english: "grape", notes: "singular = grape(s); du raisin", level: "A1", frequencyRank: 5 },
+  { category: "fruit_vegetable", french: "la pêche", english: "peach", level: "A1", frequencyRank: 6 },
+  { category: "fruit_vegetable", french: "la poire", english: "pear", level: "A1", frequencyRank: 7 },
+  { category: "fruit_vegetable", french: "le citron", english: "lemon", level: "A1", frequencyRank: 8 },
+  { category: "fruit_vegetable", french: "la cerise", english: "cherry", level: "A1", frequencyRank: 9 },
+  { category: "fruit_vegetable", french: "l'ananas (m.)", english: "pineapple", notes: "masc. — the s is silent", level: "A1", frequencyRank: 10 },
+  { category: "fruit_vegetable", french: "la pastèque", english: "watermelon", level: "A1", frequencyRank: 11 },
+  { category: "fruit_vegetable", french: "le melon", english: "melon", level: "A1", frequencyRank: 12 },
+  { category: "fruit_vegetable", french: "la framboise", english: "raspberry", level: "A1", frequencyRank: 13 },
+  { category: "fruit_vegetable", french: "la mangue", english: "mango", level: "A1", frequencyRank: 14 },
+  { category: "fruit_vegetable", french: "l'abricot (m.)", english: "apricot", level: "A1", frequencyRank: 15 },
+  { category: "fruit_vegetable", french: "la carotte", english: "carrot", level: "A1", frequencyRank: 16 },
+  { category: "fruit_vegetable", french: "la tomate", english: "tomato", level: "A1", frequencyRank: 17 },
+  { category: "fruit_vegetable", french: "la pomme de terre", english: "potato", notes: "literally 'apple of the earth'", level: "A1", frequencyRank: 18 },
+  { category: "fruit_vegetable", french: "l'oignon (m.)", english: "onion", level: "A1", frequencyRank: 19 },
+  { category: "fruit_vegetable", french: "l'ail (m.)", english: "garlic", notes: "masc. — de l'ail", level: "A1", frequencyRank: 20 },
+  { category: "fruit_vegetable", french: "la laitue", english: "lettuce", level: "A1", frequencyRank: 21 },
+  { category: "fruit_vegetable", french: "le concombre", english: "cucumber", level: "A1", frequencyRank: 22 },
+  { category: "fruit_vegetable", french: "les haricots verts (m.)", english: "green beans", notes: "h is aspirated — les haricots", level: "A1", frequencyRank: 23 },
+  { category: "fruit_vegetable", french: "le poivron", english: "bell pepper", level: "A1", frequencyRank: 24 },
+  { category: "fruit_vegetable", french: "les petits pois (m.)", english: "peas", level: "A1", frequencyRank: 25 },
+  { category: "fruit_vegetable", french: "le champignon", english: "mushroom", level: "A1", frequencyRank: 26 },
+  { category: "fruit_vegetable", french: "le chou", english: "cabbage", level: "A1", frequencyRank: 27 },
+  { category: "fruit_vegetable", french: "les épinards (m.)", english: "spinach", notes: "always plural in French", level: "A1", frequencyRank: 28 },
+  { category: "fruit_vegetable", french: "la courgette", english: "zucchini", level: "A1", frequencyRank: 29 },
+  { category: "fruit_vegetable", french: "l'aubergine (f.)", english: "eggplant", level: "A1", frequencyRank: 30 },
+
+  // ========================================================
+  // Meat & protein
+  // ========================================================
+  { category: "meat", french: "le poulet", english: "chicken", level: "A1", frequencyRank: 1 },
+  { category: "meat", french: "le bœuf", english: "beef", notes: "the œ is pronounced like 'eu'", level: "A1", frequencyRank: 2 },
+  { category: "meat", french: "le porc", english: "pork", level: "A1", frequencyRank: 3 },
+  { category: "meat", french: "l'agneau (m.)", english: "lamb", level: "A1", frequencyRank: 4 },
+  { category: "meat", french: "le poisson", english: "fish", level: "A1", frequencyRank: 5 },
+  { category: "meat", french: "le jambon", english: "ham", level: "A1", frequencyRank: 6 },
+  { category: "meat", french: "la saucisse", english: "sausage", level: "A1", frequencyRank: 7 },
+  { category: "meat", french: "le steak", english: "steak", notes: "also spelled 'le steck' or 'le bifteck'", level: "A1", frequencyRank: 8 },
+  { category: "meat", french: "le canard", english: "duck", level: "A1", frequencyRank: 9 },
+  { category: "meat", french: "la dinde", english: "turkey", level: "A1", frequencyRank: 10 },
+  { category: "meat", french: "le saumon", english: "salmon", level: "A1", frequencyRank: 11 },
+  { category: "meat", french: "le thon", english: "tuna", level: "A1", frequencyRank: 12 },
+  { category: "meat", french: "les crevettes (f.)", english: "shrimp / prawns", level: "A1", frequencyRank: 13 },
+  { category: "meat", french: "le veau", english: "veal", level: "A1", frequencyRank: 14 },
+  { category: "meat", french: "le lapin", english: "rabbit", level: "A1", frequencyRank: 15 },
+
+  // ========================================================
+  // Quantities & weights
+  // ========================================================
+  { category: "quantity", french: "un kilo (de)", english: "a kilogram (of)", notes: "un kilo de pommes = a kg of apples", level: "A1", frequencyRank: 1 },
+  { category: "quantity", french: "un demi-kilo (de)", english: "half a kilogram (of)", notes: "500 grammes", level: "A1", frequencyRank: 2 },
+  { category: "quantity", french: "une livre (de)", english: "a pound (of)", notes: "French livre ≈ 500 g, not 454 g", level: "A1", frequencyRank: 3 },
+  { category: "quantity", french: "cent grammes (de)", english: "100 grams (of)", notes: "often used at the deli counter", level: "A1", frequencyRank: 4 },
+  { category: "quantity", french: "un litre (de)", english: "a liter (of)", notes: "un litre de lait", level: "A1", frequencyRank: 5 },
+  { category: "quantity", french: "un demi-litre (de)", english: "half a liter (of)", level: "A1", frequencyRank: 6 },
+  { category: "quantity", french: "une bouteille (de)", english: "a bottle (of)", level: "A1", frequencyRank: 7 },
+  { category: "quantity", french: "un verre (de)", english: "a glass (of)", level: "A1", frequencyRank: 8 },
+  { category: "quantity", french: "une tasse (de)", english: "a cup (of)", level: "A1", frequencyRank: 9 },
+  { category: "quantity", french: "un morceau (de)", english: "a piece (of)", notes: "un morceau de fromage", level: "A1", frequencyRank: 10 },
+  { category: "quantity", french: "une tranche (de)", english: "a slice (of)", notes: "une tranche de pain", level: "A1", frequencyRank: 11 },
+  { category: "quantity", french: "un paquet (de)", english: "a packet (of)", level: "A1", frequencyRank: 12 },
+  { category: "quantity", french: "une boîte (de)", english: "a box / can (of)", notes: "une boîte de conserve = a tin", level: "A1", frequencyRank: 13 },
+  { category: "quantity", french: "un pot (de)", english: "a jar / pot (of)", notes: "un pot de confiture", level: "A1", frequencyRank: 14 },
+  { category: "quantity", french: "une douzaine (de)", english: "a dozen (of)", notes: "une douzaine d'œufs", level: "A1", frequencyRank: 15 },
+  { category: "quantity", french: "un peu (de)", english: "a little (of)", notes: "un peu de sel = a little salt", level: "A1", frequencyRank: 16 },
+  { category: "quantity", french: "beaucoup (de)", english: "a lot (of)", notes: "beaucoup de travail", level: "A1", frequencyRank: 17 },
+  { category: "quantity", french: "assez (de)", english: "enough (of)", level: "A1", frequencyRank: 18 },
+  { category: "quantity", french: "trop (de)", english: "too much (of)", level: "A1", frequencyRank: 19 },
+  { category: "quantity", french: "une cuillère (de)", english: "a spoon(ful) (of)", notes: "une cuillère à soupe = tablespoon", level: "A1", frequencyRank: 20 },
+
+  // ========================================================
   // Fill-in-the-blank: Articles (type the correct article)
   // english = sentence with ___, french = the answer
   // ========================================================
