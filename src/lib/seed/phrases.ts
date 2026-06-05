@@ -288,6 +288,7 @@ export const PHRASES: PhraseDef[] = [
   { category: "country", french: "Cuba — à Cuba", english: "Cuba — in/to Cuba", notes: "no article for small islands → à", level: "A2", frequencyRank: 51 },
   { category: "country", french: "Madagascar — à Madagascar", english: "Madagascar — in/to Madagascar", notes: "no article → à", level: "A2", frequencyRank: 52 },
   { category: "country", french: "Haïti — en Haïti", english: "Haiti — in/to Haiti", notes: "en — treated like feminine", level: "A2", frequencyRank: 53 },
+  { category: "country", french: "l'Indonésie — en Indonésie", english: "Indonesia — in/to Indonesia", notes: "feminine → en", level: "A1", frequencyRank: 54 },
 
   // ========================================================
   // Cities — always use "à" (no gender)
@@ -432,6 +433,11 @@ export const PHRASES: PhraseDef[] = [
   { category: "time", french: "depuis", english: "since / for (ongoing)", notes: "depuis trois ans = for three years (and still)", level: "A2", frequencyRank: 72 },
   { category: "time", french: "il y a", english: "ago", notes: "il y a deux jours = two days ago", level: "A2", frequencyRank: 73 },
   { category: "time", french: "dans", english: "in (future)", notes: "dans une heure = in one hour", level: "A2", frequencyRank: 74 },
+  { category: "time", french: "très bientôt", english: "very soon", level: "A1", frequencyRank: 75 },
+  { category: "time", french: "le mois dernier", english: "last month", level: "A1", frequencyRank: 76 },
+  { category: "time", french: "pour", english: "for (planned duration)", notes: "pour deux semaines = for two weeks", level: "A1", frequencyRank: 77 },
+  { category: "time", french: "avant", english: "before", level: "A1", frequencyRank: 78 },
+  { category: "time", french: "après", english: "after", level: "A1", frequencyRank: 79 },
 
   // ========================================================
   // Food (general / staples)
@@ -538,6 +544,137 @@ export const PHRASES: PhraseDef[] = [
   { category: "quantity", french: "assez (de)", english: "enough (of)", level: "A1", frequencyRank: 18 },
   { category: "quantity", french: "trop (de)", english: "too much (of)", level: "A1", frequencyRank: 19 },
   { category: "quantity", french: "une cuillère (de)", english: "a spoon(ful) (of)", notes: "une cuillère à soupe = tablespoon", level: "A1", frequencyRank: 20 },
+
+  // ========================================================
+  // Nationalities
+  // ========================================================
+  { category: "nationality", french: "français / française", english: "French (m. / f.)", notes: "je suis français(e)", level: "A1", frequencyRank: 1 },
+  { category: "nationality", french: "indien / indienne", english: "Indian (m. / f.)", notes: "tu es indien(ne)", level: "A1", frequencyRank: 2 },
+  { category: "nationality", french: "américain / américaine", english: "American (m. / f.)", notes: "il/elle est américain(e)", level: "A1", frequencyRank: 3 },
+  { category: "nationality", french: "chinois / chinoise", english: "Chinese (m. / f.)", notes: "nous sommes chinois(es)", level: "A1", frequencyRank: 4 },
+  { category: "nationality", french: "allemand / allemande", english: "German (m. / f.)", notes: "vous êtes allemand(e)(s)", level: "A1", frequencyRank: 5 },
+  { category: "nationality", french: "italien / italienne", english: "Italian (m. / f.)", notes: "ils sont italiens / elles sont italiennes", level: "A1", frequencyRank: 6 },
+  { category: "nationality", french: "anglais / anglaise", english: "English (m. / f.)", level: "A1", frequencyRank: 7 },
+  { category: "nationality", french: "espagnol / espagnole", english: "Spanish (m. / f.)", level: "A1", frequencyRank: 8 },
+  { category: "nationality", french: "japonais / japonaise", english: "Japanese (m. / f.)", level: "A1", frequencyRank: 9 },
+  { category: "nationality", french: "brésilien / brésilienne", english: "Brazilian (m. / f.)", level: "A1", frequencyRank: 10 },
+  { category: "nationality", french: "canadien / canadienne", english: "Canadian (m. / f.)", level: "A1", frequencyRank: 11 },
+  { category: "nationality", french: "mexicain / mexicaine", english: "Mexican (m. / f.)", level: "A1", frequencyRank: 12 },
+  { category: "nationality", french: "russe", english: "Russian (m. & f.)", notes: "same form for both genders", level: "A1", frequencyRank: 13 },
+  { category: "nationality", french: "belge", english: "Belgian (m. & f.)", notes: "same form for both genders", level: "A1", frequencyRank: 14 },
+  { category: "nationality", french: "suisse", english: "Swiss (m. & f.)", notes: "same form for both genders", level: "A1", frequencyRank: 15 },
+
+  // ========================================================
+  // Demonstrative adjectives
+  // ========================================================
+  { category: "demonstrative", french: "ce", english: "this / that (masc. sg.)", notes: "ce camion = that truck", level: "A1", frequencyRank: 1 },
+  { category: "demonstrative", french: "cet", english: "this / that (masc. sg. before vowel/h)", notes: "cet exercice, cet homme", level: "A1", frequencyRank: 2 },
+  { category: "demonstrative", french: "cette", english: "this / that (fem. sg.)", notes: "cette voiture = that car", level: "A1", frequencyRank: 3 },
+  { category: "demonstrative", french: "ces", english: "these / those (plural)", notes: "ces fleurs = those flowers", level: "A1", frequencyRank: 4 },
+
+  // ========================================================
+  // Vocabulary (general nouns from lessons)
+  // ========================================================
+  { category: "vocabulary", french: "un chien", english: "a dog", level: "A1", frequencyRank: 1 },
+  { category: "vocabulary", french: "un chat", english: "a cat", level: "A1", frequencyRank: 2 },
+  { category: "vocabulary", french: "un oiseau", english: "a bird", notes: "pl. des oiseaux", level: "A1", frequencyRank: 3 },
+  { category: "vocabulary", french: "un arbre", english: "a tree", level: "A1", frequencyRank: 4 },
+  { category: "vocabulary", french: "un jardin", english: "a garden", level: "A1", frequencyRank: 5 },
+  { category: "vocabulary", french: "une fleur", english: "a flower", level: "A1", frequencyRank: 6 },
+  { category: "vocabulary", french: "les ailes (f.)", english: "wings", notes: "une aile = a wing", level: "A1", frequencyRank: 7 },
+  { category: "vocabulary", french: "une voiture", english: "a car", level: "A1", frequencyRank: 8 },
+  { category: "vocabulary", french: "un camion", english: "a truck", level: "A1", frequencyRank: 9 },
+  { category: "vocabulary", french: "un train", english: "a train", level: "A1", frequencyRank: 10 },
+  { category: "vocabulary", french: "un vélo", english: "a bicycle", level: "A1", frequencyRank: 11 },
+  { category: "vocabulary", french: "un appartement", english: "an apartment", level: "A1", frequencyRank: 12 },
+  { category: "vocabulary", french: "une maison", english: "a house", level: "A1", frequencyRank: 13 },
+  { category: "vocabulary", french: "une fenêtre", english: "a window", level: "A1", frequencyRank: 14 },
+  { category: "vocabulary", french: "une rue", english: "a street", level: "A1", frequencyRank: 15 },
+  { category: "vocabulary", french: "le bureau", english: "the office / desk", level: "A1", frequencyRank: 16 },
+  { category: "vocabulary", french: "l'école (f.)", english: "school", level: "A1", frequencyRank: 17 },
+  { category: "vocabulary", french: "un cours", english: "a course / a class", notes: "≠ une course (a race), des courses (groceries)", level: "A1", frequencyRank: 18 },
+  { category: "vocabulary", french: "une course", english: "a race / an errand", notes: "faire des courses = to go grocery shopping", level: "A1", frequencyRank: 19 },
+  { category: "vocabulary", french: "un casque", english: "a helmet", level: "A1", frequencyRank: 20 },
+  { category: "vocabulary", french: "des gants (m.)", english: "gloves", level: "A1", frequencyRank: 21 },
+  { category: "vocabulary", french: "des baskets (f.)", english: "sneakers", level: "A1", frequencyRank: 22 },
+  { category: "vocabulary", french: "un ami / une amie", english: "a friend (m. / f.)", level: "A1", frequencyRank: 23 },
+  { category: "vocabulary", french: "un(e) petit(e) ami(e)", english: "a boyfriend / girlfriend", level: "A1", frequencyRank: 24 },
+  { category: "vocabulary", french: "le professeur", english: "the teacher", notes: "le prof (informal)", level: "A1", frequencyRank: 25 },
+  { category: "vocabulary", french: "le maître / la maîtresse", english: "the master / mistress", notes: "also: primary school teacher", level: "A1", frequencyRank: 26 },
+  { category: "vocabulary", french: "le déjeuner", english: "lunch", level: "A1", frequencyRank: 27 },
+  { category: "vocabulary", french: "le petit déjeuner", english: "breakfast", level: "A1", frequencyRank: 28 },
+  { category: "vocabulary", french: "le dîner", english: "dinner", level: "A1", frequencyRank: 29 },
+  { category: "vocabulary", french: "les vacances (f.)", english: "vacation / holidays", notes: "always plural", level: "A1", frequencyRank: 30 },
+
+  // ========================================================
+  // Useful expressions (from lessons)
+  // ========================================================
+  { category: "expression", french: "D'où viens-tu ?", english: "Where do you come from? (informal)", level: "A1", frequencyRank: 1 },
+  { category: "expression", french: "D'où est-ce que tu viens ?", english: "Where do you come from? (standard)", level: "A1", frequencyRank: 2 },
+  { category: "expression", french: "D'où venez-vous ?", english: "Where do you come from? (formal)", level: "A1", frequencyRank: 3 },
+  { category: "expression", french: "Je viens de France", english: "I come from France", notes: "de + country name (fem.)", level: "A1", frequencyRank: 4 },
+  { category: "expression", french: "Et toi ?", english: "And you? (informal)", level: "A1", frequencyRank: 5 },
+  { category: "expression", french: "Et vous ?", english: "And you? (formal)", level: "A1", frequencyRank: 6 },
+  { category: "expression", french: "Quoi d'autre ?", english: "What else?", level: "A1", frequencyRank: 7 },
+  { category: "expression", french: "Avec qui ?", english: "With whom?", level: "A1", frequencyRank: 8 },
+  { category: "expression", french: "Combien de temps ?", english: "How long?", level: "A1", frequencyRank: 9 },
+  { category: "expression", french: "Où est-ce que tu vas ?", english: "Where are you going?", level: "A1", frequencyRank: 10 },
+  { category: "expression", french: "Je ne comprends pas", english: "I don't understand", level: "A1", frequencyRank: 11 },
+  { category: "expression", french: "Qui suis-je ?", english: "Who am I?", level: "A1", frequencyRank: 12 },
+  { category: "expression", french: "N'oublie pas !", english: "Don't forget!", notes: "oublier = to forget", level: "A1", frequencyRank: 13 },
+  { category: "expression", french: "depuis quatre ans", english: "for four years (and still ongoing)", notes: "depuis + duration = present tense in French", level: "A1", frequencyRank: 14 },
+  { category: "expression", french: "Il y en a pour tous les goûts", english: "There's something for every taste", level: "A2", frequencyRank: 15 },
+  { category: "expression", french: "ils sont / ils ont / ils vont", english: "they are / they have / they go", notes: "common confusion — listen for the vowel", level: "A1", frequencyRank: 16 },
+  { category: "expression", french: "je prends / j'apprends", english: "I take / I learn", notes: "apprendre = prendre + ap (to learn)", level: "A1", frequencyRank: 17 },
+  { category: "expression", french: "Si !", english: "Yes! (contradicting a negative)", notes: "Tu n'aimes pas ? — Si, j'adore ça !", level: "A1", frequencyRank: 18 },
+
+  // ========================================================
+  // Activities & hobbies
+  // ========================================================
+  { category: "activity", french: "faire du jardinage", english: "to do gardening", notes: "jardiner = to garden", level: "A1", frequencyRank: 1 },
+  { category: "activity", french: "jouer au basket", english: "to play basketball", notes: "jouer à + sport", level: "A1", frequencyRank: 2 },
+  { category: "activity", french: "faire du camping", english: "to go camping", notes: "also: camper", level: "A1", frequencyRank: 3 },
+  { category: "activity", french: "se promener", english: "to take a walk", notes: "je me promène, tu te promènes…", level: "A1", frequencyRank: 4 },
+  { category: "activity", french: "courir", english: "to run", notes: "je cours, tu cours, il court, nous courons, vous courez, ils courent", level: "A1", frequencyRank: 5 },
+  { category: "activity", french: "chanter", english: "to sing", level: "A1", frequencyRank: 6 },
+  { category: "activity", french: "voyager", english: "to travel", level: "A1", frequencyRank: 7 },
+  { category: "activity", french: "visiter", english: "to visit (a place)", notes: "rendre visite à = to visit a person", level: "A1", frequencyRank: 8 },
+  { category: "activity", french: "nager", english: "to swim", level: "A1", frequencyRank: 9 },
+  { category: "activity", french: "danser", english: "to dance", level: "A1", frequencyRank: 10 },
+  { category: "activity", french: "cuisiner", english: "to cook", level: "A1", frequencyRank: 11 },
+  { category: "activity", french: "lire", english: "to read", notes: "je lis, tu lis, il lit, nous lisons, vous lisez, ils lisent", level: "A1", frequencyRank: 12 },
+  { category: "activity", french: "dessiner", english: "to draw", level: "A1", frequencyRank: 13 },
+  { category: "activity", french: "jouer au football", english: "to play soccer", level: "A1", frequencyRank: 14 },
+  { category: "activity", french: "faire du vélo", english: "to go cycling", level: "A1", frequencyRank: 15 },
+  { category: "activity", french: "dormir", english: "to sleep", notes: "je dors, tu dors, il dort, nous dormons, vous dormez, ils dorment", level: "A1", frequencyRank: 16 },
+  { category: "activity", french: "dire", english: "to say / to tell", notes: "je dis, tu dis, il dit, nous disons, vous dites, ils disent", level: "A1", frequencyRank: 17 },
+  { category: "activity", french: "ouvrir", english: "to open", notes: "j'ouvre, tu ouvres, il ouvre…", level: "A1", frequencyRank: 18 },
+  { category: "activity", french: "fermer", english: "to close", level: "A1", frequencyRank: 19 },
+  { category: "activity", french: "oublier", english: "to forget", level: "A1", frequencyRank: 20 },
+
+  // ========================================================
+  // Shopping vocabulary
+  // ========================================================
+  { category: "shopping", french: "un magasin", english: "a store / shop", level: "A1", frequencyRank: 1 },
+  { category: "shopping", french: "un supermarché", english: "a supermarket", level: "A1", frequencyRank: 2 },
+  { category: "shopping", french: "la caisse", english: "the checkout / register", level: "A1", frequencyRank: 3 },
+  { category: "shopping", french: "les achats (m.)", english: "purchases", notes: "payer vos achats = pay for your purchases", level: "A1", frequencyRank: 4 },
+  { category: "shopping", french: "un rayon", english: "a department / aisle", notes: "le rayon crèmerie = the dairy aisle", level: "A1", frequencyRank: 5 },
+  { category: "shopping", french: "une réduction", english: "a discount", notes: "une réduction de 50% = a 50% discount", level: "A1", frequencyRank: 6 },
+  { category: "shopping", french: "pour cent", english: "percent", notes: "cinquante pour cent = 50%", level: "A1", frequencyRank: 7 },
+  { category: "shopping", french: "payer", english: "to pay", level: "A1", frequencyRank: 8 },
+  { category: "shopping", french: "acheter", english: "to buy", level: "A1", frequencyRank: 9 },
+  { category: "shopping", french: "vendre", english: "to sell", level: "A1", frequencyRank: 10 },
+  { category: "shopping", french: "goûter", english: "to taste / to try (food)", level: "A1", frequencyRank: 11 },
+  { category: "shopping", french: "offrir", english: "to offer / to give (a gift)", level: "A1", frequencyRank: 12 },
+  { category: "shopping", french: "cher / chère", english: "expensive (m. / f.)", level: "A1", frequencyRank: 13 },
+  { category: "shopping", french: "bon marché", english: "cheap / inexpensive", notes: "invariable — never changes form", level: "A1", frequencyRank: 14 },
+  { category: "shopping", french: "une boulangerie", english: "a bakery", level: "A1", frequencyRank: 15 },
+  { category: "shopping", french: "une boucherie", english: "a butcher shop", level: "A1", frequencyRank: 16 },
+  { category: "shopping", french: "une pharmacie", english: "a pharmacy", level: "A1", frequencyRank: 17 },
+  { category: "shopping", french: "le marché", english: "the market", level: "A1", frequencyRank: 18 },
+  { category: "shopping", french: "faire les courses", english: "to go grocery shopping", notes: "≠ faire la course = to race", level: "A1", frequencyRank: 19 },
+  { category: "shopping", french: "Chers clients", english: "Dear customers", notes: "used in store announcements", level: "A1", frequencyRank: 20 },
 
   // ========================================================
   // Fill-in-the-blank: Articles (type the correct article)
