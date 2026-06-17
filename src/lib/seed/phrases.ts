@@ -605,6 +605,17 @@ export const PHRASES: PhraseDef[] = [
   { category: "vocabulary", french: "le petit déjeuner", english: "breakfast", level: "A1", frequencyRank: 28 },
   { category: "vocabulary", french: "le dîner", english: "dinner", level: "A1", frequencyRank: 29 },
   { category: "vocabulary", french: "les vacances (f.)", english: "vacation / holidays", notes: "always plural", level: "A1", frequencyRank: 30 },
+  // Nouns from the 5 / 17 juin lessons
+  { category: "vocabulary", french: "le monde", english: "the world / people", notes: "il y a du monde = it's crowded", level: "A1", frequencyRank: 31 },
+  { category: "vocabulary", french: "un cadeau", english: "a gift", notes: "pl. des cadeaux", level: "A1", frequencyRank: 32 },
+  { category: "vocabulary", french: "un anniversaire", english: "a birthday", notes: "Joyeux anniversaire ! = Happy birthday!", level: "A1", frequencyRank: 33 },
+  { category: "vocabulary", french: "une fête", english: "a party / celebration", level: "A1", frequencyRank: 34 },
+  { category: "vocabulary", french: "un pique-nique", english: "a picnic", level: "A1", frequencyRank: 35 },
+  { category: "vocabulary", french: "la salle de sport", english: "the gym", notes: "also: le gym", level: "A1", frequencyRank: 36 },
+  { category: "vocabulary", french: "un parc", english: "a park", level: "A1", frequencyRank: 37 },
+  { category: "vocabulary", french: "la plage", english: "the beach", level: "A1", frequencyRank: 38 },
+  { category: "vocabulary", french: "le travail", english: "work", notes: "aller au travail = to go to work", level: "A1", frequencyRank: 39 },
+  { category: "vocabulary", french: "un voisin / une voisine", english: "a neighbour (m. / f.)", level: "A1", frequencyRank: 40 },
 
   // ========================================================
   // Useful expressions (from lessons)
@@ -627,6 +638,16 @@ export const PHRASES: PhraseDef[] = [
   { category: "expression", french: "ils sont / ils ont / ils vont", english: "they are / they have / they go", notes: "common confusion — listen for the vowel", level: "A1", frequencyRank: 16 },
   { category: "expression", french: "je prends / j'apprends", english: "I take / I learn", notes: "apprendre = prendre + ap (to learn)", level: "A1", frequencyRank: 17 },
   { category: "expression", french: "Si !", english: "Yes! (contradicting a negative)", notes: "Tu n'aimes pas ? — Si, j'adore ça !", level: "A1", frequencyRank: 18 },
+  // Expressions from the 5 / 17 juin lessons
+  { category: "expression", french: "Il y a du monde", english: "It's crowded / There are a lot of people", notes: "le monde = people (here) or the world", level: "A1", frequencyRank: 19 },
+  { category: "expression", french: "Je suis occupé / occupée", english: "I'm busy (m. / f.)", level: "A1", frequencyRank: 20 },
+  { category: "expression", french: "C'était drôle", english: "It was funny", notes: "drôle = funny; c'était = imparfait of c'est", level: "A1", frequencyRank: 21 },
+  { category: "expression", french: "d'abord", english: "first / first of all", notes: "sequencing word", level: "A1", frequencyRank: 22 },
+  { category: "expression", french: "puis", english: "then", notes: "sequencing word", level: "A1", frequencyRank: 23 },
+  { category: "expression", french: "ensuite", english: "next / then", notes: "sequencing word", level: "A1", frequencyRank: 24 },
+  { category: "expression", french: "enfin", english: "finally / at last", notes: "sequencing word", level: "A1", frequencyRank: 25 },
+  { category: "expression", french: "tout le monde", english: "everyone / everybody", level: "A1", frequencyRank: 26 },
+  { category: "expression", french: "il faut", english: "it is necessary / one must", notes: "from falloir — il faut partir = we must leave", level: "A1", frequencyRank: 27 },
 
   // ========================================================
   // Activities & hobbies
@@ -651,6 +672,27 @@ export const PHRASES: PhraseDef[] = [
   { category: "activity", french: "ouvrir", english: "to open", notes: "j'ouvre, tu ouvres, il ouvre…", level: "A1", frequencyRank: 18 },
   { category: "activity", french: "fermer", english: "to close", level: "A1", frequencyRank: 19 },
   { category: "activity", french: "oublier", english: "to forget", level: "A1", frequencyRank: 20 },
+  // Verbs from the 5 / 17 juin lessons
+  { category: "activity", french: "porter", english: "to wear / to carry", notes: "je porte un pull bleu", level: "A1", frequencyRank: 21 },
+  { category: "activity", french: "voir", english: "to see", notes: "je vois, tu vois, il voit, nous voyons, vous voyez, ils voient", level: "A1", frequencyRank: 22 },
+  { category: "activity", french: "pouvoir", english: "to be able to / can", notes: "je peux, tu peux, il peut, nous pouvons, vous pouvez, ils peuvent", level: "A1", frequencyRank: 23 },
+  { category: "activity", french: "vouloir", english: "to want", notes: "je veux, tu veux, il veut, nous voulons, vous voulez, ils veulent", level: "A1", frequencyRank: 24 },
+  { category: "activity", french: "devoir", english: "to have to / must", notes: "je dois, tu dois, il doit, nous devons, vous devez, ils doivent", level: "A1", frequencyRank: 25 },
+  { category: "activity", french: "savoir", english: "to know (a fact / how to)", notes: "je sais, tu sais, il sait, nous savons, vous savez, ils savent", level: "A1", frequencyRank: 26 },
+  { category: "activity", french: "rire", english: "to laugh", notes: "je ris, tu ris, il rit, nous rions, vous riez, ils rient", level: "A1", frequencyRank: 27 },
+  { category: "activity", french: "sourire", english: "to smile", notes: "conjugated like rire", level: "A1", frequencyRank: 28 },
+  { category: "activity", french: "rester", english: "to stay / remain", notes: "uses être in passé composé", level: "A1", frequencyRank: 29 },
+  { category: "activity", french: "durer", english: "to last", notes: "le film dure deux heures", level: "A1", frequencyRank: 30 },
+  { category: "activity", french: "sonner", english: "to ring", notes: "le téléphone sonne", level: "A1", frequencyRank: 31 },
+  { category: "activity", french: "croiser", english: "to cross / to run into (someone)", notes: "j'ai croisé un ami", level: "A2", frequencyRank: 32 },
+  { category: "activity", french: "accueillir", english: "to welcome / to greet", notes: "irregular — j'accueille", level: "A2", frequencyRank: 33 },
+  { category: "activity", french: "souhaiter", english: "to wish", notes: "souhaiter un bon anniversaire", level: "A1", frequencyRank: 34 },
+  { category: "activity", french: "pique-niquer", english: "to have a picnic", notes: "faire un pique-nique", level: "A1", frequencyRank: 35 },
+  { category: "activity", french: "se réveiller", english: "to wake up", notes: "reflexive — je me réveille à sept heures", level: "A1", frequencyRank: 36 },
+  { category: "activity", french: "se lever", english: "to get up", notes: "reflexive — je me lève, tu te lèves", level: "A1", frequencyRank: 37 },
+  { category: "activity", french: "se coucher", english: "to go to bed", notes: "reflexive — je me couche tard", level: "A1", frequencyRank: 38 },
+  { category: "activity", french: "s'habiller", english: "to get dressed", notes: "reflexive — je m'habille", level: "A1", frequencyRank: 39 },
+  { category: "activity", french: "s'entraîner", english: "to train / to work out", notes: "reflexive — je m'entraîne au gym", level: "A1", frequencyRank: 40 },
 
   // ========================================================
   // Shopping vocabulary
@@ -675,6 +717,75 @@ export const PHRASES: PhraseDef[] = [
   { category: "shopping", french: "le marché", english: "the market", level: "A1", frequencyRank: 18 },
   { category: "shopping", french: "faire les courses", english: "to go grocery shopping", notes: "≠ faire la course = to race", level: "A1", frequencyRank: 19 },
   { category: "shopping", french: "Chers clients", english: "Dear customers", notes: "used in store announcements", level: "A1", frequencyRank: 20 },
+
+  // ========================================================
+  // Colours (adjectives — agree with the noun)
+  // ========================================================
+  { category: "colour", french: "rouge", english: "red", notes: "invariable in spelling: un pull rouge, une robe rouge", level: "A1", frequencyRank: 1 },
+  { category: "colour", french: "bleu / bleue", english: "blue (m. / f.)", notes: "un sac bleu, une voiture bleue", level: "A1", frequencyRank: 2 },
+  { category: "colour", french: "bleu ciel", english: "sky blue", notes: "invariable — colours of two words never agree", level: "A1", frequencyRank: 3 },
+  { category: "colour", french: "vert / verte", english: "green (m. / f.)", level: "A1", frequencyRank: 4 },
+  { category: "colour", french: "jaune", english: "yellow", level: "A1", frequencyRank: 5 },
+  { category: "colour", french: "orange", english: "orange", notes: "invariable — from the fruit", level: "A1", frequencyRank: 6 },
+  { category: "colour", french: "rose", english: "pink", level: "A1", frequencyRank: 7 },
+  { category: "colour", french: "violet / violette", english: "purple (m. / f.)", level: "A1", frequencyRank: 8 },
+  { category: "colour", french: "gris / grise", english: "grey (m. / f.)", level: "A1", frequencyRank: 9 },
+  { category: "colour", french: "noir / noire", english: "black (m. / f.)", level: "A1", frequencyRank: 10 },
+  { category: "colour", french: "blanc / blanche", english: "white (m. / f.)", notes: "irregular feminine: blanche", level: "A1", frequencyRank: 11 },
+  { category: "colour", french: "marron", english: "brown", notes: "invariable — from the chestnut", level: "A1", frequencyRank: 12 },
+  { category: "colour", french: "beige", english: "beige", level: "A1", frequencyRank: 13 },
+  { category: "colour", french: "doré / dorée", english: "golden (m. / f.)", level: "A2", frequencyRank: 14 },
+  { category: "colour", french: "argenté / argentée", english: "silver (m. / f.)", level: "A2", frequencyRank: 15 },
+  { category: "colour", french: "foncé", english: "dark (shade)", notes: "bleu foncé = dark blue — makes the colour invariable", level: "A2", frequencyRank: 16 },
+  { category: "colour", french: "clair", english: "light (shade)", notes: "vert clair = light green — makes the colour invariable", level: "A2", frequencyRank: 17 },
+
+  // ========================================================
+  // Clothing
+  // ========================================================
+  { category: "clothing", french: "les vêtements (m.)", english: "clothes", notes: "porter des vêtements = to wear clothes", level: "A1", frequencyRank: 1 },
+  { category: "clothing", french: "une chemise", english: "a shirt", level: "A1", frequencyRank: 2 },
+  { category: "clothing", french: "un pantalon", english: "trousers / pants", notes: "singular in French", level: "A1", frequencyRank: 3 },
+  { category: "clothing", french: "un pull", english: "a sweater / jumper", level: "A1", frequencyRank: 4 },
+  { category: "clothing", french: "un tee-shirt", english: "a t-shirt", level: "A1", frequencyRank: 5 },
+  { category: "clothing", french: "une robe", english: "a dress", level: "A1", frequencyRank: 6 },
+  { category: "clothing", french: "une jupe", english: "a skirt", level: "A1", frequencyRank: 7 },
+  { category: "clothing", french: "une veste", english: "a jacket", level: "A1", frequencyRank: 8 },
+  { category: "clothing", french: "un manteau", english: "a coat", level: "A1", frequencyRank: 9 },
+  { category: "clothing", french: "un sac", english: "a bag", notes: "un sac à main = a handbag", level: "A1", frequencyRank: 10 },
+  { category: "clothing", french: "des chaussures (f.)", english: "shoes", level: "A1", frequencyRank: 11 },
+  { category: "clothing", french: "des chaussettes (f.)", english: "socks", level: "A1", frequencyRank: 12 },
+  { category: "clothing", french: "un chapeau", english: "a hat", level: "A1", frequencyRank: 13 },
+  { category: "clothing", french: "une casquette", english: "a cap", level: "A1", frequencyRank: 14 },
+  { category: "clothing", french: "une écharpe", english: "a scarf", level: "A1", frequencyRank: 15 },
+  { category: "clothing", french: "un short", english: "shorts", level: "A1", frequencyRank: 16 },
+  { category: "clothing", french: "un maillot de bain", english: "a swimsuit", level: "A1", frequencyRank: 17 },
+  { category: "clothing", french: "des lunettes (f.)", english: "glasses", notes: "des lunettes de soleil = sunglasses", level: "A1", frequencyRank: 18 },
+  { category: "clothing", french: "un jean", english: "jeans", level: "A1", frequencyRank: 19 },
+  { category: "clothing", french: "des gants (m.)", english: "gloves", level: "A1", frequencyRank: 20 },
+
+  // ========================================================
+  // Weather (la météo)
+  // ========================================================
+  { category: "weather", french: "Quel temps fait-il ?", english: "What's the weather like?", notes: "le temps = the weather (and 'time')", level: "A1", frequencyRank: 1 },
+  { category: "weather", french: "Il fait beau", english: "The weather is nice", notes: "use 'il fait' for most weather", level: "A1", frequencyRank: 2 },
+  { category: "weather", french: "Il fait mauvais", english: "The weather is bad", level: "A1", frequencyRank: 3 },
+  { category: "weather", french: "Il fait chaud", english: "It's hot", level: "A1", frequencyRank: 4 },
+  { category: "weather", french: "Il fait froid", english: "It's cold", level: "A1", frequencyRank: 5 },
+  { category: "weather", french: "Il fait frais", english: "It's cool / chilly", level: "A1", frequencyRank: 6 },
+  { category: "weather", french: "Il y a du soleil", english: "It's sunny", notes: "literally 'there is sun'", level: "A1", frequencyRank: 7 },
+  { category: "weather", french: "Il y a du vent", english: "It's windy", level: "A1", frequencyRank: 8 },
+  { category: "weather", french: "Il y a des nuages", english: "It's cloudy", notes: "un nuage = a cloud", level: "A1", frequencyRank: 9 },
+  { category: "weather", french: "Il pleut", english: "It's raining", notes: "from pleuvoir; la pluie = rain", level: "A1", frequencyRank: 10 },
+  { category: "weather", french: "Il neige", english: "It's snowing", notes: "from neiger; la neige = snow", level: "A1", frequencyRank: 11 },
+  { category: "weather", french: "ensoleillé", english: "sunny", notes: "un ciel ensoleillé = a sunny sky", level: "A1", frequencyRank: 12 },
+  { category: "weather", french: "nuageux", english: "cloudy (adj.)", level: "A1", frequencyRank: 13 },
+  { category: "weather", french: "Il pleuvait", english: "It was raining", notes: "imparfait of pleuvoir — describing past weather", level: "A2", frequencyRank: 14 },
+  { category: "weather", french: "Il faisait beau", english: "The weather was nice", notes: "imparfait — describing past weather", level: "A2", frequencyRank: 15 },
+  { category: "weather", french: "un orage", english: "a (thunder)storm", level: "A1", frequencyRank: 16 },
+  { category: "weather", french: "la météo", english: "the weather forecast", level: "A1", frequencyRank: 17 },
+  { category: "weather", french: "le ciel", english: "the sky", level: "A1", frequencyRank: 18 },
+  { category: "weather", french: "le soleil", english: "the sun", level: "A1", frequencyRank: 19 },
+  { category: "weather", french: "le brouillard", english: "fog", notes: "il y a du brouillard = it's foggy", level: "A2", frequencyRank: 20 },
 
   // ========================================================
   // Fill-in-the-blank: Articles (type the correct article)
