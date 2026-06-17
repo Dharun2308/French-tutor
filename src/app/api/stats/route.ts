@@ -6,11 +6,13 @@ import { db } from "@/lib/db/client";
 import { cards, conjugations, phrases, verbs } from "@/lib/db/schema";
 import { getSettings, jsonOk } from "@/lib/api";
 import { startOfUserDay } from "@/lib/srs";
+import { ensureSeeded } from "@/lib/seed/ensure-seeded";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  await ensureSeeded();
   const s = await getSettings();
   const activeTenses = (s.activeTenses as string[]) ?? ["present"];
   const activeLevels = (s.activeLevels as string[]) ?? ["A1"];

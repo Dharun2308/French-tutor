@@ -9,11 +9,13 @@ import { and, asc, eq, inArray, lte, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { phrases } from "@/lib/db/schema";
 import { getSettings, jsonError, jsonOk } from "@/lib/api";
+import { ensureSeeded } from "@/lib/seed/ensure-seeded";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  await ensureSeeded();
   const url = new URL(req.url);
   const countParam = url.searchParams.get("count") ?? "10";
   const count = Math.min(50, Math.max(1, parseInt(countParam, 10) || 10));
