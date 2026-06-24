@@ -51,6 +51,9 @@ const CATEGORY_COLOR: Record<PhraseCategory, string> = {
   fill_preposition: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
   fill_question: "bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20",
   fill_phrase: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+  fill_number: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
+  fill_time: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20",
+  fill_vocabulary: "bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20",
 };
 
 async function fetchNext(count = 15): Promise<{

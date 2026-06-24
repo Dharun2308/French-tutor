@@ -91,6 +91,9 @@ export const PHRASE_CATEGORIES = [
   "fill_preposition",
   "fill_question",
   "fill_phrase",
+  "fill_number",
+  "fill_time",
+  "fill_vocabulary",
 ] as const;
 export type PhraseCategory = (typeof PHRASE_CATEGORIES)[number];
 
@@ -121,6 +124,9 @@ export const PHRASE_CATEGORY_LABELS: Record<PhraseCategory, string> = {
   fill_preposition: "Fill: Prepositions",
   fill_question: "Fill: Questions",
   fill_phrase: "Fill: Phrases",
+  fill_number: "Fill: Numbers",
+  fill_time: "Fill: Days & months",
+  fill_vocabulary: "Fill: Vocabulary",
 };
 
 /** Categories that are fill-in-the-blank exercises (not flashcard-style). */
@@ -129,6 +135,9 @@ export const FILL_BLANK_CATEGORIES: PhraseCategory[] = [
   "fill_preposition",
   "fill_question",
   "fill_phrase",
+  "fill_number",
+  "fill_time",
+  "fill_vocabulary",
 ];
 
 export const LEARNING_STAGES = [
@@ -167,7 +176,7 @@ export const STAGE_PRESETS: Record<LearningStage, StagePreset> = {
       "Basic vocabulary: articles, numbers, question words, greetings, common phrases, countries, cities, time, food, quantities, colours, clothing, weather + fill-in-the-blank drills.",
     activeTenses: [],
     activeLevels: ["A1"],
-    activePhraseCategories: ["article", "number", "question", "greeting", "phrase", "country", "city", "time", "food", "fruit_vegetable", "meat", "quantity", "nationality", "demonstrative", "vocabulary", "expression", "activity", "shopping", "colour", "clothing", "weather", "fill_article", "fill_preposition", "fill_question", "fill_phrase"],
+    activePhraseCategories: ["article", "number", "question", "greeting", "phrase", "country", "city", "time", "food", "fruit_vegetable", "meat", "quantity", "nationality", "demonstrative", "vocabulary", "expression", "activity", "shopping", "colour", "clothing", "weather", "fill_article", "fill_preposition", "fill_question", "fill_phrase", "fill_number", "fill_time", "fill_vocabulary"],
   },
   present: {
     label: "Present tense verbs",
@@ -175,7 +184,7 @@ export const STAGE_PRESETS: Record<LearningStage, StagePreset> = {
       "Foundations plus present-tense verb conjugations. Recommended if you've learned subject pronouns + basic verb forms.",
     activeTenses: ["present"],
     activeLevels: ["A1"],
-    activePhraseCategories: ["article", "number", "question", "greeting", "phrase", "country", "city", "time", "food", "fruit_vegetable", "meat", "quantity", "nationality", "demonstrative", "vocabulary", "expression", "activity", "shopping", "colour", "clothing", "weather", "fill_article", "fill_preposition", "fill_question", "fill_phrase"],
+    activePhraseCategories: ["article", "number", "question", "greeting", "phrase", "country", "city", "time", "food", "fruit_vegetable", "meat", "quantity", "nationality", "demonstrative", "vocabulary", "expression", "activity", "shopping", "colour", "clothing", "weather", "fill_article", "fill_preposition", "fill_question", "fill_phrase", "fill_number", "fill_time", "fill_vocabulary"],
   },
   past: {
     label: "Past tenses",
@@ -183,7 +192,7 @@ export const STAGE_PRESETS: Record<LearningStage, StagePreset> = {
       "Add passé composé, imparfait, and futur proche to your active tenses.",
     activeTenses: ["present", "passe_compose", "imparfait", "futur_proche"],
     activeLevels: ["A1", "A2"],
-    activePhraseCategories: ["article", "number", "question", "greeting", "phrase", "country", "city", "time", "food", "fruit_vegetable", "meat", "quantity", "nationality", "demonstrative", "vocabulary", "expression", "activity", "shopping", "colour", "clothing", "weather", "fill_article", "fill_preposition", "fill_question", "fill_phrase"],
+    activePhraseCategories: ["article", "number", "question", "greeting", "phrase", "country", "city", "time", "food", "fruit_vegetable", "meat", "quantity", "nationality", "demonstrative", "vocabulary", "expression", "activity", "shopping", "colour", "clothing", "weather", "fill_article", "fill_preposition", "fill_question", "fill_phrase", "fill_number", "fill_time", "fill_vocabulary"],
   },
   advanced: {
     label: "Advanced",
@@ -198,6 +207,6 @@ export const STAGE_PRESETS: Record<LearningStage, StagePreset> = {
       "conditionnel",
     ],
     activeLevels: ["A1", "A2"],
-    activePhraseCategories: ["article", "number", "question", "greeting", "phrase", "country", "city", "time", "food", "fruit_vegetable", "meat", "quantity", "nationality", "demonstrative", "vocabulary", "expression", "activity", "shopping", "colour", "clothing", "weather", "fill_article", "fill_preposition", "fill_question", "fill_phrase"],
+    activePhraseCategories: ["article", "number", "question", "greeting", "phrase", "country", "city", "time", "food", "fruit_vegetable", "meat", "quantity", "nationality", "demonstrative", "vocabulary", "expression", "activity", "shopping", "colour", "clothing", "weather", "fill_article", "fill_preposition", "fill_question", "fill_phrase", "fill_number", "fill_time", "fill_vocabulary"],
   },
 };

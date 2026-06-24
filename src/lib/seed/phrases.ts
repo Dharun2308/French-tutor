@@ -616,6 +616,26 @@ export const PHRASES: PhraseDef[] = [
   { category: "vocabulary", french: "la plage", english: "the beach", level: "A1", frequencyRank: 38 },
   { category: "vocabulary", french: "le travail", english: "work", notes: "aller au travail = to go to work", level: "A1", frequencyRank: 39 },
   { category: "vocabulary", french: "un voisin / une voisine", english: "a neighbour (m. / f.)", level: "A1", frequencyRank: 40 },
+  // Travel / landscape nouns + adjectives (travel notes)
+  { category: "vocabulary", french: "la montagne", english: "mountain", notes: "faire de la randonnée dans les montagnes", level: "A1", frequencyRank: 41 },
+  { category: "vocabulary", french: "la mer", english: "sea", level: "A1", frequencyRank: 42 },
+  { category: "vocabulary", french: "le sable", english: "sand", notes: "du sable blanc = white sand", level: "A1", frequencyRank: 43 },
+  { category: "vocabulary", french: "une île", english: "an island", notes: "autour de l'île = around the island", level: "A1", frequencyRank: 44 },
+  { category: "vocabulary", french: "la ville", english: "city / town", level: "A1", frequencyRank: 45 },
+  { category: "vocabulary", french: "le village", english: "village", level: "A1", frequencyRank: 46 },
+  { category: "vocabulary", french: "la campagne", english: "countryside", level: "A1", frequencyRank: 47 },
+  { category: "vocabulary", french: "la nature", english: "nature", level: "A1", frequencyRank: 48 },
+  { category: "vocabulary", french: "le paysage", english: "scenery / landscape", level: "A2", frequencyRank: 49 },
+  { category: "vocabulary", french: "la région", english: "region / area", level: "A2", frequencyRank: 50 },
+  { category: "vocabulary", french: "un séjour", english: "a stay / a trip", notes: "raconter son séjour = to tell about one's trip", level: "A2", frequencyRank: 51 },
+  { category: "vocabulary", french: "une randonnée", english: "a hike", notes: "faire de la randonnée = to go hiking", level: "A1", frequencyRank: 52 },
+  { category: "vocabulary", french: "la nourriture", english: "food", notes: "la cuisine locale = the local cuisine", level: "A1", frequencyRank: 53 },
+  { category: "vocabulary", french: "un fruit", english: "a fruit", notes: "des fruits frais = fresh fruit", level: "A1", frequencyRank: 54 },
+  { category: "vocabulary", french: "une tortue", english: "a turtle", level: "A1", frequencyRank: 55 },
+  { category: "vocabulary", french: "frais / fraîche", english: "fresh / cool (m. / f.)", notes: "des mangues fraîches", level: "A1", frequencyRank: 56 },
+  { category: "vocabulary", french: "génial / géniale", english: "great / awesome (m. / f.)", notes: "= super, formidable", level: "A1", frequencyRank: 57 },
+  { category: "vocabulary", french: "magnifique", english: "magnificent / gorgeous", notes: "same form m. / f.", level: "A1", frequencyRank: 58 },
+  { category: "vocabulary", french: "local / locale", english: "local (m. / f.)", notes: "m. pl. locaux", level: "A2", frequencyRank: 59 },
 
   // ========================================================
   // Useful expressions (from lessons)
@@ -648,6 +668,22 @@ export const PHRASES: PhraseDef[] = [
   { category: "expression", french: "enfin", english: "finally / at last", notes: "sequencing word", level: "A1", frequencyRank: 25 },
   { category: "expression", french: "tout le monde", english: "everyone / everybody", level: "A1", frequencyRank: 26 },
   { category: "expression", french: "il faut", english: "it is necessary / one must", notes: "from falloir — il faut partir = we must leave", level: "A1", frequencyRank: 27 },
+  // Travel + letter-writing expressions (travel notes)
+  { category: "expression", french: "C'est tout", english: "That's it / that's all", level: "A1", frequencyRank: 28 },
+  { category: "expression", french: "Quoi de neuf ?", english: "What's new?", level: "A1", frequencyRank: 29 },
+  { category: "expression", french: "J'espère que vous allez bien", english: "I hope you are doing well", notes: "espérer que + indicative", level: "A1", frequencyRank: 30 },
+  { category: "expression", french: "Salut les gars", english: "Hi guys", notes: "informal group greeting", level: "A1", frequencyRank: 31 },
+  { category: "expression", french: "Prenez soin de vous", english: "Take care (formal / plural)", notes: "informal: prends soin de toi", level: "A1", frequencyRank: 32 },
+  { category: "expression", french: "deux fois par semaine", english: "twice a week", notes: "une fois = once, trois fois = three times", level: "A1", frequencyRank: 33 },
+  { category: "expression", french: "Depuis quand… ?", english: "Since when…?", notes: "Depuis quand habites-tu ici ?", level: "A1", frequencyRank: 34 },
+  { category: "expression", french: "depuis mes 14 ans", english: "since I was 14", notes: "= depuis que j'ai quatorze ans", level: "A2", frequencyRank: 35 },
+  { category: "expression", french: "Nous avons passé du bon temps", english: "We had a good time", notes: "passer du bon temps = de bons moments", level: "A2", frequencyRank: 36 },
+  { category: "expression", french: "Je vous embrasse", english: "Hugs / love (letter sign-off)", level: "A2", frequencyRank: 37 },
+  { category: "expression", french: "Bisous / Bises", english: "Kisses (informal sign-off)", level: "A1", frequencyRank: 38 },
+  { category: "expression", french: "Amitiés", english: "Best wishes (friendly close)", level: "A2", frequencyRank: 39 },
+  { category: "expression", french: "Cordialement", english: "Regards (formal close)", level: "A2", frequencyRank: 40 },
+  { category: "expression", french: "Bien à vous", english: "Yours sincerely (formal close)", level: "A2", frequencyRank: 41 },
+  { category: "expression", french: "À plus !", english: "See you! (informal)", level: "A1", frequencyRank: 42 },
 
   // ========================================================
   // Activities & hobbies
@@ -878,4 +914,48 @@ export const PHRASES: PhraseDef[] = [
   { category: "fill_phrase", french: "santé", english: "À votre ___. (Cheers — to your health)", notes: "santé = health", level: "A1", frequencyRank: 18 },
   { category: "fill_phrase", french: "lentement", english: "Parlez plus ___. (Speak more slowly)", notes: "lentement = slowly", level: "A1", frequencyRank: 19 },
   { category: "fill_phrase", french: "anglais", english: "Parlez-vous ___ ? (Do you speak English?)", notes: "anglais = English", level: "A1", frequencyRank: 20 },
+
+  // ========================================================
+  // Fill-in-the-blank: Numbers (type the number word)
+  // ========================================================
+  { category: "fill_number", french: "vingt", english: "J'ai ___ ans. (I am 20 years old)", notes: "20 = vingt", level: "A1", frequencyRank: 1 },
+  { category: "fill_number", french: "sept", english: "Il y a ___ jours dans une semaine. (7 days in a week)", notes: "7 = sept", level: "A1", frequencyRank: 2 },
+  { category: "fill_number", french: "douze", english: "Il y a ___ mois dans une année. (12 months in a year)", notes: "12 = douze", level: "A1", frequencyRank: 3 },
+  { category: "fill_number", french: "trente", english: "Le mois de septembre a ___ jours. (30 days)", notes: "30 = trente", level: "A1", frequencyRank: 4 },
+  { category: "fill_number", french: "cent", english: "Il y a ___ centimes dans un euro. (100 cents)", notes: "100 = cent", level: "A1", frequencyRank: 5 },
+  { category: "fill_number", french: "quatre", english: "Une voiture a ___ roues. (4 wheels)", notes: "4 = quatre", level: "A1", frequencyRank: 6 },
+  { category: "fill_number", french: "cinq", english: "J'ai ___ doigts à chaque main. (5 fingers on each hand)", notes: "5 = cinq", level: "A1", frequencyRank: 7 },
+  { category: "fill_number", french: "soixante", english: "Il y a ___ minutes dans une heure. (60 minutes)", notes: "60 = soixante", level: "A1", frequencyRank: 8 },
+  { category: "fill_number", french: "vingt-quatre", english: "Il y a ___ heures dans une journée. (24 hours)", notes: "24 = vingt-quatre", level: "A1", frequencyRank: 9 },
+  { category: "fill_number", french: "mille", english: "Un kilomètre, c'est ___ mètres. (1000 metres)", notes: "1000 = mille (invariable)", level: "A1", frequencyRank: 10 },
+  { category: "fill_number", french: "deux", english: "Je m'entraîne ___ fois par semaine. (twice a week)", notes: "2 = deux", level: "A1", frequencyRank: 11 },
+  { category: "fill_number", french: "quatre-vingts", english: "Mon grand-père a ___ ans. (80 years old)", notes: "80 = quatre-vingts (4 × 20)", level: "A1", frequencyRank: 12 },
+
+  // ========================================================
+  // Fill-in-the-blank: Days & months (type the day/month/time word)
+  // ========================================================
+  { category: "fill_time", french: "mardi", english: "Le jour après lundi, c'est ___. (the day after Monday)", notes: "→ mardi", level: "A1", frequencyRank: 1 },
+  { category: "fill_time", french: "mercredi", english: "Le jour après mardi, c'est ___. (the day after Tuesday)", notes: "→ mercredi", level: "A1", frequencyRank: 2 },
+  { category: "fill_time", french: "vendredi", english: "Le jour avant samedi, c'est ___. (the day before Saturday)", notes: "→ vendredi", level: "A1", frequencyRank: 3 },
+  { category: "fill_time", french: "dimanche", english: "Le week-end, c'est samedi et ___. (Saturday and Sunday)", notes: "→ dimanche", level: "A1", frequencyRank: 4 },
+  { category: "fill_time", french: "janvier", english: "Le premier mois de l'année, c'est ___. (the first month)", notes: "→ janvier", level: "A1", frequencyRank: 5 },
+  { category: "fill_time", french: "décembre", english: "Noël est au mois de ___. (Christmas is in…)", notes: "→ décembre", level: "A1", frequencyRank: 6 },
+  { category: "fill_time", french: "juin", english: "Le mois après mai, c'est ___. (the month after May)", notes: "→ juin", level: "A1", frequencyRank: 7 },
+  { category: "fill_time", french: "demain", english: "Aujourd'hui c'est mercredi, ___ c'est jeudi. (tomorrow)", notes: "→ demain", level: "A1", frequencyRank: 8 },
+  { category: "fill_time", french: "semaine", english: "Il y a sept jours dans une ___. (a week)", notes: "→ semaine", level: "A1", frequencyRank: 9 },
+  { category: "fill_time", french: "matin", english: "Je me lève tôt le ___ pour travailler. (in the morning)", notes: "→ matin", level: "A1", frequencyRank: 10 },
+
+  // ========================================================
+  // Fill-in-the-blank: Vocabulary (type the missing word)
+  // ========================================================
+  { category: "fill_vocabulary", french: "bleue", english: "La mer est ___. (the sea is blue — fem.)", notes: "mer is feminine → bleue", level: "A1", frequencyRank: 1 },
+  { category: "fill_vocabulary", french: "sable", english: "Sur la plage, il y a du ___ blanc. (white sand)", notes: "→ le sable", level: "A1", frequencyRank: 2 },
+  { category: "fill_vocabulary", french: "pull", english: "Quand il fait froid, je porte un ___. (a sweater)", notes: "→ un pull", level: "A1", frequencyRank: 3 },
+  { category: "fill_vocabulary", french: "déjeuner", english: "Le matin, je mange le petit ___. (breakfast)", notes: "→ le petit déjeuner", level: "A1", frequencyRank: 4 },
+  { category: "fill_vocabulary", french: "soif", english: "Je bois de l'eau quand j'ai ___. (thirsty)", notes: "avoir soif = to be thirsty", level: "A1", frequencyRank: 5 },
+  { category: "fill_vocabulary", french: "citron", english: "Un fruit jaune et acide : le ___. (lemon)", notes: "→ le citron", level: "A1", frequencyRank: 6 },
+  { category: "fill_vocabulary", french: "chaud", english: "Le contraire de 'froid', c'est '___'. (hot)", notes: "froid ↔ chaud", level: "A1", frequencyRank: 7 },
+  { category: "fill_vocabulary", french: "mer", english: "On nage dans la ___. (the sea)", notes: "→ la mer", level: "A1", frequencyRank: 8 },
+  { category: "fill_vocabulary", french: "randonnée", english: "Une promenade en nature : une ___. (a hike)", notes: "faire de la randonnée", level: "A1", frequencyRank: 9 },
+  { category: "fill_vocabulary", french: "frais", english: "Les fruits ne sont pas vieux, ils sont ___. (fresh — masc. pl.)", notes: "frais = fresh", level: "A1", frequencyRank: 10 },
 ];

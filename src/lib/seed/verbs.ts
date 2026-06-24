@@ -668,4 +668,138 @@ export const VERBS: VerbDef[] = [
     auxiliary: "avoir",
     frequencyRank: 65,
   },
+
+  // ==========================================================
+  // Additions from the travel / "-uire" lesson notes
+  // ==========================================================
+
+  // ----- "-uire" verbs (conduire family): present nous-stem in -uis-,
+  //       past participle in -uit. futurStem defaults from infinitive - "e". -----
+  {
+    infinitive: "conduire",
+    english: "to drive",
+    pattern: "irregular",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 66,
+    present: ["conduis", "conduis", "conduit", "conduisons", "conduisez", "conduisent"],
+    pastParticiple: "conduit",
+  },
+  {
+    infinitive: "produire",
+    english: "to produce",
+    pattern: "irregular",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 67,
+    present: ["produis", "produis", "produit", "produisons", "produisez", "produisent"],
+    pastParticiple: "produit",
+  },
+  {
+    infinitive: "construire",
+    english: "to build",
+    pattern: "irregular",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 68,
+    present: ["construis", "construis", "construit", "construisons", "construisez", "construisent"],
+    pastParticiple: "construit",
+  },
+  {
+    infinitive: "cuire",
+    english: "to cook / to bake",
+    pattern: "irregular",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 69,
+    present: ["cuis", "cuis", "cuit", "cuisons", "cuisez", "cuisent"],
+    pastParticiple: "cuit",
+  },
+  {
+    infinitive: "détruire",
+    english: "to destroy",
+    pattern: "irregular",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 70,
+    present: ["détruis", "détruis", "détruit", "détruisons", "détruisez", "détruisent"],
+    pastParticiple: "détruit",
+  },
+  {
+    infinitive: "traduire",
+    english: "to translate",
+    pattern: "irregular",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 71,
+    present: ["traduis", "traduis", "traduit", "traduisons", "traduisez", "traduisent"],
+    pastParticiple: "traduit",
+  },
+
+  // ----- é → è stem-change -----
+  {
+    // espérer: é → è in stressed (singular + 3rd plural). Classic futur keeps é.
+    infinitive: "espérer",
+    english: "to hope",
+    pattern: "irregular",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 72,
+    present: ["espère", "espères", "espère", "espérons", "espérez", "espèrent"],
+    // imparfait default from "espérons" → "espér-" → espérais, etc. ✓
+    futurStem: "espérer",
+    pastParticiple: "espéré",
+  },
+
+  // ----- Regular -er from the travel notes -----
+  {
+    infinitive: "passer",
+    english: "to spend (time) / to pass",
+    pattern: "er",
+    level: "A1",
+    auxiliary: "avoir",
+    frequencyRank: 73,
+  },
+  {
+    infinitive: "dépenser",
+    english: "to spend (money)",
+    pattern: "er",
+    level: "A1",
+    auxiliary: "avoir",
+    frequencyRank: 74,
+  },
+  {
+    infinitive: "séjourner",
+    english: "to stay (somewhere)",
+    pattern: "er",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 75,
+  },
+  {
+    infinitive: "conseiller",
+    english: "to advise / to recommend",
+    pattern: "er",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 76,
+  },
+  {
+    infinitive: "recommander",
+    english: "to recommend",
+    pattern: "er",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 77,
+  },
+
+  // ----- Reflexive -er -----
+  {
+    infinitive: "s'entraîner",
+    english: "to train / to work out",
+    pattern: "er_reflexive",
+    level: "A2",
+    auxiliary: "etre",
+    frequencyRank: 78,
+  },
 ];
