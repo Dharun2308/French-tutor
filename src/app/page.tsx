@@ -13,6 +13,7 @@ import {
   Target,
   TrendingUp,
   Clock,
+  Zap,
 } from "lucide-react";
 import {
   Card,
@@ -231,6 +232,36 @@ export default function DashboardPage() {
               <div className="text-[11px] text-muted-foreground">today</div>
             </div>
           </div>
+
+          {/* ── Smart session CTA ── */}
+          {!isEmpty && (
+            <div className="mb-6">
+              <Link href="/practice/smart" className="group block">
+                <Card className="border-primary/40 bg-gradient-to-r from-primary/10 to-transparent transition-all group-hover:shadow-md">
+                  <CardHeader className="flex flex-row items-center gap-4 py-4">
+                    <div className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/15">
+                      <Zap className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <CardTitle className="text-base">
+                        Start smart session
+                      </CardTitle>
+                      <CardDescription className="text-xs">
+                        Verbs + vocab mixed, typed answers, sized to your
+                        daily target.
+                      </CardDescription>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {stats.dueNow > 0 && (
+                        <Badge variant="default">{stats.dueNow} due</Badge>
+                      )}
+                      <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                    </div>
+                  </CardHeader>
+                </Card>
+              </Link>
+            </div>
+          )}
 
           {/* Translate box */}
           <div className="mb-8">

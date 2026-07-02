@@ -19,7 +19,37 @@ export interface PracticeCard {
   form: string;
   isIrregular: boolean;
   repetitions: number;
+  wrongCount: number;
+  mnemonic: string | null;
   options?: string[]; // only present in multiple_choice mode
+}
+
+/**
+ * Lifetime wrong answers at which an item counts as a "leech" and earns an
+ * AI-generated mnemonic. Matches the server-side threshold.
+ */
+export const LEECH_WRONG_THRESHOLD = 3;
+
+/**
+ * Fetch (generating + caching if needed) the mnemonic for a leech item.
+ * Returns null on any failure — mnemonics are a bonus, never an error.
+ */
+export async function requestMnemonic(
+  kind: "phrase" | "card",
+  id: number
+): Promise<string | null> {
+  try {
+    const res = await fetch("/api/ai/mnemonic", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ kind, id }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return typeof data.mnemonic === "string" ? data.mnemonic : null;
+  } catch {
+    return null;
+  }
 }
 
 export async function fetchNextCards(

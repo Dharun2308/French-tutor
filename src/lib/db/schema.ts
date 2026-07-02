@@ -77,6 +77,9 @@ export const cards = sqliteTable(
     suspended: integer("suspended", { mode: "boolean" })
       .notNull()
       .default(false),
+    // AI-generated memory hook, filled in once a card becomes a leech
+    // (failed repeatedly). Nullable — most cards never need one.
+    mnemonic: text("mnemonic"),
   },
   (t) => ({
     dueIdx: index("cards_due_idx").on(t.nextReviewAt, t.suspended),
@@ -165,6 +168,8 @@ export const phrases = sqliteTable(
     suspended: integer("suspended", { mode: "boolean" })
       .notNull()
       .default(false),
+    // AI-generated memory hook for leeches (see cards.mnemonic).
+    mnemonic: text("mnemonic"),
   },
   (t) => ({
     categoryIdx: index("phrases_category_idx").on(t.category),

@@ -23,6 +23,7 @@ import {
 } from "@/lib/prompts";
 import { applyRating, verdictToRating } from "@/lib/srs";
 import { jsonError, jsonOk } from "@/lib/api";
+import { ensureSeeded } from "@/lib/seed/ensure-seeded";
 import { rateLimit } from "@/lib/rate-limit";
 import { TENSES } from "@/types";
 
@@ -37,6 +38,7 @@ const Body = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  await ensureSeeded();
   const rl = rateLimit("ai_grade", 60, 60_000);
   if (!rl.allowed) {
     return jsonError("Too many AI requests. Slow down a moment.", 429);

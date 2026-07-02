@@ -17,6 +17,25 @@ import { getSettings } from "@/lib/api";
 let seedPromise: Promise<void> | null = null;
 
 /**
+ * Additive schema migrations. SQLite's ALTER TABLE ADD COLUMN errors if the
+ * column already exists, so each statement is individually try/caught —
+ * running these on every cold start is safe and near-free.
+ */
+async function ensureColumns(): Promise<void> {
+  const alters = [
+    sql`ALTER TABLE phrases ADD COLUMN mnemonic text`,
+    sql`ALTER TABLE cards ADD COLUMN mnemonic text`,
+  ];
+  for (const stmt of alters) {
+    try {
+      await db.run(stmt);
+    } catch {
+      // column already exists
+    }
+  }
+}
+
+/**
  * Ensure the database has the latest seed content. Cheap to call on every
  * request — it short-circuits once the row counts match the expected content.
  */
@@ -32,6 +51,8 @@ export function ensureSeeded(): Promise<void> {
 }
 
 async function runSeed(): Promise<void> {
+  await ensureColumns();
+
   const built = build();
 
   // Fast path: if the counts already cover the expected content, do nothing.

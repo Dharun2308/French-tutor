@@ -130,6 +130,8 @@ export async function GET(req: NextRequest) {
       notes: r.notes,
       level: r.level,
       repetitions: r.repetitions,
+      wrongCount: r.wrongCount,
+      mnemonic: r.mnemonic,
     })),
     asOf: now.toISOString(),
   });

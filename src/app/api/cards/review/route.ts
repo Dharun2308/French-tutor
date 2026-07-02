@@ -9,6 +9,7 @@ import { db } from "@/lib/db/client";
 import { cards } from "@/lib/db/schema";
 import { applyRating } from "@/lib/srs";
 import { jsonError, jsonOk } from "@/lib/api";
+import { ensureSeeded } from "@/lib/seed/ensure-seeded";
 
 export const runtime = "nodejs";
 
@@ -18,6 +19,7 @@ const Body = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  await ensureSeeded();
   let body: z.infer<typeof Body>;
   try {
     body = Body.parse(await req.json());

@@ -57,6 +57,8 @@ export async function GET(req: NextRequest) {
       easeFactor: cards.easeFactor,
       intervalDays: cards.intervalDays,
       suspended: cards.suspended,
+      wrongCount: cards.wrongCount,
+      mnemonic: cards.mnemonic,
       conjugationId: conjugations.id,
       tense: conjugations.tense,
       person: conjugations.person,
@@ -134,6 +136,8 @@ export async function GET(req: NextRequest) {
         form: r.form,
         isIrregular: r.isIrregular,
         repetitions: r.repetitions,
+        wrongCount: r.wrongCount,
+        mnemonic: r.mnemonic,
       };
       if (!includeDistractors) return base;
 

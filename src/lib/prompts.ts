@@ -205,3 +205,36 @@ export function explainSystemPrompt(): string {
     "Keep it short. Give 1-4 concrete examples with literal English gloss where helpful.",
   ].join("\n");
 }
+
+// ====================================================================
+// 4) Mnemonic generator (for leech cards the user keeps failing)
+// ====================================================================
+
+export const MnemonicSchema = z.object({
+  mnemonic: z
+    .string()
+    .describe("One short memory hook, plain text, under 180 characters."),
+});
+
+export type Mnemonic = z.infer<typeof MnemonicSchema>;
+
+export const MnemonicJsonSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["mnemonic"],
+  properties: {
+    mnemonic: { type: "string" },
+  },
+} as const;
+
+export function mnemonicSystemPrompt(): string {
+  return [
+    "You create tiny memory hooks for French items an English-speaking learner keeps forgetting.",
+    "Given the French and its English meaning, return ONE mnemonic: a sound-alike, cognate link, mini-etymology, pattern rule, or vivid image — whichever fits best.",
+    "Rules:",
+    "- Max ~180 characters. One or two sentences.",
+    "- Plain text in English (French words may appear). No markdown, no preamble, no quotes around the whole thing.",
+    "- For conjugation forms, prefer a pattern hook (which stem/ending family it belongs to) over a random image.",
+    "- Make it concrete and a little vivid — bland mnemonics don't stick.",
+  ].join("\n");
+}

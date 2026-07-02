@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { CheckCircle2, XCircle, AlertCircle, Lightbulb } from "lucide-react";
 import Link from "next/link";
 import { PracticeShell } from "@/components/practice-shell";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,6 +14,8 @@ import {
   fetchNextCards,
   gradeDrill,
   submitReview,
+  requestMnemonic,
+  LEECH_WRONG_THRESHOLD,
   type PracticeCard,
 } from "@/lib/client-practice";
 import { cn } from "@/lib/utils";
@@ -33,6 +35,8 @@ interface PhraseCard {
   notes: string | null;
   level: string;
   repetitions: number;
+  wrongCount: number;
+  mnemonic: string | null;
 }
 
 type DrillMode = "verbs" | "phrases";
@@ -81,7 +85,27 @@ export default function DrillPage() {
     "exact" | "accent-typo" | "wrong" | null
   >(null);
   const [correctCount, setCorrectCount] = useState(0);
+  const [mnemonic, setMnemonic] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // On a wrong answer, surface a memory hook: the stored one, or generate
+  // one once the item has been failed enough times to count as a leech.
+  const surfaceMnemonic = (
+    kind: "card" | "phrase",
+    id: number,
+    existing: string | null,
+    wrongCount: number
+  ) => {
+    if (existing) {
+      setMnemonic(existing);
+      return;
+    }
+    if (wrongCount + 1 >= LEECH_WRONG_THRESHOLD) {
+      requestMnemonic(kind, id).then((m) => {
+        if (m) setMnemonic(m);
+      });
+    }
+  };
 
   // Load cards for the active mode
   useEffect(() => {
@@ -89,6 +113,7 @@ export default function DrillPage() {
     setAnswer("");
     setPhase("answering");
     setFeedback(null);
+    setMnemonic(null);
     setCorrectCount(0);
     setError(null);
 
@@ -131,6 +156,14 @@ export default function DrillPage() {
       setFeedback(fb);
       setPhase("graded");
       if (rating >= 2) setCorrectCount((c) => c + 1);
+      if (rating === 0) {
+        surfaceMnemonic(
+          "card",
+          verbCard.cardId,
+          verbCard.mnemonic,
+          verbCard.wrongCount
+        );
+      }
       try {
         await submitReview(verbCard.cardId, rating);
       } catch (e) {
@@ -145,6 +178,14 @@ export default function DrillPage() {
       setFeedback(fb);
       setPhase("graded");
       if (rating >= 2) setCorrectCount((c) => c + 1);
+      if (rating === 0) {
+        surfaceMnemonic(
+          "phrase",
+          phraseCard.id,
+          phraseCard.mnemonic,
+          phraseCard.wrongCount
+        );
+      }
       try {
         await submitPhraseReview(phraseCard.id, rating);
       } catch (e) {
@@ -165,6 +206,7 @@ export default function DrillPage() {
           setAnswer("");
           setPhase("answering");
           setFeedback(null);
+          setMnemonic(null);
         })();
       } else {
         (async () => {
@@ -174,6 +216,7 @@ export default function DrillPage() {
           setAnswer("");
           setPhase("answering");
           setFeedback(null);
+          setMnemonic(null);
         })();
       }
       return;
@@ -182,6 +225,7 @@ export default function DrillPage() {
     setAnswer("");
     setPhase("answering");
     setFeedback(null);
+    setMnemonic(null);
     requestAnimationFrame(() => inputRef.current?.focus());
   };
 
@@ -349,6 +393,7 @@ export default function DrillPage() {
                 feedback={feedback}
                 correct={correctForm}
                 notes={phraseCard?.notes}
+                mnemonic={mnemonic}
               />
               <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                 <span>Hear it:</span>
@@ -454,11 +499,19 @@ function GradedBanner({
   feedback,
   correct,
   notes,
+  mnemonic,
 }: {
   feedback: "exact" | "accent-typo" | "wrong" | null;
   correct: string;
   notes?: string | null;
+  mnemonic?: string | null;
 }) {
+  const mnemonicNote = mnemonic ? (
+    <div className="mt-2 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm">
+      <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+      <span>{mnemonic}</span>
+    </div>
+  ) : null;
   if (feedback === "exact") {
     return (
       <div className="flex flex-col gap-1 rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm">
@@ -471,6 +524,7 @@ function GradedBanner({
             {notes}
           </div>
         )}
+        {mnemonicNote}
       </div>
     );
   }
@@ -489,6 +543,7 @@ function GradedBanner({
             {notes}
           </div>
         )}
+        {mnemonicNote}
       </div>
     );
   }
@@ -506,6 +561,7 @@ function GradedBanner({
           {notes}
         </div>
       )}
+      {mnemonicNote}
     </div>
   );
 }
