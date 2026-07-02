@@ -3,13 +3,27 @@
 // Optional `categories` param narrows to specific categories (e.g. for
 // the fill-in-the-blank drill mode). Still intersected with the user's
 // active categories from Settings.
+//
+// Selection is balanced across categories: due cards are grouped by
+// category and picked round-robin, so a bulky category (countries has 50+
+// cards) can't monopolize a batch just because it was seeded early. Within
+// a category, previously-reviewed overdue cards come first (real SRS
+// backlog), then new cards in frequencyRank order.
 
 import { NextRequest } from "next/server";
-import { and, asc, eq, inArray, lte, sql } from "drizzle-orm";
+import { and, eq, inArray, lte } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { phrases } from "@/lib/db/schema";
+import { phrases, type Phrase } from "@/lib/db/schema";
 import { getSettings, jsonError, jsonOk } from "@/lib/api";
 import { ensureSeeded } from "@/lib/seed/ensure-seeded";
+
+function shuffle<T>(arr: T[]): T[] {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,7 +64,9 @@ export async function GET(req: NextRequest) {
 
   const now = new Date();
 
-  const rows = await db
+  // Fetch the whole due pool (the phrases table is small — under a thousand
+  // rows), then balance in memory.
+  const pool = await db
     .select()
     .from(phrases)
     .where(
@@ -60,9 +76,44 @@ export async function GET(req: NextRequest) {
         inArray(phrases.category, activeCategories),
         inArray(phrases.level, activeLevels)
       )
-    )
-    .orderBy(asc(phrases.nextReviewAt), asc(sql`random()`))
-    .limit(count);
+    );
+
+  // Group by category; order each group: reviewed-overdue first (most
+  // overdue first), then unseen cards by frequencyRank.
+  const byCategory = new Map<string, Phrase[]>();
+  for (const r of pool) {
+    const group = byCategory.get(r.category);
+    if (group) group.push(r);
+    else byCategory.set(r.category, [r]);
+  }
+  for (const group of byCategory.values()) {
+    group.sort((a, b) => {
+      const aNew = a.repetitions === 0;
+      const bNew = b.repetitions === 0;
+      if (aNew !== bNew) return aNew ? 1 : -1;
+      return aNew
+        ? a.frequencyRank - b.frequencyRank
+        : a.nextReviewAt.getTime() - b.nextReviewAt.getTime();
+    });
+  }
+
+  // Round-robin across categories (order shuffled per request) until the
+  // batch is full or the pool runs dry.
+  const groups = shuffle([...byCategory.values()]);
+  const rows: Phrase[] = [];
+  for (let i = 0; rows.length < count && groups.length > 0; ) {
+    const group = groups[i % groups.length];
+    const next = group.shift();
+    if (next) rows.push(next);
+    if (group.length === 0) {
+      groups.splice(i % groups.length, 1);
+      // don't advance i — the next group slid into this slot
+      i = groups.length > 0 ? i % groups.length : 0;
+    } else {
+      i++;
+    }
+  }
+  shuffle(rows);
 
   return jsonOk({
     phrases: rows.map((r) => ({
