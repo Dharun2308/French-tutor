@@ -260,8 +260,8 @@ export default function DashboardPage() {
                 Foundations
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Articles, numbers, questions, greetings, phrases, countries,
-                cities, time.
+                Vocabulary flashcards — numbers, food, colours, clothing,
+                weather, travel, countries, time, and more.
               </p>
               <div className="mt-3">
                 <Link href="/practice/phrases" className="group">

@@ -309,8 +309,8 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle>Foundation categories</CardTitle>
             <CardDescription>
-              Non-verb content for the Phrases practice mode: articles,
-              numbers, question words, greetings, and common phrases.
+              Non-verb content for the Foundations flashcards and the
+              fill-in-the-blank drills — toggle topics on or off.
             </CardDescription>
           </CardHeader>
           <CardContent>

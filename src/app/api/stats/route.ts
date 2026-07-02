@@ -1,7 +1,7 @@
 // GET /api/stats
 // Returns dashboard stats: due count, streak, retention, weakest verbs.
 
-import { and, desc, eq, gt, gte, inArray, lte, sql } from "drizzle-orm";
+import { and, desc, eq, gt, gte, inArray, lt, lte, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { cards, conjugations, phrases, verbs } from "@/lib/db/schema";
 import { getSettings, jsonOk } from "@/lib/api";
@@ -208,7 +208,8 @@ export async function GET() {
       ? Math.round((correctTotal / (correctTotal + wrongTotal)) * 100)
       : 0;
 
-  // Weakest verbs — scoped to active tenses/levels.
+  // Weakest verbs — scoped to active tenses/levels. Ranked by wrong RATE
+  // (not lifetime wrong count) so verbs you've since mastered fall off.
   let weakestFiltered: Array<{
     verbId: number;
     infinitive: string;
@@ -236,8 +237,13 @@ export async function GET() {
         )
       )
       .groupBy(verbs.id, verbs.infinitive, verbs.english)
-      .orderBy(desc(sql`sum(${cards.wrongCount})`))
-      .limit(10);
+      .orderBy(
+        desc(
+          sql`sum(${cards.wrongCount}) * 1.0 / max(1, sum(${cards.wrongCount}) + sum(${cards.correctCount}))`
+        ),
+        desc(sql`sum(${cards.wrongCount})`)
+      )
+      .limit(6);
     weakestFiltered = weakest
       .filter((w) => Number(w.wrongSum ?? 0) > 0)
       .map((w) => ({
@@ -249,7 +255,9 @@ export async function GET() {
       }));
   }
 
-  // Weakest phrases — scoped to active categories/levels.
+  // Weakest phrases — scoped to active categories/levels. Ranked by wrong
+  // rate; phrases whose interval has grown past 3 weeks are considered
+  // mastered and drop off the list.
   let weakestPhrases: Array<{
     phraseId: number;
     french: string;
@@ -273,12 +281,18 @@ export async function GET() {
         and(
           gt(phrases.repetitions, 0),
           gt(phrases.wrongCount, 0),
+          lt(phrases.intervalDays, 21),
           inArray(phrases.category, activePhraseCategories),
           inArray(phrases.level, activeLevels)
         )
       )
-      .orderBy(desc(phrases.wrongCount))
-      .limit(10);
+      .orderBy(
+        desc(
+          sql`${phrases.wrongCount} * 1.0 / (${phrases.wrongCount} + ${phrases.correctCount})`
+        ),
+        desc(phrases.wrongCount)
+      )
+      .limit(6);
     weakestPhrases = wp.map((p) => ({
       phraseId: p.phraseId,
       french: p.french,

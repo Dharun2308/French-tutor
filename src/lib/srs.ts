@@ -17,6 +17,9 @@ const MIN_EASE_X100 = 130;
 const DEFAULT_EASE_X100 = 250;
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
+// A failed card comes back after a short relearn step (same session),
+// not a full day — you relearn it while it's fresh.
+const RELEARN_MS = 10 * 60 * 1000;
 
 export function initialState(now: Date = new Date()): SrsState {
   return {
@@ -41,7 +44,7 @@ export function applyRating(
 
   if (rating === 0) {
     repetitions = 0;
-    intervalDays = 1;
+    intervalDays = 0;
     easeX100 = Math.max(MIN_EASE_X100, easeX100 - 20);
   } else {
     const ease = easeX100 / 100;
@@ -70,7 +73,10 @@ export function applyRating(
   // cap silly intervals at 1 year
   if (intervalDays > 365) intervalDays = 365;
 
-  const nextReviewAt = new Date(now.getTime() + intervalDays * MS_PER_DAY);
+  const nextReviewAt =
+    rating === 0
+      ? new Date(now.getTime() + RELEARN_MS)
+      : new Date(now.getTime() + intervalDays * MS_PER_DAY);
 
   return {
     easeX100,

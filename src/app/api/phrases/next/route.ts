@@ -16,6 +16,7 @@ import { db } from "@/lib/db/client";
 import { phrases, type Phrase } from "@/lib/db/schema";
 import { getSettings, jsonError, jsonOk } from "@/lib/api";
 import { ensureSeeded } from "@/lib/seed/ensure-seeded";
+import { FILL_BLANK_CATEGORIES } from "@/types";
 
 function shuffle<T>(arr: T[]): T[] {
   for (let i = arr.length - 1; i > 0; i--) {
@@ -52,7 +53,12 @@ export async function GET(req: NextRequest) {
       activeCategories = requested;
     }
   } else {
-    activeCategories = allActive;
+    // No explicit filter = the flashcards feed. Exclude fill-in-the-blank
+    // categories — their "english" field is a French sentence with a blank,
+    // which makes no sense as a translate-this flashcard. The drill page
+    // requests them explicitly via the categories param.
+    const fill = new Set<string>(FILL_BLANK_CATEGORIES);
+    activeCategories = allActive.filter((c) => !fill.has(c));
   }
 
   if (activeCategories.length === 0) {
