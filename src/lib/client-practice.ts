@@ -1,6 +1,6 @@
 // Shared client-side types and fetchers for the practice pages.
 
-import { compareAnswer } from "@/lib/normalize";
+import { compareAnswerFlexible } from "@/lib/normalize";
 import type { Rating, Tense, Person } from "@/types";
 import { verdictToRating } from "@/lib/srs";
 
@@ -93,7 +93,7 @@ export function gradeDrill(
   target: string,
   repetitions: number
 ): { rating: Rating; feedback: "exact" | "accent-typo" | "wrong" } {
-  const cmp = compareAnswer(user, target);
+  const cmp = compareAnswerFlexible(user, target);
   if (cmp === "exact") {
     return { rating: repetitions >= 3 ? 3 : 2, feedback: "exact" };
   }

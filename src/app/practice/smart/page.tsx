@@ -91,6 +91,7 @@ export default function SmartSessionPage() {
   >(null);
   const [mnemonic, setMnemonic] = useState<string | null>(null);
   const [correctCount, setCorrectCount] = useState(0);
+  const [accentCount, setAccentCount] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
@@ -101,6 +102,7 @@ export default function SmartSessionPage() {
     setFeedback(null);
     setMnemonic(null);
     setCorrectCount(0);
+    setAccentCount(0);
     try {
       // Size the session to what's left of the daily target.
       let target = 20;
@@ -179,6 +181,7 @@ export default function SmartSessionPage() {
     setFeedback(fb);
     setPhase("graded");
     if (rating >= 2) setCorrectCount((c) => c + 1);
+    if (fb === "accent-typo") setAccentCount((c) => c + 1);
     if (rating === 0) surfaceMnemonic(item);
     else {
       const existing =
@@ -262,8 +265,11 @@ export default function SmartSessionPage() {
             <Trophy className="mx-auto h-10 w-10 text-amber-500" />
             <h2 className="text-2xl font-semibold">Session complete!</h2>
             <p className="text-muted-foreground">
-              {correctCount} / {items.length} correct ({pct}%).{" "}
-              {pct >= 80
+              {correctCount} / {items.length} correct ({pct}%)
+              {accentCount > 0 && (
+                <> · {accentCount} accent slip{accentCount > 1 ? "s" : ""} — so close!</>
+              )}
+              . {pct >= 80
                 ? "Excellent — keep this pace."
                 : "The misses come back in 10 minutes — go again to lock them in."}
             </p>

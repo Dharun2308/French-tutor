@@ -50,6 +50,70 @@ export function sameFormLoose(a: string, b: string): boolean {
   return basicClean(a) === basicClean(b);
 }
 
+// ── Flexible matching for typed answers ──
+//
+// Card targets often carry teaching annotations a learner shouldn't have
+// to type: gender tags "l'œuf (m.)", variant pairs "bleu / bleue",
+// country pairs "la France — en France", ellipses "Je voudrais…", and
+// French punctuation "Comment allez-vous ?". Typed grading should accept
+// any reasonable form of the actual answer — while still keeping accents
+// meaningful (é vs e can change tense or meaning).
+
+/** Remove parenthetical annotations and ellipses. */
+function stripAnnotations(s: string): string {
+  return s.replace(/\([^)]*\)/g, " ").replace(/…/g, " ");
+}
+
+/**
+ * Normalize for comparison: drop punctuation that carries no meaning when
+ * typing (question marks, commas, quotes) and treat hyphens as spaces
+ * ("dix-sept" ≙ "dix sept"). Accents are preserved — they matter.
+ */
+function comparable(s: string): string {
+  return basicClean(s.replace(/[?!.,;:«»"“”]/g, " ").replace(/-/g, " "));
+}
+
+/**
+ * All acceptable typed forms of a target: the whole thing, each em-dash
+ * part ("la France — en France" → both), and each slash variant
+ * ("bleu / bleue" → both genders).
+ */
+export function acceptableAnswers(target: string): string[] {
+  const stripped = stripAnnotations(target);
+  const raw = new Set<string>([stripped]);
+  for (const dashPart of stripped.split(/\s*[—–]\s*/)) {
+    raw.add(dashPart);
+    for (const slashPart of dashPart.split(/\s*\/\s*/)) {
+      raw.add(slashPart);
+    }
+  }
+  const out = new Set<string>();
+  for (const r of raw) {
+    const c = comparable(r);
+    if (c) out.add(c);
+  }
+  return [...out];
+}
+
+/**
+ * Like compareAnswer, but forgiving of annotations, variants, punctuation,
+ * and hyphens in the target. Accent differences still only earn partial
+ * credit ("accent-typo"), never "exact".
+ */
+export function compareAnswerFlexible(
+  user: string,
+  target: string
+): CompareResult {
+  const u = comparable(user);
+  if (!u) return "wrong";
+  let best: CompareResult = "wrong";
+  for (const t of acceptableAnswers(target)) {
+    if (u === t) return "exact";
+    if (stripAccents(u) === stripAccents(t)) best = "accent-typo";
+  }
+  return best;
+}
+
 /**
  * Stable, short hash used to cache AI responses by prompt shape.
  * Not cryptographic — just needs to be deterministic and collision-resistant
