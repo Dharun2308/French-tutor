@@ -1,7 +1,7 @@
 // GET /api/stats
 // Returns dashboard stats: due count, streak, retention, weakest verbs.
 
-import { and, desc, eq, gt, gte, inArray, lt, lte, sql } from "drizzle-orm";
+import { and, desc, eq, gt, gte, inArray, isNotNull, lt, lte, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { cards, conjugations, phrases, verbs } from "@/lib/db/schema";
 import { getSettings, jsonOk } from "@/lib/api";
@@ -137,7 +137,7 @@ export async function GET() {
       .innerJoin(verbs, eq(verbs.id, conjugations.verbId))
       .where(
         and(
-          gt(cards.repetitions, 0),
+          isNotNull(cards.lastReviewedAt),
           inArray(conjugations.tense, activeTenses),
           inArray(verbs.level, activeLevels)
         )
@@ -157,7 +157,7 @@ export async function GET() {
       .from(phrases)
       .where(
         and(
-          gt(phrases.repetitions, 0),
+          isNotNull(phrases.lastReviewedAt),
           inArray(phrases.category, activePhraseCategories),
           inArray(phrases.level, activeLevels)
         )
@@ -176,7 +176,6 @@ export async function GET() {
       .innerJoin(verbs, eq(verbs.id, conjugations.verbId))
       .where(
         and(
-          gt(cards.repetitions, 0),
           gte(cards.lastReviewedAt, todayStart),
           inArray(conjugations.tense, activeTenses),
           inArray(verbs.level, activeLevels)
@@ -191,7 +190,6 @@ export async function GET() {
       .from(phrases)
       .where(
         and(
-          gt(phrases.repetitions, 0),
           gte(phrases.lastReviewedAt, todayStart),
           inArray(phrases.category, activePhraseCategories),
           inArray(phrases.level, activeLevels)
@@ -231,7 +229,7 @@ export async function GET() {
       .innerJoin(verbs, eq(verbs.id, conjugations.verbId))
       .where(
         and(
-          gt(cards.repetitions, 0),
+          isNotNull(cards.lastReviewedAt),
           inArray(conjugations.tense, activeTenses),
           inArray(verbs.level, activeLevels)
         )
@@ -279,7 +277,7 @@ export async function GET() {
       .from(phrases)
       .where(
         and(
-          gt(phrases.repetitions, 0),
+          isNotNull(phrases.lastReviewedAt),
           gt(phrases.wrongCount, 0),
           lt(phrases.intervalDays, 21),
           inArray(phrases.category, activePhraseCategories),

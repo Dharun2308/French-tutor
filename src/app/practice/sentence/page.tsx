@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/empty-state";
 import { useHotkeys } from "@/hooks/use-hotkeys";
 import {
   fetchNextCards,
+  submitReview,
   type PracticeCard,
 } from "@/lib/client-practice";
 import { cn } from "@/lib/utils";
@@ -45,6 +46,9 @@ export default function SentenceBuilderPage() {
   const [answer, setAnswer] = useState("");
   const [grading, setGrading] = useState(false);
   const [grade, setGrade] = useState<GradeResult | null>(null);
+  // The three translations stay hidden until the learner grades an attempt or
+  // explicitly gives up — otherwise the exercise just shows its own answer.
+  const [revealed, setRevealed] = useState(false);
   const [targetRegister, setTargetRegister] = useState<
     "formal" | "neutral" | "informal"
   >("neutral");
@@ -78,6 +82,7 @@ export default function SentenceBuilderPage() {
     setExercise(null);
     setAnswer("");
     setGrade(null);
+    setRevealed(false);
     setLoadingExercise(true);
     try {
       const res = await fetch("/api/ai/sentence", {
@@ -86,6 +91,7 @@ export default function SentenceBuilderPage() {
         body: JSON.stringify({
           verbId: card.verbId,
           tense: card.tense,
+          person: card.person,
         }),
       });
       if (!res.ok) {
@@ -121,6 +127,7 @@ export default function SentenceBuilderPage() {
           infinitive: card.infinitive,
           tense: card.tense,
           cardId: card.cardId,
+          person: card.person,
         }),
       });
       if (!res.ok) {
@@ -136,6 +143,18 @@ export default function SentenceBuilderPage() {
     }
   }
 
+  // "I don't know" — reveal the answers without grading, and record an Again
+  // review so the SRS brings this card back soon (revealing = you didn't recall it).
+  async function reveal() {
+    if (!card || grade || revealed) return;
+    setRevealed(true);
+    try {
+      await submitReview(card.cardId, 0);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   function nextCard() {
     if (!cards) return;
     if (index + 1 >= cards.length) {
@@ -146,6 +165,7 @@ export default function SentenceBuilderPage() {
         setExercise(null);
         setAnswer("");
         setGrade(null);
+        setRevealed(false);
       })();
       return;
     }
@@ -153,11 +173,12 @@ export default function SentenceBuilderPage() {
     setExercise(null);
     setAnswer("");
     setGrade(null);
+    setRevealed(false);
   }
 
   useHotkeys({
     Enter: () => {
-      if (grade) nextCard();
+      if (grade || revealed) nextCard();
       else if (exercise && !grading) grade_();
     },
   });
@@ -231,7 +252,7 @@ export default function SentenceBuilderPage() {
                     size="sm"
                     variant={targetRegister === r ? "default" : "outline"}
                     onClick={() => setTargetRegister(r)}
-                    disabled={grading || grade !== null}
+                    disabled={grading || grade !== null || revealed}
                     className="capitalize"
                   >
                     {r}
@@ -239,7 +260,7 @@ export default function SentenceBuilderPage() {
                 ))}
               </div>
 
-              {!grade ? (
+              {!grade && !revealed ? (
                 <div className="space-y-3">
                   <Input
                     ref={inputRef}
@@ -256,26 +277,41 @@ export default function SentenceBuilderPage() {
                     value={answer}
                     onChange={setAnswer}
                   />
-                  <Button
-                    onClick={grade_}
-                    disabled={grading || answer.trim() === ""}
-                    className="w-full"
-                    size="lg"
-                  >
-                    {grading ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Grading…
-                      </>
-                    ) : (
-                      "Check (Enter)"
-                    )}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={grade_}
+                      disabled={grading || answer.trim() === ""}
+                      className="flex-1"
+                      size="lg"
+                    >
+                      {grading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Grading…
+                        </>
+                      ) : (
+                        "Check (Enter)"
+                      )}
+                    </Button>
+                    <Button
+                      onClick={reveal}
+                      disabled={grading}
+                      variant="outline"
+                      size="lg"
+                    >
+                      Show answer
+                    </Button>
+                  </div>
                 </div>
-              ) : (
+              ) : grade ? (
                 <GradeBanner grade={grade} />
+              ) : (
+                <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-muted-foreground">
+                  Answer revealed — we&apos;ll bring this one back soon.
+                </div>
               )}
 
+              {(grade || revealed) && (
               <div className="border-t pt-4">
                 <div className="mb-3 flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-muted-foreground" />
@@ -316,8 +352,9 @@ export default function SentenceBuilderPage() {
                   </div>
                 )}
               </div>
+              )}
 
-              {grade && (
+              {(grade || revealed) && (
                 <Button onClick={nextCard} size="lg" className="w-full">
                   Next verb (Enter)
                 </Button>

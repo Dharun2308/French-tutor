@@ -18,13 +18,17 @@ import {
 import { quickHash } from "@/lib/normalize";
 import { jsonError, jsonOk } from "@/lib/api";
 import { rateLimit } from "@/lib/rate-limit";
-import { TENSES, type Tense } from "@/types";
+import { PERSONS, TENSES, type Tense, type Person } from "@/types";
 
 export const runtime = "nodejs";
 
 const Body = z.object({
   verbId: z.number().int().positive(),
   tense: z.enum(TENSES),
+  // The grammatical subject to build the sentence around. Defaults to "je"
+  // for older callers, but the practice UI always sends the due card's person
+  // so the graded sentence matches the card being updated.
+  person: z.enum(PERSONS).optional(),
   theme: z.string().max(60).optional(),
 });
 
@@ -51,9 +55,12 @@ export async function POST(req: NextRequest) {
     .limit(1);
   if (!verb) return jsonError("Verb not found", 404);
 
-  // Cache key: theme is part of the shape so themed prompts don't collide.
+  const person: Person = body.person ?? "1s";
+
+  // Cache key: person + theme are part of the shape so different subjects and
+  // themed prompts don't collide.
   const promptHash = quickHash(
-    JSON.stringify({ tense: body.tense, theme: body.theme ?? null })
+    JSON.stringify({ tense: body.tense, person, theme: body.theme ?? null })
   );
 
   const cached = await db
@@ -90,6 +97,7 @@ export async function POST(req: NextRequest) {
         infinitive: verb.infinitive,
         english: verb.english,
         tense: body.tense,
+        person,
         theme: body.theme,
       }),
       schema: SentenceExerciseSchema,

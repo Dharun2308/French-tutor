@@ -13,7 +13,7 @@ import { NextRequest } from "next/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db/client";
-import { cards } from "@/lib/db/schema";
+import { cards, conjugations } from "@/lib/db/schema";
 import { chatJSON } from "@/lib/openai";
 import {
   GradeResultSchema,
@@ -25,7 +25,7 @@ import { applyRating, verdictToRating } from "@/lib/srs";
 import { jsonError, jsonOk } from "@/lib/api";
 import { ensureSeeded } from "@/lib/seed/ensure-seeded";
 import { rateLimit } from "@/lib/rate-limit";
-import { TENSES } from "@/types";
+import { PERSONS, TENSES } from "@/types";
 
 export const runtime = "nodejs";
 
@@ -35,6 +35,10 @@ const Body = z.object({
   infinitive: z.string().min(1).max(40),
   tense: z.enum(TENSES),
   cardId: z.number().int().positive().optional(),
+  // The grammatical person the exercise was built around. When provided, the
+  // SRS update only applies if the card genuinely matches this (tense, person)
+  // — so grading a sentence can never advance an unrelated conjugation card.
+  person: z.enum(PERSONS).optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -75,15 +79,27 @@ export async function POST(req: NextRequest) {
 
   const rating = verdictToRating(result.verdict);
 
-  // Optionally update the card SRS state.
+  // Optionally update the card SRS state — but only when the card actually
+  // matches the tense (and person, if given) that was practiced. This stops
+  // a correctly-answered "tu" sentence from advancing, say, a "nous" card.
+  let srsApplied = false;
   if (body.cardId) {
     const rows = await db
-      .select()
+      .select({
+        card: cards,
+        tense: conjugations.tense,
+        person: conjugations.person,
+      })
       .from(cards)
+      .innerJoin(conjugations, eq(conjugations.id, cards.conjugationId))
       .where(eq(cards.id, body.cardId))
       .limit(1);
-    if (rows.length > 0) {
-      const card = rows[0];
+    const matches =
+      rows.length > 0 &&
+      rows[0].tense === body.tense &&
+      (body.person === undefined || rows[0].person === body.person);
+    if (matches) {
+      const card = rows[0].card;
       const next = applyRating(
         {
           easeX100: card.easeFactor,
@@ -107,6 +123,7 @@ export async function POST(req: NextRequest) {
           wrongCount: card.wrongCount + (correct ? 0 : 1),
         })
         .where(eq(cards.id, body.cardId));
+      srsApplied = true;
     }
   }
 
@@ -116,5 +133,6 @@ export async function POST(req: NextRequest) {
     corrected: result.corrected,
     explanation: result.explanation,
     rating,
+    srsApplied,
   });
 }

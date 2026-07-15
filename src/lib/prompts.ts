@@ -7,7 +7,7 @@
 // back into the SRS system.
 
 import { z } from "zod";
-import { TENSE_LABELS, type Tense } from "@/types";
+import { TENSE_LABELS, PERSON_PRONOUNS, type Tense, type Person } from "@/types";
 
 // ====================================================================
 // 1) Sentence exercise generator
@@ -57,12 +57,14 @@ export function sentenceSystemPrompt(): string {
     "You are a helpful French tutor for English speakers.",
     "Your job is to generate a single short practice sentence and render it in three registers: formal, neutral, informal.",
     "Constraints:",
-    "- Use the TARGET verb and TARGET tense the user specifies.",
+    "- Use the TARGET verb, TARGET tense, and TARGET subject the user specifies.",
+    "- CRITICAL: in all three registers, the target verb's subject must stay the SAME grammatical person the user specifies (e.g. if the subject is 'nous', every version keeps 'nous' — never switch it to je/tu/vous). The target verb must be conjugated for that subject in every version.",
+    "- Vary register through vocabulary, politeness formulas, and sentence structure — NOT by changing the target verb's subject or number.",
     "- Keep sentences short (5-12 words). Prefer A1/A2 vocabulary.",
     "- The English prompt should be natural and not mirror French word order.",
-    "- The formal version should use 'vous' and polite register (e.g. 'je voudrais', 'pourriez-vous').",
-    "- The neutral version is the standard textbook version — use 'tu' for singular addressee unless the context is plural/formal.",
-    "- The informal version uses 'tu', may drop 'ne' in negation, use contractions ('t'as', 'j'sais pas') when natural.",
+    "- Formal: polite word choice (e.g. 'je voudrais' over 'je veux'); if the sentence addresses someone, use 'vous' for the addressee — but never change the target verb's own subject.",
+    "- Neutral: the standard textbook version.",
+    "- Informal: relaxed phrasing, may drop 'ne' in negation, use contractions ('t'as', 'j'sais pas') when natural.",
     "- In the notes field, give 1–3 bullet points explaining the key register differences in this sentence. Use plain English. Separate bullets with newlines.",
     "- Never explain grammar the user already knows; focus on register choices.",
   ].join("\n");
@@ -72,11 +74,13 @@ export function sentenceUserPrompt(args: {
   infinitive: string;
   english: string;
   tense: Tense;
+  person: Person;
   theme?: string;
 }): string {
   const tenseLabel = TENSE_LABELS[args.tense];
+  const pronoun = PERSON_PRONOUNS[args.person];
   const theme = args.theme ? ` Theme: ${args.theme}.` : "";
-  return `Generate an exercise for the verb "${args.infinitive}" (${args.english}) in the ${tenseLabel} tense.${theme}`;
+  return `Generate an exercise for the verb "${args.infinitive}" (${args.english}) in the ${tenseLabel} tense, with "${pronoun}" as the subject of that verb. Every register version must keep "${pronoun}" as the subject.${theme}`;
 }
 
 // ====================================================================
