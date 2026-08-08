@@ -5,7 +5,7 @@
 // differ only by accent but represent different tenses — collapsing them would
 // mask tense errors and pollute the SRS signal.
 
-export type CompareResult = "exact" | "accent-typo" | "wrong";
+export type CompareResult = "exact" | "accent-typo" | "typo" | "wrong";
 
 const APOSTROPHES = /[’']/g;
 const WHITESPACE = /\s+/g;
@@ -96,9 +96,58 @@ export function acceptableAnswers(target: string): string[] {
 }
 
 /**
+ * Damerau edit distance (optimal string alignment): counts an insertion,
+ * deletion, substitution, OR a swap of two adjacent letters each as ONE edit.
+ * The transposition case matters — "bonjuor" for "bonjour" is one slip, not two.
+ */
+function editDistance(a: string, b: string): number {
+  if (a === b) return 0;
+  const da = a.length;
+  const db = b.length;
+  if (da === 0) return db;
+  if (db === 0) return da;
+  const d: number[][] = Array.from({ length: da + 1 }, () =>
+    new Array<number>(db + 1).fill(0)
+  );
+  for (let i = 0; i <= da; i++) d[i][0] = i;
+  for (let j = 0; j <= db; j++) d[0][j] = j;
+  for (let i = 1; i <= da; i++) {
+    for (let j = 1; j <= db; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      d[i][j] = Math.min(
+        d[i - 1][j] + 1, // deletion
+        d[i][j - 1] + 1, // insertion
+        d[i - 1][j - 1] + cost // substitution
+      );
+      if (
+        i > 1 &&
+        j > 1 &&
+        a[i - 1] === b[j - 2] &&
+        a[i - 2] === b[j - 1]
+      ) {
+        d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1); // adjacent swap
+      }
+    }
+  }
+  return d[da][db];
+}
+
+/**
+ * How many typo edits to forgive, scaled by length. Short answers get zero
+ * tolerance so genuine minimal pairs stay distinct — "le"/"la", "un"/"on",
+ * and short verb endings ("parle"/"parlé") are never collapsed into a typo.
+ */
+function typoBudget(len: number): number {
+  if (len <= 5) return 0;
+  if (len <= 9) return 1;
+  return 2;
+}
+
+/**
  * Like compareAnswer, but forgiving of annotations, variants, punctuation,
- * and hyphens in the target. Accent differences still only earn partial
- * credit ("accent-typo"), never "exact".
+ * hyphens, and small spelling slips. Priority (best wins across variants):
+ *   exact  >  accent-typo (only accents differ)  >  typo (1–2 letter slip)  >  wrong
+ * Accents stay meaningful — a pure accent miss never counts as "exact".
  */
 export function compareAnswerFlexible(
   user: string,
@@ -106,12 +155,24 @@ export function compareAnswerFlexible(
 ): CompareResult {
   const u = comparable(user);
   if (!u) return "wrong";
-  let best: CompareResult = "wrong";
+  let accentHit = false;
+  let typoHit = false;
   for (const t of acceptableAnswers(target)) {
     if (u === t) return "exact";
-    if (stripAccents(u) === stripAccents(t)) best = "accent-typo";
+    const uu = stripAccents(u);
+    const tt = stripAccents(t);
+    if (uu === tt) {
+      accentHit = true;
+      continue;
+    }
+    const budget = typoBudget(tt.length);
+    if (budget > 0 && editDistance(uu, tt) <= budget) {
+      typoHit = true;
+    }
   }
-  return best;
+  if (accentHit) return "accent-typo";
+  if (typoHit) return "typo";
+  return "wrong";
 }
 
 /**

@@ -82,7 +82,7 @@ export default function DrillPage() {
   const [answer, setAnswer] = useState("");
   const [phase, setPhase] = useState<Phase>("answering");
   const [feedback, setFeedback] = useState<
-    "exact" | "accent-typo" | "wrong" | null
+    "exact" | "typo" | "accent-typo" | "wrong" | null
   >(null);
   const [correctCount, setCorrectCount] = useState(0);
   const [mnemonic, setMnemonic] = useState<string | null>(null);
@@ -436,7 +436,7 @@ interface AnswerFieldProps {
   answer: string;
   setAnswer: (v: string) => void;
   phase: Phase;
-  feedback: "exact" | "accent-typo" | "wrong" | null;
+  feedback: "exact" | "typo" | "accent-typo" | "wrong" | null;
   submit: () => void;
 }
 
@@ -501,7 +501,7 @@ function GradedBanner({
   notes,
   mnemonic,
 }: {
-  feedback: "exact" | "accent-typo" | "wrong" | null;
+  feedback: "exact" | "typo" | "accent-typo" | "wrong" | null;
   correct: string;
   notes?: string | null;
   mnemonic?: string | null;
@@ -512,12 +512,21 @@ function GradedBanner({
       <span>{mnemonic}</span>
     </div>
   ) : null;
-  if (feedback === "exact") {
+  if (feedback === "exact" || feedback === "typo") {
     return (
       <div className="flex flex-col gap-1 rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm">
         <div className="flex items-start gap-2">
           <CheckCircle2 className="mt-0.5 h-4 w-4 text-green-600" />
-          <div>Exactly right!</div>
+          <div>
+            {feedback === "typo" ? (
+              <>
+                Correct — small typo. The spelling is{" "}
+                <span className="font-serif font-semibold">{correct}</span>.
+              </>
+            ) : (
+              "Exactly right!"
+            )}
+          </div>
         </div>
         {notes && (
           <div className="ml-6 text-xs text-muted-foreground italic">

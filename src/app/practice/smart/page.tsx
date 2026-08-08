@@ -87,7 +87,7 @@ export default function SmartSessionPage() {
     "answering"
   );
   const [feedback, setFeedback] = useState<
-    "exact" | "accent-typo" | "wrong" | null
+    "exact" | "typo" | "accent-typo" | "wrong" | null
   >(null);
   const [mnemonic, setMnemonic] = useState<string | null>(null);
   const [correctCount, setCorrectCount] = useState(0);
@@ -404,7 +404,7 @@ function AnswerSlot({
   answer: string;
   setAnswer: (v: string) => void;
   phase: "answering" | "graded" | "done";
-  feedback: "exact" | "accent-typo" | "wrong" | null;
+  feedback: "exact" | "typo" | "accent-typo" | "wrong" | null;
   submit: () => void;
 }) {
   if (phase !== "answering") {
@@ -452,29 +452,27 @@ function ResultBanner({
   notes,
   mnemonic,
 }: {
-  feedback: "exact" | "accent-typo" | "wrong" | null;
+  feedback: "exact" | "typo" | "accent-typo" | "wrong" | null;
   correct: string;
   notes: string | null;
   mnemonic: string | null;
 }) {
-  const tone =
-    feedback === "exact"
-      ? "border-green-500/30 bg-green-500/10"
-      : feedback === "accent-typo"
-        ? "border-amber-500/30 bg-amber-500/10"
-        : "border-destructive/30 bg-destructive/10";
-  const Icon =
-    feedback === "exact"
-      ? CheckCircle2
-      : feedback === "accent-typo"
-        ? AlertCircle
-        : XCircle;
-  const iconTone =
-    feedback === "exact"
-      ? "text-green-600"
-      : feedback === "accent-typo"
-        ? "text-amber-500"
-        : "text-destructive";
+  const positive = feedback === "exact" || feedback === "typo";
+  const tone = positive
+    ? "border-green-500/30 bg-green-500/10"
+    : feedback === "accent-typo"
+      ? "border-amber-500/30 bg-amber-500/10"
+      : "border-destructive/30 bg-destructive/10";
+  const Icon = positive
+    ? CheckCircle2
+    : feedback === "accent-typo"
+      ? AlertCircle
+      : XCircle;
+  const iconTone = positive
+    ? "text-green-600"
+    : feedback === "accent-typo"
+      ? "text-amber-500"
+      : "text-destructive";
   return (
     <div className="space-y-2">
       <div className={cn("flex flex-col gap-1 rounded-lg border p-3 text-sm", tone)}>
@@ -482,6 +480,7 @@ function ResultBanner({
           <Icon className={cn("mt-0.5 h-4 w-4 shrink-0", iconTone)} />
           <div>
             {feedback === "exact" && <span>Exactly right! </span>}
+            {feedback === "typo" && <span>Correct — small typo. </span>}
             {feedback === "accent-typo" && <span>Close — watch the accents. </span>}
             {feedback === "wrong" && <span>Not quite. </span>}
             <span>

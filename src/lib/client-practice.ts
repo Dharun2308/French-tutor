@@ -85,17 +85,25 @@ export async function submitReview(cardId: number, rating: Rating) {
 /**
  * Self-grade for drill mode: compare client-side, return a rating.
  * - exact match → good (2), or easy (3) if already known
+ * - small spelling slip (1–2 letters, longer words) → good (2), counts as
+ *   correct but shows the right spelling
  * - accent-only typo → hard (1) with a gentle message
  * - otherwise → wrong (0)
  */
+export type DrillFeedback = "exact" | "typo" | "accent-typo" | "wrong";
+
 export function gradeDrill(
   user: string,
   target: string,
   repetitions: number
-): { rating: Rating; feedback: "exact" | "accent-typo" | "wrong" } {
+): { rating: Rating; feedback: DrillFeedback } {
   const cmp = compareAnswerFlexible(user, target);
   if (cmp === "exact") {
     return { rating: repetitions >= 3 ? 3 : 2, feedback: "exact" };
+  }
+  if (cmp === "typo") {
+    // A minor misspelling still counts as correct so it doesn't tank the score.
+    return { rating: 2, feedback: "typo" };
   }
   if (cmp === "accent-typo") {
     return { rating: 1, feedback: "accent-typo" };
