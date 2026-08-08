@@ -802,4 +802,100 @@ export const VERBS: VerbDef[] = [
     auxiliary: "etre",
     frequencyRank: 78,
   },
+
+  // ==========================================================
+  // Additions from the FRIENDS / imperative lesson notes
+  // ==========================================================
+
+  // ----- Regular -er -----
+  {
+    infinitive: "sembler",
+    english: "to seem",
+    pattern: "er",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 79,
+  },
+  {
+    infinitive: "pleurer",
+    english: "to cry",
+    pattern: "er",
+    level: "A1",
+    auxiliary: "avoir",
+    frequencyRank: 80,
+  },
+  {
+    infinitive: "voler",
+    english: "to fly / to steal",
+    pattern: "er",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 81,
+  },
+  {
+    infinitive: "oser",
+    english: "to dare",
+    pattern: "er",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 82,
+  },
+  {
+    infinitive: "avouer",
+    english: "to admit / to confess",
+    pattern: "er",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 83,
+  },
+  {
+    infinitive: "briller",
+    english: "to shine",
+    pattern: "er",
+    level: "A2",
+    auxiliary: "avoir",
+    frequencyRank: 84,
+  },
+
+  // ----- Reflexive -er -----
+  {
+    infinitive: "se reposer",
+    english: "to rest",
+    pattern: "er_reflexive",
+    level: "A1",
+    auxiliary: "etre",
+    frequencyRank: 85,
+  },
+  {
+    infinitive: "se préparer",
+    english: "to get ready",
+    pattern: "er_reflexive",
+    level: "A2",
+    auxiliary: "etre",
+    frequencyRank: 86,
+  },
+  {
+    infinitive: "se présenter",
+    english: "to introduce oneself",
+    pattern: "er_reflexive",
+    level: "A2",
+    auxiliary: "etre",
+    frequencyRank: 87,
+  },
+  {
+    infinitive: "se doucher",
+    english: "to take a shower",
+    pattern: "er_reflexive",
+    level: "A2",
+    auxiliary: "etre",
+    frequencyRank: 88,
+  },
+  {
+    infinitive: "se trouver",
+    english: "to be located",
+    pattern: "er_reflexive",
+    level: "A2",
+    auxiliary: "etre",
+    frequencyRank: 89,
+  },
 ];

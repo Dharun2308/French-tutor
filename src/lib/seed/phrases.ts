@@ -958,4 +958,103 @@ export const PHRASES: PhraseDef[] = [
   { category: "fill_vocabulary", french: "mer", english: "On nage dans la ___. (the sea)", notes: "→ la mer", level: "A1", frequencyRank: 8 },
   { category: "fill_vocabulary", french: "randonnée", english: "Une promenade en nature : une ___. (a hike)", notes: "faire de la randonnée", level: "A1", frequencyRank: 9 },
   { category: "fill_vocabulary", french: "frais", english: "Les fruits ne sont pas vieux, ils sont ___. (fresh — masc. pl.)", notes: "frais = fresh", level: "A1", frequencyRank: 10 },
+
+  // ========================================================
+  // Vocabulary — beach, countryside, home, FRIENDS lesson
+  // ========================================================
+  { category: "vocabulary", french: "la chaleur", english: "the heat", notes: "opposite of le froid", level: "A2", frequencyRank: 60 },
+  { category: "vocabulary", french: "le soleil", english: "the sun", level: "A1", frequencyRank: 61 },
+  { category: "vocabulary", french: "l'été (m.)", english: "summer", level: "A1", frequencyRank: 62 },
+  { category: "vocabulary", french: "le parasol", english: "beach umbrella / parasol", level: "A2", frequencyRank: 63 },
+  { category: "vocabulary", french: "le parapluie", english: "umbrella", level: "A1", frequencyRank: 64 },
+  { category: "vocabulary", french: "la natation", english: "swimming", notes: "faire de la natation = to swim (as a sport)", level: "A2", frequencyRank: 65 },
+  { category: "vocabulary", french: "la ferme", english: "the farm", level: "A2", frequencyRank: 66 },
+  { category: "vocabulary", french: "le paysan / la paysanne", english: "the farmer / peasant (m. / f.)", level: "A2", frequencyRank: 67 },
+  { category: "vocabulary", french: "le tracteur", english: "the tractor", level: "A2", frequencyRank: 68 },
+  { category: "vocabulary", french: "un champ", english: "a field", notes: "des grands espaces = wide open spaces", level: "A2", frequencyRank: 69 },
+  { category: "vocabulary", french: "un animal / des animaux", english: "an animal / animals", notes: "-al → -aux in the plural", level: "A1", frequencyRank: 70 },
+  { category: "vocabulary", french: "un meuble", english: "a piece of furniture", notes: "des meubles = furniture", level: "A2", frequencyRank: 71 },
+  { category: "vocabulary", french: "un canapé", english: "a sofa / couch", level: "A2", frequencyRank: 72 },
+  { category: "vocabulary", french: "un siège", english: "a seat", level: "A2", frequencyRank: 73 },
+  { category: "vocabulary", french: "un banc", english: "a bench", level: "A2", frequencyRank: 74 },
+  { category: "vocabulary", french: "une bande dessinée", english: "a comic book", notes: "abbreviated 'une BD'", level: "A2", frequencyRank: 75 },
+  { category: "vocabulary", french: "un dessin animé", english: "a cartoon", level: "A2", frequencyRank: 76 },
+  { category: "vocabulary", french: "drôle", english: "funny", level: "A1", frequencyRank: 77 },
+  { category: "vocabulary", french: "maladroit / maladroite", english: "clumsy (m. / f.)", level: "A2", frequencyRank: 78 },
+  { category: "vocabulary", french: "jaloux / jalouse", english: "jealous (m. / f.)", level: "A2", frequencyRank: 79 },
+  { category: "vocabulary", french: "fou / folle", english: "crazy (m. / f.)", level: "A2", frequencyRank: 80 },
+  { category: "vocabulary", french: "charmant / charmante", english: "charming (m. / f.)", level: "A2", frequencyRank: 81 },
+  { category: "vocabulary", french: "honnête", english: "honest", level: "A2", frequencyRank: 82 },
+  { category: "vocabulary", french: "fidèle", english: "loyal / faithful", level: "A2", frequencyRank: 83 },
+  { category: "vocabulary", french: "à la mode", english: "fashionable / in style", level: "A2", frequencyRank: 84 },
+  { category: "vocabulary", french: "une réunion", english: "a meeting", notes: "une réunion qui dure deux heures", level: "A2", frequencyRank: 85 },
+  { category: "vocabulary", french: "un collègue / une collègue", english: "a colleague (m. / f.)", level: "A2", frequencyRank: 86 },
+
+  // ========================================================
+  // Useful expressions — dates, negation, "which one", place
+  // ========================================================
+  { category: "expression", french: "On est quel jour aujourd'hui ?", english: "What day is it today?", notes: "answer: On est dimanche.", level: "A1", frequencyRank: 43 },
+  { category: "expression", french: "Quel jour sommes-nous ?", english: "What day is it? (more formal)", notes: "answer: Nous sommes lundi.", level: "A1", frequencyRank: 44 },
+  { category: "expression", french: "le premier juillet", english: "July 1st", notes: "'premier' only for the 1st; other days use the plain number (le 4 juillet)", level: "A1", frequencyRank: 45 },
+  { category: "expression", french: "Où se trouve… ?", english: "Where is… located?", notes: "se trouver = to be located", level: "A2", frequencyRank: 46 },
+  { category: "expression", french: "la plupart du temps", english: "most of the time", level: "A2", frequencyRank: 47 },
+  { category: "expression", french: "la plupart des gens", english: "most people", level: "A2", frequencyRank: 48 },
+  { category: "expression", french: "ne… que", english: "only", notes: "Je ne parlais qu'un peu = I spoke only a little", level: "A2", frequencyRank: 49 },
+  { category: "expression", french: "ne… plus", english: "no longer / not anymore", level: "A2", frequencyRank: 50 },
+  { category: "expression", french: "avoir l'air", english: "to seem / to look", notes: "Tu as l'air fatigué = You look tired", level: "A2", frequencyRank: 51 },
+  { category: "expression", french: "avoir besoin de", english: "to need", notes: "J'ai besoin de repos = I need rest", level: "A1", frequencyRank: 52 },
+  { category: "expression", french: "là-bas", english: "over there", level: "A1", frequencyRank: 53 },
+  { category: "expression", french: "là-haut", english: "up there", level: "A2", frequencyRank: 54 },
+  { category: "expression", french: "lequel / laquelle ?", english: "which one? (m. / f.)", notes: "plural: lesquels / lesquelles", level: "A2", frequencyRank: 55 },
+
+  // ========================================================
+  // Sentences — full-sentence recall for fluency.
+  // english = the prompt, french = the model answer. Answers use
+  // masculine agreement (the learner is male). Typed grading forgives
+  // minor typos/accents; a few natural variants are noted.
+  // ========================================================
+  // Present / near future
+  { category: "sentence", french: "Je viens d'Inde mais j'habite aux États-Unis depuis quatre ans.", english: "I come from India but I've been living in the US for four years.", notes: "depuis + present for ongoing", level: "A1", frequencyRank: 1 },
+  { category: "sentence", french: "Je parle anglais et j'étudie le français depuis six mois.", english: "I speak English and I've been studying French for six months.", level: "A1", frequencyRank: 2 },
+  { category: "sentence", french: "Je vais voyager à Chicago pour deux semaines.", english: "I'm going to travel to Chicago for two weeks.", notes: "futur proche: aller + infinitive", level: "A1", frequencyRank: 3 },
+  { category: "sentence", french: "Je veux visiter la France bientôt.", english: "I want to visit France soon.", level: "A1", frequencyRank: 4 },
+  { category: "sentence", french: "Nous voulons visiter le Canada en juillet.", english: "We want to visit Canada in July.", level: "A1", frequencyRank: 5 },
+  { category: "sentence", french: "Je ne comprends pas cet exercice, désolé.", english: "I don't understand this exercise, sorry.", level: "A1", frequencyRank: 6 },
+  { category: "sentence", french: "Cette voiture rouge est belle.", english: "That red car is beautiful.", level: "A1", frequencyRank: 7 },
+  { category: "sentence", french: "Je viens du bureau à seize heures en voiture.", english: "I come from the office at 4 p.m. by car.", level: "A1", frequencyRank: 8 },
+  { category: "sentence", french: "Je vais voir ma petite amie demain matin.", english: "I'm going to see my girlfriend tomorrow morning.", level: "A1", frequencyRank: 9 },
+  { category: "sentence", french: "Il doit s'entraîner aujourd'hui.", english: "He has to train today.", notes: "devoir = to have to", level: "A1", frequencyRank: 10 },
+  { category: "sentence", french: "Je me lève à six heures la plupart du temps.", english: "I get up at six most of the time.", level: "A2", frequencyRank: 11 },
+  { category: "sentence", french: "Il fait beau ce matin, donc je vais à la plage.", english: "It's nice out this morning, so I'm going to the beach.", notes: "'donc' ≈ 'alors' (so)", level: "A1", frequencyRank: 12 },
+  { category: "sentence", french: "Je m'entraîne le lundi, le mercredi et le vendredi.", english: "I train on Mondays, Wednesdays and Fridays.", notes: "le + day = every that day", level: "A2", frequencyRank: 13 },
+  { category: "sentence", french: "Nous apprenons le français ensemble depuis cinq mois.", english: "We have been learning French together for five months.", level: "A2", frequencyRank: 14 },
+  { category: "sentence", french: "Je n'aime pas la chaleur.", english: "I don't like the heat.", level: "A1", frequencyRank: 15 },
+  // Past — passé composé + imparfait
+  { category: "sentence", french: "Hier soir, je suis allé au restaurant avec ma petite amie.", english: "Last night, I went to the restaurant with my girlfriend.", notes: "passé composé with être → allé", level: "A2", frequencyRank: 16 },
+  { category: "sentence", french: "L'endroit était sympa et la nourriture était incroyable.", english: "The place was nice and the food was amazing.", notes: "imparfait for description", level: "A2", frequencyRank: 17 },
+  { category: "sentence", french: "J'ai mangé du poulet et j'ai bu du vin rouge.", english: "I ate chicken and drank red wine.", notes: "boire → bu", level: "A2", frequencyRank: 18 },
+  { category: "sentence", french: "Quand j'étais jeune, je jouais au foot tous les jours.", english: "When I was young, I played football every day.", notes: "imparfait for a past habit", level: "A2", frequencyRank: 19 },
+  { category: "sentence", french: "Il pleuvait quand il est parti de la maison.", english: "It was raining when he left the house.", notes: "imparfait (ongoing) + passé composé (event)", level: "A2", frequencyRank: 20 },
+  { category: "sentence", french: "Soudainement, le téléphone a sonné.", english: "Suddenly, the phone rang.", notes: "sonner → a sonné", level: "A2", frequencyRank: 21 },
+  { category: "sentence", french: "Elle lisait un livre pendant qu'il cuisinait.", english: "She was reading a book while he was cooking.", notes: "two ongoing actions → both imparfait", level: "A2", frequencyRank: 22 },
+  { category: "sentence", french: "Nous sommes arrivés au restaurant à huit heures.", english: "We arrived at the restaurant at 8 p.m.", level: "A2", frequencyRank: 23 },
+  { category: "sentence", french: "Je me suis réveillé, j'ai bu un café, et je suis parti.", english: "I woke up, drank a coffee, and left.", notes: "reflexive + être verbs in passé composé", level: "A2", frequencyRank: 24 },
+  { category: "sentence", french: "Ils habitaient à Paris.", english: "They used to live in Paris.", notes: "imparfait = used to", level: "A2", frequencyRank: 25 },
+  { category: "sentence", french: "La semaine dernière, ils ont visité le Canada.", english: "Last week, they visited Canada.", level: "A2", frequencyRank: 26 },
+  { category: "sentence", french: "J'étais très fatigué, donc je suis resté à la maison.", english: "I was very tired, so I stayed home.", notes: "rester takes être → resté", level: "A2", frequencyRank: 27 },
+  { category: "sentence", french: "Pendant que nous marchions dans le parc, nous avons vu un chien.", english: "While we were walking in the park, we saw a dog.", notes: "voir → vu", level: "A2", frequencyRank: 28 },
+  { category: "sentence", french: "Il faisait beau et le soleil brillait.", english: "The weather was beautiful and the sun was shining.", level: "A2", frequencyRank: 29 },
+  { category: "sentence", french: "D'abord, j'ai marché lentement, puis j'ai couru, et enfin j'ai nagé.", english: "First, I walked slowly, then I ran, and finally I swam.", notes: "courir → couru; nager → nagé", level: "A2", frequencyRank: 30 },
+  { category: "sentence", french: "Le mois dernier, j'ai passé deux semaines à Hawaï avec ma petite amie.", english: "Last month, I spent two weeks in Hawaii with my girlfriend.", notes: "passer (time) → passé", level: "A2", frequencyRank: 31 },
+  { category: "sentence", french: "Il faisait chaud et il pleuvait parfois.", english: "It was hot and it rained sometimes.", level: "A2", frequencyRank: 32 },
+  { category: "sentence", french: "Nous avons conduit autour de l'île et nous avons fait de la randonnée dans les montagnes.", english: "We drove around the island and hiked in the mountains.", notes: "conduire → conduit", level: "A2", frequencyRank: 33 },
+  { category: "sentence", french: "La mer était bleue et les plages étaient belles avec du sable blanc.", english: "The sea was blue and the beaches were beautiful with white sand.", level: "A2", frequencyRank: 34 },
+  { category: "sentence", french: "Cette expérience était géniale et je vous recommande de venir ici.", english: "This experience was great and I recommend coming here.", level: "A2", frequencyRank: 35 },
+  { category: "sentence", french: "J'ai travaillé toute la journée mais à treize heures j'ai fait une pause.", english: "I worked all day but at 1 p.m. I took a break.", level: "A2", frequencyRank: 36 },
+  { category: "sentence", french: "J'étudiais l'économie à l'université il y a cinq ans.", english: "I was studying economics at university five years ago.", notes: "il y a + duration = ago", level: "A2", frequencyRank: 37 },
+  // Imperative
+  { category: "sentence", french: "Mange tes légumes !", english: "Eat your vegetables! (to 'tu')", notes: "imperative: -er verbs drop the 's' (tu form)", level: "A2", frequencyRank: 38 },
+  { category: "sentence", french: "Finis tes devoirs !", english: "Finish your homework! (to 'tu')", level: "A2", frequencyRank: 39 },
+  { category: "sentence", french: "Réveille-toi !", english: "Wake up! (to 'tu')", notes: "reflexive imperative: verb + -toi", level: "A2", frequencyRank: 40 },
+  { category: "sentence", french: "Habille-toi vite, nous sommes en retard.", english: "Get dressed quickly, we're late.", level: "A2", frequencyRank: 41 },
 ];
