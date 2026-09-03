@@ -7,10 +7,14 @@ import {
   ArrowRight,
   BookOpen,
   Camera,
+  CalendarDays,
+  Clock3,
+  Ear,
   GraduationCap,
   Hash,
   ListChecks,
   MessageSquare,
+  BarChart3,
   Sparkles,
   Target,
   Zap,
@@ -44,6 +48,13 @@ const PRACTICE_LINKS = [
   { href: "/practice/drill", title: "Verb drill", detail: "Type conjugations", icon: BookOpen },
   { href: "/practice/flashcards", title: "Verb cards", detail: "Reveal and rate", icon: Sparkles },
   { href: "/practice/multiple-choice", title: "Quick choice", detail: "Recognise forms", icon: ListChecks },
+] as const;
+
+const PERSONAL_LINKS = [
+  { href: "/practice/focus", title: "10-minute focus", detail: "Due, weak, listening, corrections", icon: Clock3 },
+  { href: "/practice/listening", title: "Listening", detail: "Hear it, then type it", icon: Ear },
+  { href: "/conversation", title: "AI conversation", detail: "Quietly targets weak French", icon: MessageSquare },
+  { href: "/practice/variations", title: "Fresh contexts", detail: "For repeatedly missed items", icon: Sparkles },
 ] as const;
 
 function greeting(): string {
@@ -190,6 +201,17 @@ export default function DashboardPage() {
           </Card>
         </Link>
       </div>
+
+      {hasLessonItems && <section className="mb-7">
+        <h2 className="mb-3 text-lg font-semibold">Practice now</h2>
+        <div className="grid grid-cols-2 gap-2">
+          {PERSONAL_LINKS.map(({ href, title, detail, icon: Icon }) => <Link key={href} href={href} className="group rounded-lg border bg-card p-3 transition-colors hover:border-primary/50"><Icon className="mb-2 h-5 w-5 text-rose-600"/><div className="text-sm font-medium">{title}</div><div className="text-[11px] text-muted-foreground">{detail}</div></Link>)}
+        </div>
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <Button asChild variant="outline"><Link href="/progress"><BarChart3 className="h-4 w-4"/>Learning picture</Link></Button>
+          <Button asChild variant="outline"><Link href="/weekly"><CalendarDays className="h-4 w-4"/>Weekly review</Link></Button>
+        </div>
+      </section>}
 
       <section className="mb-7">
         <div className="mb-3 flex items-end justify-between">

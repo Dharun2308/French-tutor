@@ -188,12 +188,12 @@ separate memory should mirror this handoff. Phase 3 was subsequently designed an
   (instruction text for the iTalki tutor; post-lesson "used naturally / with help / didn't" →
   `spontaneous_usage_count`, weighted above a flashcard pass), **recurring-error log** (`error_patterns`
   table from `item_reviews.verdict/error_type`).
-- **Phase 4**: listening mode (TTS exists: `POST /api/ai/tts` + `SpeakButton`; 1x/0.85x/0.7x replay,
-  hide transcript until attempt, `listening_*` counters), AI variation (new contexts for repeatedly-missed
-  items, A2 level), AI conversation practice that secretly targets weak items.
-- **Phase 5**: analytics (production vs listening accuracy, items mastered, weak items eliminated — no
-  gamification), 10-minute session (40% due / 25% weakest / 20% listening / 15% recent corrections,
-  adaptive), weekly review flow with AI summary, TCF/NCLC progression later.
+- **Phase 4 — shipped 2026-09-02**: listening mode (1x/0.85x/0.7x replay, transcript hidden until attempt,
+  `listening_*` evidence), disk-cached OpenAI TTS with free browser fallback, cached A2 variations for
+  repeatedly missed items, and AI conversation practice that secretly targets weak items.
+- **Phase 5 — shipped 2026-09-02**: evidence-only analytics, adaptive 12-card/10-minute sessions using the
+  40/25/20/15 mix, weekly review with on-demand cached AI summary, and a deliberately non-scoring TCF/NCLC
+  readiness evidence panel.
 - Schema was shaped so these are additive: `item_reviews`, `spontaneous_usage_count`, per-direction counters,
   `grammar_topic`, `suspended` already exist.
 
@@ -219,3 +219,18 @@ upkeep. Never auto-insert AI output. Don't make every A2 lesson TCF prep yet. No
 - Dashboard was simplified into a compact, conversation-first layout. Phone and desktop renders passed.
 - Verification: TypeScript, 31 unit tests, production build, disposable-DB integration test, API probes,
   and phone/desktop screenshots all passed. `french-tutor.service` was active afterward.
+
+## 10. Phases 4–5 production state (Codex, 2026-09-02)
+
+- Designs: `docs/phase-4-design.md` and `docs/phase-5-design.md`.
+- Additive migrations: `scripts/migrate-2026-09-02-phase4.sql` and
+  `scripts/migrate-2026-09-02-phase5.sql`; backup is `local.db.bak-pre-phase4`.
+- New pages: `/practice/listening`, `/practice/variations`, `/conversation`, `/practice/focus`,
+  `/progress`, and `/weekly`.
+- AI speech is still opt-in via Settings. OpenAI MP3s persist under ignored `tts-cache/`; slower playback
+  reuses the same recording. No TTS/API call occurs until the learner taps Listen with OpenAI speech enabled.
+- Fresh contexts unlock after two misses. Conversation targets stay hidden until Finish, and AI practice
+  use is intentionally not counted as real tutor/spontaneous evidence.
+- Weekly summaries run only when requested and are cached by local week plus the exact facts hash.
+- Disposable-DB route probes and phone renders passed without paid AI/TTS calls. Production remained at
+  14 batch-3 items and zero fabricated review/usage evidence after verification.
