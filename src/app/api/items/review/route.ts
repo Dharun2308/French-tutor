@@ -3,13 +3,13 @@
 // Applies FSRS, updates the item's counters, appends to item_reviews.
 
 import { NextRequest } from "next/server";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db/client";
-import { itemReviews, learningItems } from "@/lib/db/schema";
+import { errorPatterns, itemReviews, learningItems } from "@/lib/db/schema";
 import { applyItemRating, FSRS_STATE_LABELS } from "@/lib/fsrs";
 import { jsonError, jsonOk } from "@/lib/api";
-import { REVIEW_DIRECTIONS } from "@/types";
+import { ITEM_ERROR_TYPES, ITEM_VERDICTS, REVIEW_DIRECTIONS } from "@/types";
 
 export const runtime = "nodejs";
 
@@ -17,8 +17,11 @@ const Body = z.object({
   itemId: z.number().int().positive(),
   rating: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]),
   direction: z.enum(REVIEW_DIRECTIONS).default("production"),
-  verdict: z.string().max(20).optional(),
+  verdict: z.enum([...ITEM_VERDICTS, "UNGRADED"]).optional(),
+  errorType: z.enum(ITEM_ERROR_TYPES).optional(),
   userAnswer: z.string().max(500).optional(),
+  correctedAnswer: z.string().max(500).optional(),
+  gradeReason: z.string().max(1_000).optional(),
   elapsedMs: z.number().int().min(0).max(3_600_000).optional(),
   gradedBy: z.string().max(20).optional(),
 });
@@ -61,44 +64,80 @@ export async function POST(req: NextRequest) {
   const success = body.rating >= 2;
 
   const dir = body.direction;
-  await db
-    .update(learningItems)
-    .set({
-      fsrsState: next.fsrsState,
-      stability: next.stability,
-      difficulty: next.difficulty,
-      elapsedDays: next.elapsedDays,
-      scheduledDays: next.scheduledDays,
-      learningSteps: next.learningSteps,
-      reps: next.reps,
-      lapses: next.lapses,
-      dueAt: next.dueAt,
-      lastReviewedAt: now,
-      reviewCount: item.reviewCount + 1,
-      successCount: item.successCount + (success ? 1 : 0),
-      failureCount: item.failureCount + (success ? 0 : 1),
-      lastFailureAt: success ? item.lastFailureAt : now,
-      productionSeen: item.productionSeen + (dir === "production" ? 1 : 0),
-      productionCorrect: item.productionCorrect + (dir === "production" && success ? 1 : 0),
-      recognitionSeen: item.recognitionSeen + (dir === "recognition" ? 1 : 0),
-      recognitionCorrect: item.recognitionCorrect + (dir === "recognition" && success ? 1 : 0),
-      listeningSeen: item.listeningSeen + (dir === "listening" ? 1 : 0),
-      listeningCorrect: item.listeningCorrect + (dir === "listening" && success ? 1 : 0),
-    })
-    .where(eq(learningItems.id, item.id));
+  await db.transaction(async (tx) => {
+    await tx
+      .update(learningItems)
+      .set({
+        fsrsState: next.fsrsState,
+        stability: next.stability,
+        difficulty: next.difficulty,
+        elapsedDays: next.elapsedDays,
+        scheduledDays: next.scheduledDays,
+        learningSteps: next.learningSteps,
+        reps: next.reps,
+        lapses: next.lapses,
+        dueAt: next.dueAt,
+        lastReviewedAt: now,
+        reviewCount: item.reviewCount + 1,
+        successCount: item.successCount + (success ? 1 : 0),
+        failureCount: item.failureCount + (success ? 0 : 1),
+        lastFailureAt: success ? item.lastFailureAt : now,
+        productionSeen: item.productionSeen + (dir === "production" ? 1 : 0),
+        productionCorrect: item.productionCorrect + (dir === "production" && success ? 1 : 0),
+        recognitionSeen: item.recognitionSeen + (dir === "recognition" ? 1 : 0),
+        recognitionCorrect: item.recognitionCorrect + (dir === "recognition" && success ? 1 : 0),
+        listeningSeen: item.listeningSeen + (dir === "listening" ? 1 : 0),
+        listeningCorrect: item.listeningCorrect + (dir === "listening" && success ? 1 : 0),
+      })
+      .where(eq(learningItems.id, item.id));
 
-  await db.insert(itemReviews).values({
-    itemId: item.id,
-    ratedAt: now,
-    rating: body.rating,
-    direction: dir,
-    verdict: body.verdict ?? null,
-    userAnswer: body.userAnswer ?? null,
-    elapsedMs: body.elapsedMs ?? null,
-    gradedBy: body.gradedBy ?? null,
-    stabilityAfter: next.stability,
-    difficultyAfter: next.difficulty,
-    scheduledDays: next.scheduledDays,
+    await tx.insert(itemReviews).values({
+      itemId: item.id,
+      ratedAt: now,
+      rating: body.rating,
+      direction: dir,
+      verdict: body.verdict ?? null,
+      errorType: body.errorType ?? null,
+      userAnswer: body.userAnswer ?? null,
+      correctedAnswer: body.correctedAnswer ?? null,
+      gradeReason: body.gradeReason ?? null,
+      elapsedMs: body.elapsedMs ?? null,
+      gradedBy: body.gradedBy ?? null,
+      stabilityAfter: next.stability,
+      difficultyAfter: next.difficulty,
+      scheduledDays: next.scheduledDays,
+    });
+
+    const trackPattern =
+      dir === "production" &&
+      (body.verdict === "MINOR_ERROR" || body.verdict === "WRONG") &&
+      body.errorType !== undefined &&
+      body.errorType !== "none" &&
+      body.errorType !== "typo";
+    if (trackPattern) {
+      const errorType = body.errorType!;
+      const topic = item.grammarTopic.trim().toLocaleLowerCase();
+      const patternKey = `${errorType}:${topic || "general"}`;
+      await tx
+        .insert(errorPatterns)
+        .values({
+          patternKey,
+          errorType,
+          grammarTopic: topic,
+          totalCount: 1,
+          firstSeenAt: now,
+          lastSeenAt: now,
+          lastItemId: item.id,
+        })
+        .onConflictDoUpdate({
+          target: errorPatterns.patternKey,
+          set: {
+            totalCount: sql`${errorPatterns.totalCount} + 1`,
+            lastSeenAt: now,
+            lastItemId: item.id,
+          },
+        });
+    }
   });
 
   return jsonOk({

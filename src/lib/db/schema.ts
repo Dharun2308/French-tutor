@@ -358,7 +358,10 @@ export const itemReviews = sqliteTable(
     direction: text("direction").notNull().default("production"),
     // CORRECT | ACCEPTABLE | MINOR_ERROR | WRONG | UNGRADED (AI unavailable)
     verdict: text("verdict"),
+    errorType: text("error_type"),
     userAnswer: text("user_answer"),
+    correctedAnswer: text("corrected_answer"),
+    gradeReason: text("grade_reason"),
     elapsedMs: integer("elapsed_ms"),
     // Which provider graded it (local | codex | claude | openai), if any.
     gradedBy: text("graded_by"),
@@ -370,6 +373,84 @@ export const itemReviews = sqliteTable(
   (t) => ({
     itemIdx: index("item_reviews_item_idx").on(t.itemId, t.ratedAt),
     ratedIdx: index("item_reviews_rated_idx").on(t.ratedAt),
+  })
+);
+
+// ---------- active_selections (weekly speaking focus) ----------
+export const activeSelections = sqliteTable(
+  "active_selections",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    itemId: integer("item_id")
+      .notNull()
+      .references(() => learningItems.id, { onDelete: "cascade" }),
+    weekStart: integer("week_start", { mode: "timestamp_ms" }).notNull(),
+    position: integer("position").notNull(),
+    // auto | pinned | replacement
+    source: text("source").notNull().default("auto"),
+    pinned: integer("pinned", { mode: "boolean" }).notNull().default(false),
+    scoreSnapshot: real("score_snapshot").notNull(),
+    reasons: text("reasons_json", { mode: "json" })
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'`),
+    selectedAt: integer("selected_at", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch() * 1000)`),
+  },
+  (t) => ({
+    itemWeekUniq: uniqueIndex("active_selections_item_week_idx").on(t.weekStart, t.itemId),
+    positionWeekUniq: uniqueIndex("active_selections_position_week_idx").on(
+      t.weekStart,
+      t.position
+    ),
+    weekIdx: index("active_selections_week_idx").on(t.weekStart, t.pinned, t.position),
+  })
+);
+
+// ---------- tutor_usage_events (real conversation evidence) ----------
+export const tutorUsageEvents = sqliteTable(
+  "tutor_usage_events",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    submissionId: text("submission_id").notNull(),
+    itemId: integer("item_id")
+      .notNull()
+      .references(() => learningItems.id, { onDelete: "cascade" }),
+    weekStart: integer("week_start", { mode: "timestamp_ms" }).notNull(),
+    occurredAt: integer("occurred_at", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch() * 1000)`),
+    // natural | helped | not_used
+    outcome: text("outcome").notNull(),
+  },
+  (t) => ({
+    submissionItemUniq: uniqueIndex("tutor_usage_submission_item_idx").on(
+      t.submissionId,
+      t.itemId
+    ),
+    itemAtIdx: index("tutor_usage_item_at_idx").on(t.itemId, t.occurredAt),
+  })
+);
+
+// ---------- error_patterns (projection; item_reviews is source of truth) ----------
+export const errorPatterns = sqliteTable(
+  "error_patterns",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    patternKey: text("pattern_key").notNull(),
+    errorType: text("error_type").notNull(),
+    grammarTopic: text("grammar_topic").notNull().default(""),
+    totalCount: integer("total_count").notNull().default(0),
+    firstSeenAt: integer("first_seen_at", { mode: "timestamp_ms" }).notNull(),
+    lastSeenAt: integer("last_seen_at", { mode: "timestamp_ms" }).notNull(),
+    lastItemId: integer("last_item_id").references(() => learningItems.id, {
+      onDelete: "set null",
+    }),
+  },
+  (t) => ({
+    keyUniq: uniqueIndex("error_patterns_key_idx").on(t.patternKey),
+    lastSeenIdx: index("error_patterns_last_seen_idx").on(t.lastSeenAt),
   })
 );
 
@@ -401,3 +482,6 @@ export type LearningItem = typeof learningItems.$inferSelect;
 export type NewLearningItem = typeof learningItems.$inferInsert;
 export type ItemReview = typeof itemReviews.$inferSelect;
 export type ProviderEvent = typeof providerEvents.$inferSelect;
+export type ActiveSelection = typeof activeSelections.$inferSelect;
+export type TutorUsageEvent = typeof tutorUsageEvents.$inferSelect;
+export type ErrorPattern = typeof errorPatterns.$inferSelect;

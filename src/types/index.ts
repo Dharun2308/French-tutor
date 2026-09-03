@@ -262,3 +262,26 @@ export type ReviewDirection = (typeof REVIEW_DIRECTIONS)[number];
 
 export const ITEM_VERDICTS = ["CORRECT", "ACCEPTABLE", "MINOR_ERROR", "WRONG"] as const;
 export type ItemVerdict = (typeof ITEM_VERDICTS)[number];
+
+export const ITEM_ERROR_TYPES = [
+  "none",
+  "typo",
+  "accent",
+  "conjugation",
+  "tense",
+  "agreement",
+  "article",
+  "preposition",
+  "negation",
+  "word_order",
+  "vocabulary",
+  "register",
+  "other",
+] as const;
+export type ItemErrorType = (typeof ITEM_ERROR_TYPES)[number];
+
+export const TUTOR_USAGE_OUTCOMES = ["natural", "helped", "not_used"] as const;
+export type TutorUsageOutcome = (typeof TUTOR_USAGE_OUTCOMES)[number];
+
+export const ACTIVE_SELECTION_SOURCES = ["auto", "pinned", "replacement"] as const;
+export type ActiveSelectionSource = (typeof ACTIVE_SELECTION_SOURCES)[number];

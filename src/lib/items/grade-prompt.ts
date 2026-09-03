@@ -3,25 +3,11 @@
 // is whatever sentence or chunk the item carries.
 
 import { z } from "zod";
-import { ITEM_VERDICTS } from "@/types";
+import { ITEM_ERROR_TYPES, ITEM_VERDICTS } from "@/types";
 
 export const GradeItemSchema = z.object({
   verdict: z.enum(ITEM_VERDICTS),
-  error_type: z.enum([
-    "none",
-    "typo",
-    "accent",
-    "conjugation",
-    "tense",
-    "agreement",
-    "article",
-    "preposition",
-    "negation",
-    "word_order",
-    "vocabulary",
-    "register",
-    "other",
-  ]),
+  error_type: z.enum(ITEM_ERROR_TYPES),
   corrected: z.string(),
   reason: z.string(),
 });
@@ -35,21 +21,7 @@ export const GradeItemJsonSchema = {
     verdict: { type: "string", enum: [...ITEM_VERDICTS] },
     error_type: {
       type: "string",
-      enum: [
-        "none",
-        "typo",
-        "accent",
-        "conjugation",
-        "tense",
-        "agreement",
-        "article",
-        "preposition",
-        "negation",
-        "word_order",
-        "vocabulary",
-        "register",
-        "other",
-      ],
+      enum: [...ITEM_ERROR_TYPES],
     },
     corrected: { type: "string" },
     reason: { type: "string" },

@@ -173,8 +173,9 @@ export default function ItemsReviewPage() {
   const rate = async (rating: Rating) => {
     if (!item || phase !== "graded" || submitting) return;
     setSubmitting(true);
+    let saved = false;
     try {
-      await fetch("/api/items/review", {
+      const res = await fetch("/api/items/review", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -182,16 +183,23 @@ export default function ItemsReviewPage() {
           rating,
           direction: "production",
           verdict: grade?.verdict,
+          errorType: grade?.errorType,
           userAnswer: answer.trim() || undefined,
+          correctedAnswer: grade?.corrected,
+          gradeReason: grade?.reason,
           elapsedMs: Math.min(3_600_000, Date.now() - startedAt.current),
           gradedBy: grade?.gradedBy ?? undefined,
         }),
       });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error ?? `HTTP ${res.status}`);
+      saved = true;
     } catch (e) {
-      console.error(e);
+      setGradeNote(`Couldn't save this review: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setSubmitting(false);
     }
+    if (!saved) return;
     setCounts((c) => ({ ...c, [rating]: c[rating] + 1 }));
     if (!items || index + 1 >= items.length) {
       setPhase("done");

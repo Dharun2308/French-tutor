@@ -1,6 +1,6 @@
 # Phase 3 design: Weak French, Active 10, and Tutor Mode
 
-Status: **draft for owner approval — do not implement yet**
+Status: **implemented and deployed 2026-09-02**
 
 This phase turns review history into a short, useful speaking agenda. It does not
 replace FSRS, change existing due dates, or add another daily maintenance task.
@@ -55,7 +55,8 @@ score =
 - Use up to the last 10 production reviews for the item.
 - Severity: Again `1`, Hard `0.6`, Good/Easy `0`.
 - Weight each observation by `2 ^ (-ageDays / 21)` so old failures fade.
-- Divide the weighted severity sum by the total observation weight.
+- Divide the weighted severity sum by `max(1, total observation weight)`, so a
+  lone old failure fades instead of staying at full strength forever.
 - With no reviews, use `0`; newness is already represented by recall risk.
 
 **Correction recency (0–1)**
@@ -355,4 +356,3 @@ Each slice gets its own commit and production shipping gate.
   (Phase 5).
 - Migrating existing verb/phrase SM-2 schedules to FSRS.
 - Notifications, calendar integrations, tutor messaging, or automatic sharing.
-

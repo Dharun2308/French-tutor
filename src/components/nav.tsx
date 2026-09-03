@@ -3,13 +3,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { Moon, Sun, Settings, Library, Home, Camera } from "lucide-react";
+import { Moon, Sun, Settings, Library, Home, Camera, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 const LINKS = [
   { href: "/", label: "Dashboard", icon: Home },
   { href: "/import", label: "Import", icon: Camera },
+  { href: "/weak", label: "Weak French", icon: Target },
   { href: "/library", label: "Library", icon: Library },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
@@ -25,7 +26,7 @@ export function Nav() {
       <div className="container flex h-14 items-center justify-between">
         <Link href="/" className="flex items-center gap-2 font-semibold">
           <span className="text-xl">🇫🇷</span>
-          <span className="whitespace-nowrap">French Tutor</span>
+          <span className="hidden whitespace-nowrap min-[430px]:inline">French Tutor</span>
         </Link>
         <nav className="flex items-center gap-1">
           {LINKS.map((link) => {
@@ -38,7 +39,7 @@ export function Nav() {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm font-medium transition-colors",
+                  "inline-flex h-9 items-center gap-2 rounded-md px-2 text-sm font-medium transition-colors sm:px-3",
                   active
                     ? "bg-secondary text-secondary-foreground"
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
