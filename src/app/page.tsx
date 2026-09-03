@@ -1,71 +1,35 @@
 "use client";
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
-  BookOpen,
-  MessageSquare,
-  ListChecks,
-  Sparkles,
   AlertCircle,
-  Hash,
   ArrowRight,
-  Settings,
-  Target,
-  TrendingUp,
-  Clock,
-  Zap,
+  BookOpen,
   Camera,
   GraduationCap,
+  Hash,
+  ListChecks,
+  MessageSquare,
+  Sparkles,
+  Target,
+  Zap,
 } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TranslateBox } from "@/components/translate-box";
-import { guessTimezone, cn } from "@/lib/utils";
+import { guessTimezone } from "@/lib/utils";
 
 interface Stats {
   dueNow: number;
-  dueTodayTotal: number;
-  totalActive: number;
   dueNowVerb: number;
-  dueTodayVerb: number;
-  totalActiveVerb: number;
   dueNowPhrase: number;
-  dueTodayPhrase: number;
+  totalActiveVerb: number;
   totalActivePhrase: number;
   dailyTarget: number;
   reviewedToday: number;
-  retention: number;
-  correctTotal: number;
-  wrongTotal: number;
-  weakest: Array<{
-    verbId: number;
-    infinitive: string;
-    english: string;
-    wrong: number;
-    correct: number;
-  }>;
-  weakestPhrases: Array<{
-    phraseId: number;
-    french: string;
-    english: string;
-    category: string;
-    wrong: number;
-    correct: number;
-  }>;
-  activeTenses: string[];
-  activeLevels: string[];
-  activePhraseCategories: string[];
-  learningStage: string;
   timezone: string;
-  // Lesson-note items (Import Lesson Notes)
   learningItemsTotal: number;
   learningItemsThisWeek: number;
   importsPending: number;
@@ -73,64 +37,20 @@ interface Stats {
   learningItemsDue: number;
 }
 
-type Mode = {
-  href: string;
-  title: string;
-  description: string;
-  icon: typeof BookOpen;
-  accent: string;
-};
+const PRACTICE_LINKS = [
+  { href: "/practice/smart", title: "Smart session", detail: "Mixed review", icon: Zap },
+  { href: "/practice/sentence", title: "Sentence builder", detail: "Produce full French", icon: MessageSquare },
+  { href: "/practice/phrases", title: "Foundations", detail: "Everyday phrases", icon: Hash },
+  { href: "/practice/drill", title: "Verb drill", detail: "Type conjugations", icon: BookOpen },
+  { href: "/practice/flashcards", title: "Verb cards", detail: "Reveal and rate", icon: Sparkles },
+  { href: "/practice/multiple-choice", title: "Quick choice", detail: "Recognise forms", icon: ListChecks },
+] as const;
 
-const VERB_MODES: Mode[] = [
-  {
-    href: "/practice/drill",
-    title: "Fill-in-the-blank",
-    description: "Type the correct conjugation.",
-    icon: BookOpen,
-    accent: "border-l-blue-500",
-  },
-  {
-    href: "/practice/flashcards",
-    title: "Flashcards",
-    description: "Reveal and rate yourself.",
-    icon: Sparkles,
-    accent: "border-l-purple-500",
-  },
-  {
-    href: "/practice/multiple-choice",
-    title: "Multiple choice",
-    description: "Pick the right form.",
-    icon: ListChecks,
-    accent: "border-l-teal-500",
-  },
-  {
-    href: "/practice/sentence",
-    title: "AI sentence builder",
-    description: "Formal · neutral · informal.",
-    icon: MessageSquare,
-    accent: "border-l-amber-500",
-  },
-];
-
-function getGreeting(): { greeting: string; emoji: string; timeOfDay: string } {
-  const h = new Date().getHours();
-  if (h < 12) return { greeting: "Bonjour", emoji: "☀️", timeOfDay: "morning" };
-  if (h < 17)
-    return { greeting: "Bon après-midi", emoji: "🌤️", timeOfDay: "afternoon" };
-  if (h < 21) return { greeting: "Bonsoir", emoji: "🌅", timeOfDay: "evening" };
-  return { greeting: "Bonsoir", emoji: "🌙", timeOfDay: "night" };
-}
-
-function getMotivation(stats: Stats): string {
-  const reviewed = stats.correctTotal + stats.wrongTotal;
-  if (reviewed === 0) return "Ready to start your first session?";
-  if (stats.dueNow === 0) return "All caught up — nice work! Come back later.";
-  if (stats.reviewedToday >= stats.dailyTarget)
-    return `Daily target hit! ${stats.dueNow} more if you're feeling ambitious.`;
-  if (stats.retention >= 90) return `${stats.retention}% retention — you're crushing it.`;
-  if (stats.retention >= 70)
-    return `${stats.dueNow} cards waiting. Let's keep that streak going.`;
-  return `${stats.dueNow} cards to review. A little practice goes a long way.`;
+function greeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Bonjour";
+  if (hour < 18) return "Bon après-midi";
+  return "Bonsoir";
 }
 
 export default function DashboardPage() {
@@ -140,21 +60,18 @@ export default function DashboardPage() {
   useEffect(() => {
     (async () => {
       try {
-        const statsRes = await fetch("/api/stats", { cache: "no-store" });
-        if (!statsRes.ok) {
-          setError(`Stats: ${statsRes.status}`);
-          return;
-        }
-        const data: Stats = await statsRes.json();
+        const response = await fetch("/api/stats", { cache: "no-store" });
+        if (!response.ok) throw new Error(`Stats: HTTP ${response.status}`);
+        const data = (await response.json()) as Stats;
         if (data.timezone === "UTC") {
-          const tz = guessTimezone();
-          if (tz && tz !== "UTC") {
+          const timezone = guessTimezone();
+          if (timezone && timezone !== "UTC") {
             await fetch("/api/settings", {
               method: "PUT",
               headers: { "content-type": "application/json" },
-              body: JSON.stringify({ timezone: tz }),
+              body: JSON.stringify({ timezone }),
             });
-            data.timezone = tz;
+            data.timezone = timezone;
           }
         }
         setStats(data);
@@ -166,437 +83,137 @@ export default function DashboardPage() {
 
   if (error) {
     return (
-      <div className="container max-w-2xl py-12">
+      <div className="container max-w-2xl py-10">
         <Card className="border-destructive/30 bg-destructive/5">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-destructive">
-              <AlertCircle className="h-5 w-5" />
-              Couldn&apos;t load dashboard
-            </CardTitle>
-            <CardDescription>{error}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              If this is your first run: create <code>.env.local</code>, run{" "}
-              <code>npm run db:push</code>, then <code>npm run seed</code>.
-            </p>
+          <CardContent className="flex items-center gap-3 py-6 text-destructive">
+            <AlertCircle className="h-5 w-5 shrink-0" /> Couldn&apos;t load the dashboard: {error}
           </CardContent>
         </Card>
       </div>
     );
   }
-
   if (!stats) {
-    return (
-      <div className="container max-w-4xl py-12">
-        <div className="space-y-4">
-          <div className="h-24 animate-pulse rounded-xl bg-muted" />
-          <div className="h-40 animate-pulse rounded-xl bg-muted" />
-        </div>
-      </div>
-    );
+    return <div className="container max-w-4xl py-8"><div className="h-52 animate-pulse rounded-xl bg-muted" /></div>;
   }
 
-  const dailyDone = Math.min(stats.dailyTarget, stats.reviewedToday);
-  const dailyPct =
-    stats.dailyTarget > 0
-      ? Math.min(100, Math.round((dailyDone / stats.dailyTarget) * 100))
-      : 0;
-  const isEmpty = stats.totalActive === 0;
-  const { greeting, emoji } = getGreeting();
-  const motivation = getMotivation(stats);
+  const reviewDue = stats.dueNow + stats.learningItemsDue;
+  const pendingReview = Math.max(0, stats.importsPending - stats.importsFailed);
+  const hasLessonItems = stats.learningItemsTotal > 0;
 
   return (
-    <div className="container max-w-5xl py-8">
-      {/* ── Two-column grid: main content + stats sidebar ── */}
-      <div className="grid gap-8 md:grid-cols-[1fr_220px]">
-        {/* ════ LEFT COLUMN: main content ════ */}
-        <div className="min-w-0">
-          {/* Greeting */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-semibold tracking-tight">
-              {greeting} {emoji}
-            </h1>
-            <p className="mt-1.5 text-muted-foreground">{motivation}</p>
-          </div>
+    <main className="container max-w-4xl py-7 sm:py-9">
+      <header className="mb-5">
+        <h1 className="text-3xl font-semibold tracking-tight">{greeting()}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Practice the French you want to use in conversation.</p>
+      </header>
 
-          {/* Mobile-only: compact stats row */}
-          <div className="mb-6 flex gap-3 md:hidden">
-            <div className="flex-1 rounded-lg border bg-card p-3 text-center">
-              <div className="text-2xl font-semibold">{stats.dueNow}</div>
-              <div className="text-[11px] text-muted-foreground">due</div>
-            </div>
-            <div className="flex-1 rounded-lg border bg-card p-3 text-center">
-              <div className="text-2xl font-semibold">{stats.retention}%</div>
-              <div className="text-[11px] text-muted-foreground">retention</div>
-            </div>
-            <div className="flex-1 rounded-lg border bg-card p-3 text-center">
-              <div className="text-2xl font-semibold">
-                {dailyDone}
-                <span className="text-sm font-normal text-muted-foreground">
-                  /{stats.dailyTarget}
-                </span>
-              </div>
-              <div className="text-[11px] text-muted-foreground">today</div>
-            </div>
-          </div>
-
-          {/* ── Smart session CTA ── */}
-          {!isEmpty && (
-            <div className="mb-6">
-              <Link href="/practice/smart" className="group block">
-                <Card className="border-primary/40 bg-gradient-to-r from-primary/10 to-transparent transition-all group-hover:shadow-md">
-                  <CardHeader className="flex flex-row items-center gap-4 py-4">
-                    <div className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/15">
-                      <Zap className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <CardTitle className="text-base">
-                        Start smart session
-                      </CardTitle>
-                      <CardDescription className="text-xs">
-                        Verbs + vocab mixed, typed answers, sized to your
-                        daily target.
-                      </CardDescription>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {stats.dueNow > 0 && (
-                        <Badge variant="default">{stats.dueNow} due</Badge>
-                      )}
-                      <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-                    </div>
-                  </CardHeader>
-                </Card>
-              </Link>
-            </div>
-          )}
-
-          {/* ── Lesson notes import ── */}
-          <div className="mb-6">
-            <Link href="/import" className="group block">
-              <Card className="border-l-4 border-l-rose-500 transition-all group-hover:border-l-rose-400 group-hover:shadow-md">
-                <CardHeader className="flex flex-row items-center gap-4 py-4">
-                  <div className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-rose-500/10">
-                    <Camera className="h-5 w-5 text-rose-600 dark:text-rose-400" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <CardTitle className="text-base">Import lesson notes</CardTitle>
-                    <CardDescription className="text-xs">
-                      Photograph your notebook → approve → done.
-                      {(stats.learningItemsTotal ?? 0) > 0 && (
-                        <>
-                          {" "}
-                          {stats.learningItemsTotal} saved ·{" "}
-                          {stats.learningItemsThisWeek} this week.
-                        </>
-                      )}
-                    </CardDescription>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {(stats.importsFailed ?? 0) > 0 && (
-                      <Badge variant="destructive">
-                        {stats.importsFailed} failed
-                      </Badge>
-                    )}
-                    {(stats.importsPending ?? 0) - (stats.importsFailed ?? 0) > 0 && (
-                      <Badge variant="default">
-                        {(stats.importsPending ?? 0) - (stats.importsFailed ?? 0)} to review
-                      </Badge>
-                    )}
-                    <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-                  </div>
-                </CardHeader>
-              </Card>
-            </Link>
-          </div>
-
-          {/* ── Lesson items review ── */}
-          {(stats.learningItemsTotal ?? 0) > 0 && (
-            <div className="mb-6">
-              <Link href="/practice/items" className="group block">
-                <Card className="border-l-4 border-l-indigo-500 transition-all group-hover:border-l-indigo-400 group-hover:shadow-md">
-                  <CardHeader className="flex flex-row items-center gap-4 py-4">
-                    <div className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-indigo-500/10">
-                      <GraduationCap className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <CardTitle className="text-base">Review lesson items</CardTitle>
-                      <CardDescription className="text-xs">
-                        English → French, typed. Your tutor's phrases and corrections.
-                      </CardDescription>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {(stats.learningItemsDue ?? 0) > 0 && (
-                        <Badge variant="default">{stats.learningItemsDue} due</Badge>
-                      )}
-                      <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-                    </div>
-                  </CardHeader>
-                </Card>
-              </Link>
-            </div>
-          )}
-
-          {/* Translate box */}
-          <div className="mb-8">
-            <TranslateBox />
-          </div>
-
-          {isEmpty && (
-            <Card className="mb-8 border-primary/30 bg-primary/5">
-              <CardHeader>
-                <CardTitle>Welcome! No cards yet.</CardTitle>
-                <CardDescription>
-                  Run <code>npm run seed</code> to populate your database, or
-                  head to{" "}
-                  <Link href="/settings" className="underline">
-                    Settings
-                  </Link>{" "}
-                  to choose a Learning Stage.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          )}
-
-          {/* ── Foundations ── */}
-          {stats.totalActivePhrase > 0 && (
-            <div className="mb-8">
-              <h2 className="text-lg font-semibold tracking-tight">
-                Foundations
-              </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Vocabulary flashcards — numbers, food, colours, clothing,
-                weather, travel, countries, time, and more.
-              </p>
-              <div className="mt-3">
-                <Link href="/practice/phrases" className="group">
-                  <Card className="border-l-4 border-l-emerald-500 transition-all group-hover:border-l-emerald-400 group-hover:shadow-md">
-                    <CardHeader className="flex flex-row items-center gap-4 py-4">
-                      <div className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10">
-                        <Hash className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <CardTitle className="text-base">Foundations</CardTitle>
-                        <CardDescription className="text-xs">
-                          Flashcard-style — English to French
-                        </CardDescription>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {stats.dueNowPhrase > 0 && (
-                          <Badge variant="default">
-                            {stats.dueNowPhrase} due
-                          </Badge>
-                        )}
-                        <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-                      </div>
-                    </CardHeader>
-                  </Card>
-                </Link>
-              </div>
-            </div>
-          )}
-
-          {/* ── Verb practice ── */}
-          {stats.totalActiveVerb > 0 && (
-            <div className="mb-8">
-              <h2 className="text-lg font-semibold tracking-tight">
-                Verb practice
-              </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Conjugation drills.
-                {stats.dueNowVerb > 0 && (
-                  <>
-                    {" "}
-                    <span className="text-foreground font-medium">
-                      {stats.dueNowVerb}
-                    </span>{" "}
-                    due now.
-                  </>
-                )}
-              </p>
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                {VERB_MODES.map((m) => {
-                  const Icon = m.icon;
-                  return (
-                    <Link key={m.href} href={m.href} className="group">
-                      <Card
-                        className={cn(
-                          "h-full border-l-4 transition-all group-hover:shadow-md",
-                          m.accent
-                        )}
-                      >
-                        <CardHeader className="py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary">
-                              <Icon className="h-5 w-5" />
-                            </div>
-                            <div>
-                              <CardTitle className="text-sm">
-                                {m.title}
-                              </CardTitle>
-                              <CardDescription className="text-xs">
-                                {m.description}
-                              </CardDescription>
-                            </div>
-                          </div>
-                        </CardHeader>
-                      </Card>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {stats.totalActiveVerb === 0 && stats.totalActivePhrase === 0 && (
-            <Card className="mb-8 border-primary/30 bg-primary/5">
-              <CardHeader>
-                <CardTitle>Nothing active yet</CardTitle>
-                <CardDescription>
-                  Head to{" "}
-                  <Link href="/settings" className="underline">
-                    Settings
-                  </Link>{" "}
-                  and pick a Learning Stage to get started.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          )}
-
-          {/* ── Needs attention ── */}
-          {(stats.weakest.length > 0 || stats.weakestPhrases.length > 0) && (
-            <div>
-              <h2 className="text-lg font-semibold tracking-tight">
-                Needs attention
-              </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Your trickiest items — they&apos;ll surface more often.
-              </p>
-              <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                {stats.weakest.map((w) => {
-                  const total = w.wrong + w.correct;
-                  const pctWrong =
-                    total > 0 ? Math.round((w.wrong / total) * 100) : 0;
-                  return (
-                    <div
-                      key={`verb-${w.verbId}`}
-                      className="flex items-center justify-between rounded-lg border px-4 py-2.5"
-                    >
-                      <div>
-                        <span className="font-serif text-base">
-                          {w.infinitive}
-                        </span>
-                        <span className="ml-2 text-xs text-muted-foreground">
-                          {w.english}
-                        </span>
-                      </div>
-                      <Badge variant="destructive" className="text-[10px]">
-                        {pctWrong}%
-                      </Badge>
-                    </div>
-                  );
-                })}
-                {stats.weakestPhrases.map((p) => {
-                  const total = p.wrong + p.correct;
-                  const pctWrong =
-                    total > 0 ? Math.round((p.wrong / total) * 100) : 0;
-                  return (
-                    <div
-                      key={`phrase-${p.phraseId}`}
-                      className="flex items-center justify-between rounded-lg border px-4 py-2.5"
-                    >
-                      <div>
-                        <span className="font-serif text-base">
-                          {p.french}
-                        </span>
-                        <span className="ml-2 text-xs text-muted-foreground">
-                          {p.english}
-                        </span>
-                      </div>
-                      <Badge variant="destructive" className="text-[10px]">
-                        {pctWrong}%
-                      </Badge>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+      <div className="mb-5 grid grid-cols-3 overflow-hidden rounded-xl border bg-card">
+        <div className="px-3 py-3 text-center">
+          <div className="text-xl font-semibold">{stats.learningItemsDue}</div>
+          <div className="text-[11px] text-muted-foreground">lesson items due</div>
         </div>
-
-        {/* ════ RIGHT COLUMN: stats sidebar (desktop only) ════ */}
-        <aside className="hidden md:block">
-          <div className="sticky top-20 space-y-3">
-            {/* Due now */}
-            <div className="rounded-xl border bg-card p-4">
-              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                <Clock className="h-3.5 w-3.5" />
-                Due now
-              </div>
-              <div className="mt-1 text-3xl font-semibold tracking-tight">
-                {stats.dueNow}
-              </div>
-              <div className="text-[11px] text-muted-foreground">
-                of {stats.totalActive} active
-              </div>
-            </div>
-
-            {/* Retention */}
-            <div className="rounded-xl border bg-card p-4">
-              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                <TrendingUp className="h-3.5 w-3.5" />
-                Retention
-              </div>
-              <div className="mt-1 text-3xl font-semibold tracking-tight">
-                {stats.retention}
-                <span className="text-lg">%</span>
-              </div>
-              <div className="text-[11px] text-muted-foreground">
-                {stats.correctTotal} correct · {stats.wrongTotal} wrong
-              </div>
-            </div>
-
-            {/* Daily target */}
-            <div className="rounded-xl border bg-card p-4">
-              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                <Target className="h-3.5 w-3.5" />
-                Daily target
-              </div>
-              <div className="mt-1 text-2xl font-semibold tracking-tight">
-                {dailyDone}
-                <span className="text-sm font-normal text-muted-foreground">
-                  {" "}
-                  / {stats.dailyTarget}
-                </span>
-              </div>
-              <Progress value={dailyPct} className="mt-2 h-1.5" />
-            </div>
-
-            {/* Stage + settings link */}
-            <div className="rounded-xl border bg-card p-4">
-              <div className="text-xs font-medium text-muted-foreground">
-                Stage
-              </div>
-              <div className="mt-1">
-                <Badge variant="secondary" className="capitalize">
-                  {stats.learningStage.replace(/_/g, " ")}
-                </Badge>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                asChild
-                className="mt-2 -ml-2 h-7 text-xs text-muted-foreground"
-              >
-                <Link href="/settings">
-                  <Settings className="mr-1 h-3 w-3" />
-                  Settings
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </aside>
+        <div className="border-x px-3 py-3 text-center">
+          <div className="text-xl font-semibold">{reviewDue}</div>
+          <div className="text-[11px] text-muted-foreground">all review due</div>
+        </div>
+        <div className="px-3 py-3 text-center">
+          <div className="text-xl font-semibold">{stats.reviewedToday}</div>
+          <div className="text-[11px] text-muted-foreground">reviewed today</div>
+        </div>
       </div>
-    </div>
+
+      {hasLessonItems ? (
+        <Card className="mb-4 border-rose-500/40 bg-gradient-to-br from-rose-500/10 via-background to-background">
+          <CardHeader className="pb-3">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-500/15">
+                <Target className="h-5 w-5 text-rose-600 dark:text-rose-400" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <CardTitle className="text-lg">This week&apos;s speaking focus</CardTitle>
+                <CardDescription>Your Active 10 from real lessons—ready to use with your tutor.</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2 pt-0 sm:flex-row">
+            <Button asChild className="sm:flex-1">
+              <Link href="/tutor"><MessageSquare className="h-4 w-4" />Open Tutor Mode</Link>
+            </Button>
+            <Button asChild variant="outline" className="sm:flex-1">
+              <Link href="/weak">View Active 10 <ArrowRight className="h-4 w-4" /></Link>
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="mb-4 border-rose-500/40">
+          <CardHeader>
+            <CardTitle className="text-lg">Start with your lesson notes</CardTitle>
+            <CardDescription>Photograph a page and approve the French worth remembering.</CardDescription>
+          </CardHeader>
+          <CardContent><Button asChild><Link href="/import"><Camera className="h-4 w-4" />Import notes</Link></Button></CardContent>
+        </Card>
+      )}
+
+      <div className="mb-7 grid gap-3 sm:grid-cols-2">
+        {hasLessonItems && (
+          <Link href="/practice/items" className="group">
+            <Card className="h-full transition-colors group-hover:border-indigo-500/60">
+              <CardContent className="flex items-center gap-3 py-4">
+                <GraduationCap className="h-5 w-5 shrink-0 text-indigo-600 dark:text-indigo-400" />
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium">Review lesson French</div>
+                  <div className="text-xs text-muted-foreground">English → French, typed</div>
+                </div>
+                {stats.learningItemsDue > 0 && <Badge>{stats.learningItemsDue} due</Badge>}
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+              </CardContent>
+            </Card>
+          </Link>
+        )}
+        <Link href="/import" className="group">
+          <Card className="h-full transition-colors group-hover:border-rose-500/60">
+            <CardContent className="flex items-center gap-3 py-4">
+              <Camera className="h-5 w-5 shrink-0 text-rose-600 dark:text-rose-400" />
+              <div className="min-w-0 flex-1">
+                <div className="font-medium">Import lesson notes</div>
+                <div className="text-xs text-muted-foreground">
+                  {stats.learningItemsThisWeek} added this week
+                </div>
+              </div>
+              {stats.importsFailed > 0 ? (
+                <Badge variant="destructive">{stats.importsFailed} failed</Badge>
+              ) : pendingReview > 0 ? (
+                <Badge>{pendingReview} to review</Badge>
+              ) : null}
+              <ArrowRight className="h-4 w-4 text-muted-foreground" />
+            </CardContent>
+          </Card>
+        </Link>
+      </div>
+
+      <section className="mb-7">
+        <div className="mb-3 flex items-end justify-between">
+          <div>
+            <h2 className="text-lg font-semibold">More practice</h2>
+            <p className="text-xs text-muted-foreground">Short drills when you want them.</p>
+          </div>
+          {stats.dueNow > 0 && <Badge variant="secondary">{stats.dueNow} due</Badge>}
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {PRACTICE_LINKS.map(({ href, title, detail, icon: Icon }) => (
+            <Link key={href} href={href} className="group rounded-lg border bg-card p-3 transition-colors hover:border-primary/50 hover:bg-accent/30">
+              <Icon className="mb-2 h-4 w-4 text-muted-foreground group-hover:text-foreground" />
+              <div className="text-sm font-medium">{title}</div>
+              <div className="text-[11px] text-muted-foreground">{detail}</div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <details className="rounded-xl border bg-card">
+        <summary className="cursor-pointer px-4 py-3 text-sm font-medium">Quick translate</summary>
+        <div className="border-t p-4"><TranslateBox /></div>
+      </details>
+    </main>
   );
 }

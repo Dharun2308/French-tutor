@@ -180,10 +180,10 @@ The Phase 2 verification work below is complete unless explicitly noted:
    was restarted and confirmed active.
 
 Still optional: update `~/.claude/projects/-home-multi-mind/memory/french-tutor-local.md` if Claude's
-separate memory should mirror this handoff. **Do not start Phases 3–5 without designing the selected phase.**
+separate memory should mirror this handoff. Phase 3 was subsequently designed and shipped; see §9.
 
-## 7. Next phases (owner-approved order; design each before building)
-- **Phase 3**: weak-items engine ("Weak French": low retrievability + failures + recent corrections +
+## 7. Roadmap (owner-approved order; design each before building)
+- **Phase 3 — shipped 2026-09-02**: weak-items engine ("Weak French": low retrievability + failures + recent corrections +
   usefulness − spontaneous usage), **Active 10** weekly selection with pin/unpin, **Tutor Mode** page
   (instruction text for the iTalki tutor; post-lesson "used naturally / with help / didn't" →
   `spontaneous_usage_count`, weighted above a flashcard pass), **recurring-error log** (`error_patterns`
@@ -203,3 +203,19 @@ generic lists · phrases in context > isolated words · listening to known langu
 spontaneous usage > memorised answers · human tutor > AI-only · consistency > marathons.
 UX rule: after a lesson → photograph → ~8 proposals → approve in 60 s → done. No manual deck/tag/date
 upkeep. Never auto-insert AI output. Don't make every A2 lesson TCF prep yet. No gamification clutter.
+
+## 9. Phase 3 production state (Codex, 2026-09-02)
+
+- Design: `docs/phase-3-design.md`.
+- Added deterministic Weak French ranking, weekly Active 10 with pin/unpin/replace, Tutor Mode with
+  idempotent natural/helped/not-used feedback, and recurring-error evidence/aggregation.
+- Added `item_reviews.error_type/corrected_answer/grade_reason`, `active_selections`,
+  `tutor_usage_events`, and `error_patterns` with the additive migration
+  `scripts/migrate-2026-09-02-phase3.sql`.
+- Production backup before migration: `local.db.bak-pre-phase3`. Migration integrity check passed;
+  batch 3 and all 14 owner items were preserved.
+- The first real Active 10 was generated for the week of 2026-08-31. No fake tutor usage or review
+  outcomes were written to production.
+- Dashboard was simplified into a compact, conversation-first layout. Phone and desktop renders passed.
+- Verification: TypeScript, 31 unit tests, production build, disposable-DB integration test, API probes,
+  and phone/desktop screenshots all passed. `french-tutor.service` was active afterward.
