@@ -41,19 +41,19 @@ function pickFrenchVoice(): SpeechSynthesisVoice | null {
   return voices.find((v) => v.lang.startsWith("fr")) ?? null;
 }
 
-export function speakBrowser(text: string) {
+export function speakBrowser(text: string, rate = 1) {
   if (typeof window === "undefined" || !window.speechSynthesis) return;
   stopSpeaking();
   const u = new SpeechSynthesisUtterance(normalizeText(text));
   u.lang = "fr-FR";
   const voice = pickFrenchVoice();
   if (voice) u.voice = voice;
-  u.rate = 0.95;
+  u.rate = Math.min(1.25, Math.max(0.5, rate));
   u.pitch = 1.0;
   window.speechSynthesis.speak(u);
 }
 
-export async function speakOpenAI(text: string, voice = "alloy"): Promise<void> {
+export async function speakOpenAI(text: string, voice = "alloy", rate = 1): Promise<void> {
   stopSpeaking();
   const key = `${voice}|${text}`;
   let url = audioCache.get(key);
@@ -69,6 +69,7 @@ export async function speakOpenAI(text: string, voice = "alloy"): Promise<void> 
     audioCache.set(key, url);
   }
   const audio = new Audio(url);
+  audio.playbackRate = Math.min(1.25, Math.max(0.5, rate));
   currentAudio = audio;
   await audio.play();
 }
@@ -76,16 +77,17 @@ export async function speakOpenAI(text: string, voice = "alloy"): Promise<void> 
 export async function speak(
   mode: TtsMode,
   text: string,
-  voice = "alloy"
+  voice = "alloy",
+  rate = 1
 ): Promise<void> {
   try {
     if (mode === "openai") {
-      await speakOpenAI(text, voice);
+      await speakOpenAI(text, voice, rate);
     } else {
-      speakBrowser(text);
+      speakBrowser(text, rate);
     }
   } catch (err) {
     console.warn("TTS failed, falling back to browser:", err);
-    speakBrowser(text);
+    speakBrowser(text, rate);
   }
 }

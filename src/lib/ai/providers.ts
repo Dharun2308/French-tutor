@@ -31,7 +31,7 @@ export const PROVIDER_BIN: Record<"codex" | "claude", string> = {
   claude: process.env.CLAUDE_BIN || path.join(HOME, ".local/bin/claude"),
 };
 
-export type Purpose = "extract" | "grade" | "test";
+export type Purpose = "extract" | "grade" | "test" | "variation" | "conversation" | "summary";
 
 export interface StructuredRequest {
   purpose: Purpose;
@@ -222,7 +222,14 @@ function envWithout(keys: string[]): NodeJS.ProcessEnv {
   return env;
 }
 
-const DEFAULT_TIMEOUT: Record<Purpose, number> = { extract: 150_000, grade: 60_000, test: 60_000 };
+const DEFAULT_TIMEOUT: Record<Purpose, number> = {
+  extract: 150_000,
+  grade: 60_000,
+  test: 60_000,
+  variation: 75_000,
+  conversation: 75_000,
+  summary: 75_000,
+};
 
 // ── runners ──
 

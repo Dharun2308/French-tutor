@@ -15,6 +15,8 @@ interface Props {
   className?: string;
   /** Stop propagation on click (for speak buttons inside clickable cards). */
   stopPropagation?: boolean;
+  /** Playback speed; OpenAI reuses the same cached recording. */
+  rate?: number;
 }
 
 export function SpeakButton({
@@ -24,6 +26,7 @@ export function SpeakButton({
   variant = "ghost",
   className,
   stopPropagation = true,
+  rate = 1,
 }: Props) {
   const { mode, voice } = useTts();
   const [loading, setLoading] = useState(false);
@@ -38,7 +41,7 @@ export function SpeakButton({
     if (loading) return;
     setLoading(true);
     try {
-      await speak(mode, fullText, voice);
+      await speak(mode, fullText, voice, rate);
     } finally {
       setLoading(false);
     }

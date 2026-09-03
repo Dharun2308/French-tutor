@@ -12,7 +12,7 @@ import { NextRequest } from "next/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db/client";
-import { learningItems } from "@/lib/db/schema";
+import { itemVariations, learningItems } from "@/lib/db/schema";
 import { compareAnswerFlexible } from "@/lib/normalize";
 import { cardFor } from "@/lib/items/card";
 import {
@@ -36,6 +36,7 @@ export const runtime = "nodejs";
 const Body = z.object({
   itemId: z.number().int().positive(),
   attempt: z.string().trim().min(1).max(500),
+  variationId: z.number().int().positive().optional(),
 });
 
 const VERDICT_RATING: Record<ItemVerdict, Rating> = {
@@ -66,7 +67,12 @@ export async function POST(req: NextRequest) {
     .limit(1);
   if (!item) return jsonError("Item not found", 404);
 
-  const face = cardFor(item);
+  let face = cardFor(item);
+  if (body.variationId) {
+    const [variation] = await db.select().from(itemVariations).where(eq(itemVariations.id, body.variationId)).limit(1);
+    if (!variation || variation.itemId !== item.id) return jsonError("Variation not found", 404);
+    face = { mode: "example", promptEn: variation.promptEn, targetFr: variation.targetFr };
+  }
   const target = face.targetFr;
 
   // ── Stage 1: local ──

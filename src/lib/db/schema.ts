@@ -454,6 +454,61 @@ export const errorPatterns = sqliteTable(
   })
 );
 
+// ---------- item_variations (cached AI practice contexts) ----------
+export const itemVariations = sqliteTable(
+  "item_variations",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    itemId: integer("item_id").notNull().references(() => learningItems.id, { onDelete: "cascade" }),
+    promptEn: text("prompt_en").notNull(),
+    targetFr: text("target_fr").notNull(),
+    note: text("note").notNull().default(""),
+    provider: text("provider").notNull(),
+    model: text("model").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
+  },
+  (t) => ({ itemIdx: index("item_variations_item_idx").on(t.itemId, t.createdAt) })
+);
+
+// ---------- conversation_sessions (AI chat with hidden weak targets) ----------
+export const conversationSessions = sqliteTable("conversation_sessions", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  startedAt: integer("started_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
+  endedAt: integer("ended_at", { mode: "timestamp_ms" }),
+  scenario: text("scenario").notNull(),
+  targetItemIds: text("target_item_ids", { mode: "json" }).$type<number[]>().notNull().default(sql`'[]'`),
+  usedItemIds: text("used_item_ids", { mode: "json" }).$type<number[]>().notNull().default(sql`'[]'`),
+  transcript: text("transcript", { mode: "json" }).$type<Array<{ role: "user" | "assistant"; text: string; feedback?: string }>>().notNull().default(sql`'[]'`),
+  provider: text("provider"),
+  model: text("model"),
+  status: text("status").notNull().default("active"),
+});
+
+// ---------- focus_sessions (durable 10-minute plans) ----------
+export const focusSessions = sqliteTable("focus_sessions", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  startedAt: integer("started_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
+  endedAt: integer("ended_at", { mode: "timestamp_ms" }),
+  plan: text("plan_json", { mode: "json" }).$type<Array<{ itemId: number; direction: "production" | "listening"; source: string }>>().notNull().default(sql`'[]'`),
+  currentIndex: integer("current_index").notNull().default(0),
+  status: text("status").notNull().default("active"),
+});
+
+// ---------- weekly_summaries (AI wording over deterministic facts) ----------
+export const weeklySummaries = sqliteTable(
+  "weekly_summaries",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    weekStart: integer("week_start", { mode: "timestamp_ms" }).notNull(),
+    generatedAt: integer("generated_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
+    factsHash: text("facts_hash").notNull(),
+    summary: text("summary_json", { mode: "json" }).$type<{ headline: string; reflection: string; nextFocus: string }>().notNull(),
+    provider: text("provider").notNull(),
+    model: text("model").notNull(),
+  },
+  (t) => ({ weekUniq: uniqueIndex("weekly_summaries_week_idx").on(t.weekStart) })
+);
+
 // ---------- provider_events (every structured-AI attempt, for the status UI) ----------
 export const providerEvents = sqliteTable(
   "provider_events",
@@ -485,3 +540,7 @@ export type ProviderEvent = typeof providerEvents.$inferSelect;
 export type ActiveSelection = typeof activeSelections.$inferSelect;
 export type TutorUsageEvent = typeof tutorUsageEvents.$inferSelect;
 export type ErrorPattern = typeof errorPatterns.$inferSelect;
+export type ItemVariation = typeof itemVariations.$inferSelect;
+export type ConversationSession = typeof conversationSessions.$inferSelect;
+export type FocusSession = typeof focusSessions.$inferSelect;
+export type WeeklySummary = typeof weeklySummaries.$inferSelect;
