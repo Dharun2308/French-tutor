@@ -3,12 +3,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { Moon, Sun, Settings, Library, Home } from "lucide-react";
+import { Moon, Sun, Settings, Library, Home, Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 const LINKS = [
   { href: "/", label: "Dashboard", icon: Home },
+  { href: "/import", label: "Import", icon: Camera },
   { href: "/library", label: "Library", icon: Library },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
@@ -24,7 +25,7 @@ export function Nav() {
       <div className="container flex h-14 items-center justify-between">
         <Link href="/" className="flex items-center gap-2 font-semibold">
           <span className="text-xl">🇫🇷</span>
-          <span>French Tutor</span>
+          <span className="whitespace-nowrap">French Tutor</span>
         </Link>
         <nav className="flex items-center gap-1">
           {LINKS.map((link) => {

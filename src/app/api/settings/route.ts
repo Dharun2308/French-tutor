@@ -12,6 +12,7 @@ import {
   LEVELS,
   PHRASE_CATEGORIES,
   LEARNING_STAGES,
+  DEFAULT_EXTRACT_PROVIDERS,
 } from "@/types";
 
 export const runtime = "nodejs";
@@ -30,6 +31,14 @@ const UpdateBody = z.object({
   learningStage: z.enum(LEARNING_STAGES).optional(),
   activePhraseCategories: z.array(z.enum(PHRASE_CATEGORIES)).optional(),
   timezone: z.string().max(64).optional(),
+  // Partial patch — unspecified providers keep their current state.
+  extractProviders: z
+    .object({
+      codex: z.boolean().optional(),
+      claude: z.boolean().optional(),
+      openai: z.boolean().optional(),
+    })
+    .optional(),
 });
 
 export async function GET() {
@@ -49,7 +58,7 @@ export async function PUT(req: NextRequest) {
   }
 
   // Ensure singleton exists.
-  await getSettings();
+  const current = await getSettings();
 
   const update: Record<string, unknown> = { updatedAt: new Date() };
   if (patch.dailyTarget !== undefined) update.dailyTarget = patch.dailyTarget;
@@ -64,6 +73,13 @@ export async function PUT(req: NextRequest) {
   if (patch.activePhraseCategories !== undefined)
     update.activePhraseCategories = patch.activePhraseCategories;
   if (patch.timezone !== undefined) update.timezone = patch.timezone;
+  if (patch.extractProviders !== undefined) {
+    update.extractProviders = {
+      ...DEFAULT_EXTRACT_PROVIDERS,
+      ...(current.extractProviders ?? {}),
+      ...patch.extractProviders,
+    };
+  }
 
   await db.update(settings).set(update).where(eq(settings.id, 1));
 

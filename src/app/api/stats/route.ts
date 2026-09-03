@@ -3,7 +3,14 @@
 
 import { and, desc, eq, gt, gte, inArray, isNotNull, lt, lte, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { cards, conjugations, phrases, verbs } from "@/lib/db/schema";
+import {
+  cards,
+  conjugations,
+  importBatches,
+  learningItems,
+  phrases,
+  verbs,
+} from "@/lib/db/schema";
 import { getSettings, jsonOk } from "@/lib/api";
 import { startOfUserDay } from "@/lib/srs";
 import { ensureSeeded } from "@/lib/seed/ensure-seeded";
@@ -301,6 +308,28 @@ export async function GET() {
     }));
   }
 
+  // Lesson-note items (Import Lesson Notes) — counts for the dashboard card.
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const [{ c: learningItemsTotal }] = await db
+    .select({ c: sql<number>`count(*)` })
+    .from(learningItems);
+  const [{ c: learningItemsThisWeek }] = await db
+    .select({ c: sql<number>`count(*)` })
+    .from(learningItems)
+    .where(gte(learningItems.createdAt, weekAgo));
+  const [{ c: importsPending }] = await db
+    .select({ c: sql<number>`count(*)` })
+    .from(importBatches)
+    .where(eq(importBatches.status, "pending"));
+  const [{ c: importsFailed }] = await db
+    .select({ c: sql<number>`count(*)` })
+    .from(importBatches)
+    .where(and(eq(importBatches.status, "pending"), isNotNull(importBatches.extractError)));
+  const [{ c: learningItemsDue }] = await db
+    .select({ c: sql<number>`count(*)` })
+    .from(learningItems)
+    .where(and(eq(learningItems.suspended, false), lte(learningItems.dueAt, now)));
+
   return jsonOk({
     dueNow: dueNow.count,
     dueTodayTotal: dueTodayTotal.count,
@@ -337,5 +366,10 @@ export async function GET() {
     activePhraseCategories,
     learningStage: s.learningStage ?? "present",
     timezone,
+    learningItemsTotal: Number(learningItemsTotal),
+    learningItemsThisWeek: Number(learningItemsThisWeek),
+    importsPending: Number(importsPending),
+    importsFailed: Number(importsFailed),
+    learningItemsDue: Number(learningItemsDue),
   });
 }

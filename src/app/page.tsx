@@ -14,6 +14,8 @@ import {
   TrendingUp,
   Clock,
   Zap,
+  Camera,
+  GraduationCap,
 } from "lucide-react";
 import {
   Card,
@@ -63,6 +65,12 @@ interface Stats {
   activePhraseCategories: string[];
   learningStage: string;
   timezone: string;
+  // Lesson-note items (Import Lesson Notes)
+  learningItemsTotal: number;
+  learningItemsThisWeek: number;
+  importsPending: number;
+  importsFailed: number;
+  learningItemsDue: number;
 }
 
 type Mode = {
@@ -254,6 +262,72 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-2">
                       {stats.dueNow > 0 && (
                         <Badge variant="default">{stats.dueNow} due</Badge>
+                      )}
+                      <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                    </div>
+                  </CardHeader>
+                </Card>
+              </Link>
+            </div>
+          )}
+
+          {/* ── Lesson notes import ── */}
+          <div className="mb-6">
+            <Link href="/import" className="group block">
+              <Card className="border-l-4 border-l-rose-500 transition-all group-hover:border-l-rose-400 group-hover:shadow-md">
+                <CardHeader className="flex flex-row items-center gap-4 py-4">
+                  <div className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-rose-500/10">
+                    <Camera className="h-5 w-5 text-rose-600 dark:text-rose-400" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <CardTitle className="text-base">Import lesson notes</CardTitle>
+                    <CardDescription className="text-xs">
+                      Photograph your notebook → approve → done.
+                      {(stats.learningItemsTotal ?? 0) > 0 && (
+                        <>
+                          {" "}
+                          {stats.learningItemsTotal} saved ·{" "}
+                          {stats.learningItemsThisWeek} this week.
+                        </>
+                      )}
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {(stats.importsFailed ?? 0) > 0 && (
+                      <Badge variant="destructive">
+                        {stats.importsFailed} failed
+                      </Badge>
+                    )}
+                    {(stats.importsPending ?? 0) - (stats.importsFailed ?? 0) > 0 && (
+                      <Badge variant="default">
+                        {(stats.importsPending ?? 0) - (stats.importsFailed ?? 0)} to review
+                      </Badge>
+                    )}
+                    <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                  </div>
+                </CardHeader>
+              </Card>
+            </Link>
+          </div>
+
+          {/* ── Lesson items review ── */}
+          {(stats.learningItemsTotal ?? 0) > 0 && (
+            <div className="mb-6">
+              <Link href="/practice/items" className="group block">
+                <Card className="border-l-4 border-l-indigo-500 transition-all group-hover:border-l-indigo-400 group-hover:shadow-md">
+                  <CardHeader className="flex flex-row items-center gap-4 py-4">
+                    <div className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-indigo-500/10">
+                      <GraduationCap className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <CardTitle className="text-base">Review lesson items</CardTitle>
+                      <CardDescription className="text-xs">
+                        English → French, typed. Your tutor's phrases and corrections.
+                      </CardDescription>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {(stats.learningItemsDue ?? 0) > 0 && (
+                        <Badge variant="default">{stats.learningItemsDue} due</Badge>
                       )}
                       <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
                     </div>

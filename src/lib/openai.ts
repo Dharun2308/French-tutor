@@ -25,6 +25,15 @@ export function getModel(): string {
   return process.env.OPENAI_MODEL || "gpt-5-mini";
 }
 
+/**
+ * Model for reading handwritten notebook photos. Extraction runs once per
+ * lesson and a misread poisons the SRS at the source, so it defaults to the
+ * full model rather than -mini.
+ */
+export function getVisionModel(): string {
+  return process.env.OPENAI_VISION_MODEL || "gpt-5";
+}
+
 export interface ChatJSONOptions<T extends ZodTypeAny> {
   system: string;
   user: string;
@@ -34,6 +43,9 @@ export interface ChatJSONOptions<T extends ZodTypeAny> {
   jsonSchema: Record<string, unknown>;
   model?: string;
   temperature?: number;
+  /** Optional image parts (data: URLs) sent alongside the user text. */
+  images?: string[];
+  imageDetail?: "low" | "high" | "auto";
 }
 
 /**
@@ -46,11 +58,25 @@ export async function chatJSON<T extends ZodTypeAny>(
   const client = getOpenAI();
   const model = opts.model ?? getModel();
 
+  // Plain string when text-only; content parts when images are attached.
+  const userContent:
+    | string
+    | OpenAI.Chat.Completions.ChatCompletionContentPart[] =
+    opts.images && opts.images.length > 0
+      ? [
+          { type: "text", text: opts.user },
+          ...opts.images.map((url) => ({
+            type: "image_url" as const,
+            image_url: { url, detail: opts.imageDetail ?? "high" },
+          })),
+        ]
+      : opts.user;
+
   const completion = await client.chat.completions.create({
     model,
     messages: [
       { role: "system", content: opts.system },
-      { role: "user", content: opts.user },
+      { role: "user", content: userContent },
     ],
     response_format: {
       type: "json_schema",

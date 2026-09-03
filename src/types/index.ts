@@ -212,3 +212,53 @@ export const STAGE_PRESETS: Record<LearningStage, StagePreset> = {
     activePhraseCategories: ["article", "number", "question", "greeting", "phrase", "country", "city", "time", "food", "fruit_vegetable", "meat", "quantity", "nationality", "demonstrative", "vocabulary", "expression", "activity", "shopping", "colour", "clothing", "weather", "sentence", "fill_article", "fill_preposition", "fill_question", "fill_phrase", "fill_number", "fill_time", "fill_vocabulary"],
   },
 };
+
+// ---------- Lesson-note learning items (imported from notebook photos) ----------
+export const LEARNING_ITEM_TYPES = [
+  "phrase",
+  "vocabulary",
+  "grammar",
+  "correction",
+  "pronunciation",
+] as const;
+export type LearningItemType = (typeof LEARNING_ITEM_TYPES)[number];
+
+export const LEARNING_ITEM_TYPE_LABELS: Record<LearningItemType, string> = {
+  phrase: "Phrase",
+  vocabulary: "Vocabulary",
+  grammar: "Grammar",
+  correction: "Correction",
+  pronunciation: "Pronunciation",
+};
+
+/** CEFR band an imported item is pitched at (the extractor never goes above B2). */
+export const ITEM_CEFR_LEVELS = ["A1", "A2", "B1", "B2"] as const;
+export type ItemCefrLevel = (typeof ITEM_CEFR_LEVELS)[number];
+
+export const IMPORT_BATCH_STATUSES = ["pending", "reviewed", "discarded"] as const;
+export type ImportBatchStatus = (typeof IMPORT_BATCH_STATUSES)[number];
+
+// ---------- AI providers for structured calls (extraction, grading) ----------
+// Fixed fallback order. The two CLI providers run under the user's ChatGPT /
+// Claude subscriptions; the API provider bills per call and is off by default.
+export const PROVIDER_ORDER = ["codex", "claude", "openai"] as const;
+export type ProviderId = (typeof PROVIDER_ORDER)[number];
+
+export const PROVIDER_LABELS: Record<ProviderId, string> = {
+  codex: "Codex (ChatGPT Pro)",
+  claude: "Claude Code (Claude Pro)",
+  openai: "OpenAI API (billed per call)",
+};
+
+export const DEFAULT_EXTRACT_PROVIDERS: Record<ProviderId, boolean> = {
+  codex: true,
+  claude: true,
+  openai: false,
+};
+
+// ---------- Lesson-item review ----------
+export const REVIEW_DIRECTIONS = ["production", "recognition", "listening"] as const;
+export type ReviewDirection = (typeof REVIEW_DIRECTIONS)[number];
+
+export const ITEM_VERDICTS = ["CORRECT", "ACCEPTABLE", "MINOR_ERROR", "WRONG"] as const;
+export type ItemVerdict = (typeof ITEM_VERDICTS)[number];

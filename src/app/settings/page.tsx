@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useTts } from "@/components/tts-provider";
 import { speak } from "@/lib/client-tts";
+import { ProviderSettings } from "@/components/provider-status";
 import {
   TENSES,
   TENSE_LABELS,
@@ -475,6 +476,8 @@ export default function SettingsPage() {
             </div>
           </CardContent>
         </Card>
+
+        <ProviderSettings />
 
         <Card>
           <CardHeader>
