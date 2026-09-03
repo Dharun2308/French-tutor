@@ -3,12 +3,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { Moon, Sun, Settings, Library, Home, Camera, Target } from "lucide-react";
+import { Moon, Sun, Settings, Library, Home, Camera, Target, Ear } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 const LINKS = [
   { href: "/", label: "Dashboard", icon: Home },
+  { href: "/practice/listening", label: "Listening", icon: Ear },
   { href: "/import", label: "Import", icon: Camera },
   { href: "/weak", label: "Weak French", icon: Target },
   { href: "/library", label: "Library", icon: Library },
