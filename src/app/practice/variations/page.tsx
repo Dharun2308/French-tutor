@@ -44,8 +44,8 @@ export default function VariationsPage() {
   };
   return <main className="container max-w-xl py-6">
     <Link href="/" className="mb-5 inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4"/>Home</Link>
-    <h1 className="text-2xl font-semibold">Fresh contexts</h1><p className="mb-5 text-sm text-muted-foreground">New A2 situations for lesson French missed more than once.</p>
-    {!items ? <div className="h-48 animate-pulse rounded-xl bg-muted"/> : items.length === 0 ? <Card><CardContent className="py-10 text-center"><Sparkles className="mx-auto mb-3 h-8 w-8"/><p className="font-medium">No repeatedly missed items yet</p><p className="mt-1 text-sm text-muted-foreground">This practice appears after an item has been missed twice.</p></CardContent></Card> : <Card><CardContent className="space-y-5 p-6">
+    <h1 className="text-2xl font-semibold">Fresh contexts</h1><p className="mb-5 text-sm text-muted-foreground">New A2 situations for lesson French that could use another angle.</p>
+    {!items ? <div className="h-48 animate-pulse rounded-xl bg-muted"/> : items.length === 0 ? <Card><CardContent className="py-10 text-center"><Sparkles className="mx-auto mb-3 h-8 w-8"/><p className="font-medium">Nothing needs a new angle yet</p><p className="mt-1 text-sm text-muted-foreground">This practice opens up once an item has been tricky twice.</p></CardContent></Card> : <Card><CardContent className="space-y-5 p-6">
       <div className="text-sm text-muted-foreground">Target skill <span className="font-medium text-foreground">{item?.french}</span></div>
       {!variation ? <Button className="w-full" size="lg" onClick={() => generate()} disabled={busy}>{busy ? <Loader2 className="h-4 w-4 animate-spin"/> : <Sparkles className="h-4 w-4"/>}Create a context</Button> : <>
         <p className="text-xl">{variation.promptEn}</p>

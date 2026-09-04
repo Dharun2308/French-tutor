@@ -41,7 +41,7 @@ const PERSONAL_LINKS = [
   { href: "/practice/focus", title: "10-minute focus", detail: "Due, weak, listening, corrections", icon: Clock3 },
   { href: "/practice/listening", title: "Listening", detail: "Hear it, then type it", icon: Ear },
   { href: "/conversation", title: "AI conversation", detail: "Quietly targets weak French", icon: MessageSquare },
-  { href: "/practice/variations", title: "Fresh contexts", detail: "For repeatedly missed items", icon: Sparkles },
+  { href: "/practice/variations", title: "Fresh contexts", detail: "Same French, new situations", icon: Sparkles },
 ] as const;
 
 function greeting(): string {

@@ -283,7 +283,6 @@ export default function ItemsReviewPage() {
               {good} / {total} produced correctly ({pct}%)
               {counts[0] > 0 && ` · ${counts[0]} to relearn`}
               {counts[1] > 0 && ` · ${counts[1]} hard`}.
-              {remaining > 0 && ` ${remaining} more still due.`}
             </p>
             <div className="flex justify-center gap-3">
               <Button onClick={load}>{remaining > 0 ? "Keep going" : "Another round"}</Button>
@@ -332,7 +331,6 @@ export default function ItemsReviewPage() {
             </span>
             <span className="ml-auto">
               {item.reps === 0 ? "new" : `${item.reps} review${item.reps === 1 ? "" : "s"}`}
-              {item.lapses > 0 && ` · ${item.lapses} lapse${item.lapses === 1 ? "" : "s"}`}
             </span>
           </div>
 
