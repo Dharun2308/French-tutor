@@ -1,13 +1,15 @@
 // POST /api/items/review
 // { itemId, rating: 0|1|2|3, direction?, verdict?, userAnswer?, elapsedMs?, gradedBy? }
-// Applies FSRS, updates the item's counters, appends to item_reviews.
+// Applies FSRS for production/recognition, updates the item's counters, appends
+// to item_reviews. Listening never advances the schedule: a pass leaves the
+// FSRS card alone, a fail makes the item due now (see applyListeningRating).
 
 import { NextRequest } from "next/server";
 import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db/client";
 import { errorPatterns, itemReviews, learningItems } from "@/lib/db/schema";
-import { applyItemRating, FSRS_STATE_LABELS } from "@/lib/fsrs";
+import { applyItemRating, applyListeningRating, FSRS_STATE_LABELS } from "@/lib/fsrs";
 import { jsonError, jsonOk } from "@/lib/api";
 import { ITEM_ERROR_TYPES, ITEM_VERDICTS, REVIEW_DIRECTIONS } from "@/types";
 
@@ -49,7 +51,8 @@ export async function POST(req: NextRequest) {
       .limit(1);
     if (!item) return null;
 
-    const next = applyItemRating(
+    const schedule = dir === "listening" ? applyListeningRating : applyItemRating;
+    const next = schedule(
       {
         fsrsState: item.fsrsState,
         stability: item.stability,
@@ -114,7 +117,7 @@ export async function POST(req: NextRequest) {
         reps: next.reps,
         lapses: next.lapses,
         dueAt: next.dueAt,
-        lastReviewedAt: now,
+        lastReviewedAt: next.lastReviewedAt,
         reviewCount: item.reviewCount + 1,
         successCount: item.successCount + (success ? 1 : 0),
         failureCount: item.failureCount + (success ? 0 : 1),

@@ -101,7 +101,9 @@ page, toggles save immediately via `PUT /api/settings {extractProviders:{id:bool
 `import_batches`, `learning_items` (content + dedupe + FSRS + metrics + per-direction counters +
 `suspended`), `item_reviews` (append-only log with FSRS snapshot), `provider_events`,
 `settings.extract_providers`. Design call (owner can override): **one FSRS schedule per item, three
-mastery counters** (production/recognition/listening) — not three schedules.
+mastery counters** (production/recognition/listening) — not three schedules. Since 2026-09-03 only
+production/recognition reviews move that schedule; listening logs evidence and counters, and a failed
+listening attempt sets `due_at = now` (`applyListeningRating` in `lib/fsrs.ts`).
 
 ## 3. Verified today (real calls, real rendering)
 - Part A end to end incl. phone screenshots and a live OpenAI sentence-builder call.

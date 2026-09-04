@@ -6,7 +6,7 @@ Status: implemented design, 2026-09-02.
 
 - Listening starts with sound only. French and English stay hidden until the learner submits or reveals.
 - One recording is reused at 1×, 0.85×, and 0.7×; speed changes playback, not the generated audio.
-- Listening answers use the same evidence and FSRS review path as production, with `direction=listening`.
+- Listening answers are logged as evidence with `direction=listening` and update the listening counters, but they never advance the FSRS schedule. A failed dictation makes the item due for production immediately; a passed one leaves the schedule untouched (changed 2026-09-03; production > recognition).
 - AI variations are cached A2 micro-contexts for repeatedly missed personal items. They never become lesson items.
 - Conversation practice receives a hidden set of weak items and creates natural openings for them. It does not show a checklist until the session ends.
 

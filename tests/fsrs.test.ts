@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { applyItemRating, ratingToGrade, retrievability, type ItemSrs } from "../src/lib/fsrs";
+import { applyItemRating, applyListeningRating, ratingToGrade, retrievability, type ItemSrs } from "../src/lib/fsrs";
 
 const fresh = (): ItemSrs => ({
   fsrsState: 0,
@@ -55,4 +55,35 @@ test("retrievability is 0 for unseen items and decays after a review", () => {
   const muchLater = retrievability(s, new Date(now.getTime() + 60 * DAY));
   assert.ok(soon > 0.5, `expected high recall soon after review, got ${soon}`);
   assert.ok(muchLater < soon, "recall should decay");
+});
+
+test("listening success never touches the FSRS card", () => {
+  const now = new Date("2026-09-02T12:00:00Z");
+  const scheduled = applyItemRating(fresh(), 3, now); // Easy → Review, due in days
+  const later = new Date(now.getTime() + DAY);
+  for (const rating of [2, 3] as const) {
+    const after = applyListeningRating(scheduled, rating, later);
+    assert.deepEqual(after, scheduled);
+  }
+  // A never-produced item stays New rather than being promoted by a dictation.
+  const untouched = applyListeningRating(fresh(), 3, now);
+  assert.equal(untouched.fsrsState, 0);
+  assert.equal(untouched.reps, 0);
+});
+
+test("listening failure makes the item due now without a lapse", () => {
+  const now = new Date("2026-09-02T12:00:00Z");
+  const scheduled = applyItemRating(fresh(), 3, now);
+  const later = new Date(now.getTime() + DAY);
+  assert.ok(scheduled.dueAt.getTime() > later.getTime(), "precondition: not yet due");
+  for (const rating of [0, 1] as const) {
+    const after = applyListeningRating(scheduled, rating, later);
+    assert.equal(after.dueAt.getTime(), later.getTime());
+    assert.equal(after.lapses, scheduled.lapses);
+    assert.equal(after.fsrsState, scheduled.fsrsState);
+    assert.equal(after.stability, scheduled.stability);
+  }
+  // Already-overdue items keep their earlier due date.
+  const overdue = { ...scheduled, dueAt: new Date(now.getTime() - DAY) };
+  assert.equal(applyListeningRating(overdue, 0, now).dueAt.getTime(), overdue.dueAt.getTime());
 });

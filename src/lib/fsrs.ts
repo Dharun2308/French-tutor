@@ -71,6 +71,17 @@ export function applyItemRating(s: ItemSrs, rating: Rating, now: Date = new Date
   return fromCard(next);
 }
 
+/**
+ * Listening is recognition evidence, so it never advances the production
+ * schedule. A successful dictation leaves the FSRS card untouched; a failed
+ * one (Again or Hard) pulls the item forward so the next session tests it in
+ * production. Pure.
+ */
+export function applyListeningRating(s: ItemSrs, rating: Rating, now: Date = new Date()): ItemSrs {
+  if (rating >= 2) return { ...s };
+  return { ...s, dueAt: s.dueAt.getTime() <= now.getTime() ? s.dueAt : now };
+}
+
 /** Probability (0..1) of recalling the item right now. 0 for never-reviewed items. */
 export function retrievability(s: ItemSrs, now: Date = new Date()): number {
   if (s.fsrsState === State.New || s.reps === 0) return 0;
