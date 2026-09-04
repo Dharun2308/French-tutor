@@ -12,7 +12,7 @@ function dateParts(now: Date, timezone: string) {
 }
 
 /** Convert a midnight wall-clock date in an IANA zone to its UTC instant. */
-function zonedMidnight(year: number, month: number, day: number, timezone: string): Date {
+export function zonedMidnight(year: number, month: number, day: number, timezone: string): Date {
   const desired = Date.UTC(year, month - 1, day);
   let candidate = desired;
 
@@ -40,6 +40,16 @@ function zonedMidnight(year: number, month: number, day: number, timezone: strin
     candidate += desired - actualAsUtc;
   }
   return new Date(candidate);
+}
+
+/** Start of the learner's current local day, represented as a UTC instant. */
+export function startOfUserDay(now: Date, timezone: string): Date {
+  try {
+    const local = dateParts(now, timezone);
+    return zonedMidnight(local.year, local.month, local.day, timezone);
+  } catch {
+    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  }
 }
 
 /** Monday 00:00 in the user's timezone, represented as a UTC Date. */

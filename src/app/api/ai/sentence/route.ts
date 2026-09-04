@@ -8,7 +8,7 @@ import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db/client";
 import { sentenceExamples, verbs } from "@/lib/db/schema";
-import { chatJSON } from "@/lib/openai";
+import { getEnabledProviders, runStructured } from "@/lib/ai/providers";
 import {
   SentenceExerciseSchema,
   SentenceExerciseJsonSchema,
@@ -91,7 +91,8 @@ export async function POST(req: NextRequest) {
 
   let result;
   try {
-    result = await chatJSON({
+    result = (await runStructured({
+      purpose: "sentence",
       system: sentenceSystemPrompt(),
       user: sentenceUserPrompt({
         infinitive: verb.infinitive,
@@ -100,10 +101,9 @@ export async function POST(req: NextRequest) {
         person,
         theme: body.theme,
       }),
-      schema: SentenceExerciseSchema,
       schemaName: "sentence_exercise",
       jsonSchema: SentenceExerciseJsonSchema as Record<string, unknown>,
-    });
+    }, SentenceExerciseSchema, await getEnabledProviders())).data;
   } catch (err) {
     console.error("AI sentence error:", err);
     return jsonError("AI unavailable. Try again in a moment.", 502);

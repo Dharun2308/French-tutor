@@ -9,7 +9,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { z } from "zod";
 import { getOpenAI } from "@/lib/openai";
-import { jsonError } from "@/lib/api";
+import { getSettings, jsonError } from "@/lib/api";
 import { rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
@@ -44,6 +44,11 @@ export async function POST(req: NextRequest) {
       `Invalid body: ${err instanceof Error ? err.message : String(err)}`,
       400
     );
+  }
+
+  const settings = await getSettings();
+  if (settings.ttsMode !== "openai") {
+    return jsonError("OpenAI speech is disabled in Settings.", 409);
   }
 
   const model = process.env.OPENAI_TTS_MODEL || "gpt-4o-mini-tts";

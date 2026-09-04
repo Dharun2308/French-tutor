@@ -169,12 +169,13 @@ export function ProviderSettings() {
   return (
     <Card id="providers">
       <CardHeader>
-        <CardTitle>Lesson note extraction</CardTitle>
+        <CardTitle>AI providers</CardTitle>
         <CardDescription>
-          Which AI reads your notebook photos and grades typed answers. Tried
-          top to bottom; the first one that works wins. Codex and Claude run
-          on your ChatGPT / Claude subscriptions — no API charges. The API
-          option bills per call.
+          Used for notebook extraction, grading, sentence practice,
+          translations, explanations, mnemonics, conversations, and summaries.
+          Tried top to bottom; the first one that works wins. Codex and Claude
+          use your subscriptions. OpenAI bills the API per call. Premium speech
+          is controlled separately above.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">

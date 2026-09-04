@@ -12,7 +12,7 @@ import {
   verbs,
 } from "@/lib/db/schema";
 import { getSettings, jsonOk } from "@/lib/api";
-import { startOfUserDay } from "@/lib/srs";
+import { startOfUserDay } from "@/lib/timezone";
 import { ensureSeeded } from "@/lib/seed/ensure-seeded";
 
 export const runtime = "nodejs";

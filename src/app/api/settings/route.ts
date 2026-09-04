@@ -23,7 +23,6 @@ const UpdateBody = z.object({
   activeTenses: z.array(z.enum(TENSES)).optional(),
   activeLevels: z.array(z.enum(LEVELS)).min(1).optional(),
   preferredRegister: z.enum(["formal", "neutral", "informal", "all"]).optional(),
-  modelOverride: z.string().max(64).nullable().optional(),
   ttsMode: z.enum(["browser", "openai"]).optional(),
   ttsVoice: z
     .enum(["alloy", "ash", "ballad", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer"])
@@ -66,7 +65,6 @@ export async function PUT(req: NextRequest) {
   if (patch.activeLevels !== undefined) update.activeLevels = patch.activeLevels;
   if (patch.preferredRegister !== undefined)
     update.preferredRegister = patch.preferredRegister;
-  if (patch.modelOverride !== undefined) update.modelOverride = patch.modelOverride;
   if (patch.ttsMode !== undefined) update.ttsMode = patch.ttsMode;
   if (patch.ttsVoice !== undefined) update.ttsVoice = patch.ttsVoice;
   if (patch.learningStage !== undefined) update.learningStage = patch.learningStage;

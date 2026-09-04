@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Loader2, MessageSquare, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { FrenchInput } from "@/components/french-input";
 import { SpeakButton } from "@/components/speak-button";
 
 interface Message { role: "user" | "assistant"; text: string; feedback?: string }
@@ -29,7 +29,7 @@ export default function ConversationPage() {
       <Card><CardContent className="space-y-3 p-4">
         {messages.map((m, i) => <div key={i} className={`max-w-[88%] rounded-xl px-4 py-3 text-sm ${m.role === "user" ? "ml-auto bg-primary text-primary-foreground" : "bg-muted"}`}><div className="flex items-start gap-2"><p className="flex-1">{m.text}</p>{m.role === "assistant" && <SpeakButton text={m.text}/>}</div>{m.feedback && <p className="mt-2 border-t pt-2 text-xs text-muted-foreground">{m.feedback}</p>}</div>)}
         {busy && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground"/>}
-        {!targets && <div className="flex gap-2 pt-2"><Input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} placeholder="Réponds en français…" disabled={busy}/><Button size="icon" onClick={send} disabled={busy || !input.trim()}><Send className="h-4 w-4"/></Button></div>}
+        {!targets && <div className="flex gap-2 pt-2"><FrenchInput value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} placeholder="Réponds en français…" disabled={busy}/><Button size="icon" onClick={send} disabled={busy || !input.trim()}><Send className="h-4 w-4"/></Button></div>}
       </CardContent></Card>
       {!targets ? <Button variant="outline" className="mt-3 w-full" onClick={finish} disabled={busy || messages.length < 3}>Finish and reveal targets</Button> : <Card className="mt-3"><CardContent className="p-5"><h2 className="font-semibold">Hidden targets</h2><div className="mt-3 space-y-2">{targets.map((t) => <div key={t.id} className="flex gap-3 text-sm"><span>{t.used ? "Used" : "Not yet"}</span><span className="font-medium">{t.french}</span><span className="text-muted-foreground">{t.english}</span></div>)}</div><p className="mt-4 text-xs text-muted-foreground">AI conversation use is practice only. Real tutor use is recorded in Tutor Mode.</p></CardContent></Card>}
       {error && <p className="mt-3 text-sm text-destructive">{error}</p>}

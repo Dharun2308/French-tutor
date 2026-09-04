@@ -4,7 +4,7 @@
 
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { chatJSON } from "@/lib/openai";
+import { getEnabledProviders, runStructured } from "@/lib/ai/providers";
 import { jsonError, jsonOk } from "@/lib/api";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -50,14 +50,13 @@ export async function POST(req: NextRequest) {
     : "You are a French tutor for an A1-A2 English speaker. Translate the given French text to English. In 'notes', give a very short (1 sentence) tip about what makes this phrase interesting grammatically or culturally. Keep it brief.";
 
   try {
-    const result = await chatJSON({
+    const result = (await runStructured({
+      purpose: "translate",
       system,
       user: body.text,
-      schema: TranslationSchema,
       schemaName: "translation",
       jsonSchema: TranslationJsonSchema as Record<string, unknown>,
-      model: "gpt-4o-mini",
-    });
+    }, TranslationSchema, await getEnabledProviders())).data;
     return jsonOk({
       translation: result.translation,
       notes: result.notes,

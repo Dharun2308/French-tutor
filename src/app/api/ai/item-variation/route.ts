@@ -10,7 +10,7 @@ import { rateLimit } from "@/lib/rate-limit";
 const Variation = z.object({ prompt_en: z.string().min(2).max(300), target_fr: z.string().min(2).max(300), note: z.string().max(300) });
 const jsonSchema = {
   type: "object", additionalProperties: false, required: ["prompt_en", "target_fr", "note"],
-  properties: { prompt_en: { type: "string" }, target_fr: { type: "string" }, note: { type: "string" } },
+  properties: { prompt_en: { type: "string", minLength: 2, maxLength: 300 }, target_fr: { type: "string", minLength: 2, maxLength: 300 }, note: { type: "string", maxLength: 300 } },
 };
 
 export async function GET() {
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   try {
     const result = await runStructured({
       purpose: "variation",
-      system: "You create one natural A2 French production exercise. Preserve the exact meaning and useful phrase from the learner's item. Use a genuinely new everyday context. Do not introduce obscure vocabulary. Return JSON only.",
+      system: "You create one natural A2 French production exercise. Preserve the exact meaning and useful phrase from the learner's item. Use a genuinely new everyday context. Do not introduce obscure vocabulary. Keep every field under 300 characters. Return JSON only.",
       user: `Personal item:\nFrench: ${item.french}\nEnglish: ${item.english}\nExisting example: ${item.exampleFr} — ${item.exampleEn}\nCreate a new English prompt and its natural French answer. The answer must exercise the same phrase or correction. Keep it short.`,
       schemaName: "item_variation", jsonSchema,
     }, Variation, await getEnabledProviders());

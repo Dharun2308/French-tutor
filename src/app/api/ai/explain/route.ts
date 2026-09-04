@@ -4,7 +4,7 @@
 
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { chatJSON } from "@/lib/openai";
+import { getEnabledProviders, runStructured } from "@/lib/ai/providers";
 import {
   ExplanationSchema,
   ExplanationJsonSchema,
@@ -36,13 +36,13 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const result = await chatJSON({
+    const result = (await runStructured({
+      purpose: "explain",
       system: explainSystemPrompt(),
       user: body.question,
-      schema: ExplanationSchema,
       schemaName: "explanation",
       jsonSchema: ExplanationJsonSchema as Record<string, unknown>,
-    });
+    }, ExplanationSchema, await getEnabledProviders())).data;
     return jsonOk(result);
   } catch (err) {
     console.error("AI explain error:", err);

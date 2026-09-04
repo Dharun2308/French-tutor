@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Loader2, RefreshCw, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { FrenchInput } from "@/components/french-input";
 import { SpeakButton } from "@/components/speak-button";
 import { RateButtons } from "@/components/rate-buttons";
+import { createReviewRequestId } from "@/lib/client-review";
 import type { Rating } from "@/types";
 
 interface Candidate { id: number; french: string; english: string; failureCount: number }
@@ -21,6 +22,8 @@ export default function VariationsPage() {
   const [grade, setGrade] = useState<{ verdict: string; errorType: string; corrected: string; reason: string; gradedBy: string | null } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const requestId = useRef<string | null>(null);
+  const saving = useRef(false);
   const item = items?.[index];
   useEffect(() => { fetch("/api/ai/item-variation").then((r) => r.json()).then((d) => setItems(d.items ?? [])).catch((e) => setError(String(e))); }, []);
   const generate = async (regenerate = false) => {
@@ -33,11 +36,11 @@ export default function VariationsPage() {
     try { const r = await fetch("/api/ai/grade-item", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ itemId: item.id, variationId: variation.id, attempt: answer }) }); const d = await r.json(); if (!r.ok) throw new Error(d.error); setGrade(d); }
     catch (e) { setError(e instanceof Error ? e.message : String(e)); } finally { setBusy(false); }
   };
-  const next = () => { setIndex((i) => items ? (i + 1) % items.length : i); setVariation(null); setGrade(null); setAnswer(""); };
+  const next = () => { requestId.current = null; setIndex((i) => items ? (i + 1) % items.length : i); setVariation(null); setGrade(null); setAnswer(""); };
   const rate = async (rating: Rating) => {
-    if (!item || !variation || !grade) return; setBusy(true);
-    try { const r = await fetch("/api/items/review", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ itemId: item.id, rating, direction: "production", verdict: grade.verdict, errorType: grade.errorType, userAnswer: answer, correctedAnswer: grade.corrected, gradeReason: grade.reason, gradedBy: grade.gradedBy ?? undefined }) }); const d = await r.json().catch(() => ({})); if (!r.ok) throw new Error(d.error); next(); }
-    catch (e) { setError(e instanceof Error ? e.message : String(e)); } finally { setBusy(false); }
+    if (!item || !variation || !grade || saving.current) return; saving.current = true; setBusy(true); requestId.current ??= createReviewRequestId();
+    try { const r = await fetch("/api/items/review", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ requestId: requestId.current, itemId: item.id, rating, direction: "production", verdict: grade.verdict, errorType: grade.errorType, userAnswer: answer, correctedAnswer: grade.corrected, gradeReason: grade.reason, gradedBy: grade.gradedBy ?? undefined }) }); const d = await r.json().catch(() => ({})); if (!r.ok) throw new Error(d.error); next(); }
+    catch (e) { setError(e instanceof Error ? e.message : String(e)); } finally { saving.current = false; setBusy(false); }
   };
   return <main className="container max-w-xl py-6">
     <Link href="/" className="mb-5 inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4"/>Home</Link>
@@ -46,7 +49,7 @@ export default function VariationsPage() {
       <div className="text-sm text-muted-foreground">Target skill <span className="font-medium text-foreground">{item?.french}</span></div>
       {!variation ? <Button className="w-full" size="lg" onClick={() => generate()} disabled={busy}>{busy ? <Loader2 className="h-4 w-4 animate-spin"/> : <Sparkles className="h-4 w-4"/>}Create a context</Button> : <>
         <p className="text-xl">{variation.promptEn}</p>
-        {!grade ? <><Input value={answer} onChange={(e) => setAnswer(e.target.value)} onKeyDown={(e) => e.key === "Enter" && check()} placeholder="Say it in French"/><Button className="w-full" onClick={check} disabled={busy || !answer.trim()}>{busy && <Loader2 className="h-4 w-4 animate-spin"/>}Check</Button></> : <><div className="rounded-lg bg-muted p-4"><div className="flex items-start gap-2"><p className="flex-1 text-lg font-medium">{grade.corrected}</p><SpeakButton text={grade.corrected}/></div><p className="mt-2 text-sm">{grade.verdict.replace("_", " ")}{grade.reason ? ` · ${grade.reason}` : ""}</p></div><RateButtons onRate={rate} disabled={busy}/></>}
+        {!grade ? <><FrenchInput value={answer} onChange={(e) => setAnswer(e.target.value)} onKeyDown={(e) => e.key === "Enter" && check()} placeholder="Say it in French"/><Button className="w-full" onClick={check} disabled={busy || !answer.trim()}>{busy && <Loader2 className="h-4 w-4 animate-spin"/>}Check</Button></> : <><div className="rounded-lg bg-muted p-4"><div className="flex items-start gap-2"><p className="flex-1 text-lg font-medium">{grade.corrected}</p><SpeakButton text={grade.corrected}/></div><p className="mt-2 text-sm">{grade.verdict.replace("_", " ")}{grade.reason ? ` · ${grade.reason}` : ""}</p></div><RateButtons onRate={rate} disabled={busy}/></>}
         {!grade && <div className="grid grid-cols-2 gap-2"><Button variant="outline" onClick={() => generate(true)} disabled={busy}><RefreshCw className="h-4 w-4"/>Different context</Button><Button onClick={next}>Next item</Button></div>}
       </>}
       {error && <p className="text-sm text-destructive">{error}</p>}

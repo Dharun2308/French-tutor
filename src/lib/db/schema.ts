@@ -346,6 +346,8 @@ export const itemReviews = sqliteTable(
   "item_reviews",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
+    // Optional client idempotency key. NULL keeps old review rows valid.
+    requestId: text("request_id"),
     itemId: integer("item_id")
       .notNull()
       .references(() => learningItems.id, { onDelete: "cascade" }),
@@ -371,6 +373,7 @@ export const itemReviews = sqliteTable(
     scheduledDays: integer("scheduled_days"),
   },
   (t) => ({
+    requestUniq: uniqueIndex("item_reviews_request_idx").on(t.itemId, t.requestId),
     itemIdx: index("item_reviews_item_idx").on(t.itemId, t.ratedAt),
     ratedIdx: index("item_reviews_rated_idx").on(t.ratedAt),
   })

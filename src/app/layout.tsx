@@ -26,7 +26,7 @@ export default function RootLayout({
           <TtsProvider>
             <div className="min-h-screen bg-background">
               <Nav />
-              <main>{children}</main>
+              <div>{children}</div>
             </div>
           </TtsProvider>
         </ThemeProvider>

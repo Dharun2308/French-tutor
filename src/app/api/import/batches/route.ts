@@ -8,6 +8,7 @@ import { z } from "zod";
 import { db } from "@/lib/db/client";
 import { importBatches } from "@/lib/db/schema";
 import { jsonError, jsonOk } from "@/lib/api";
+import { removeBatchFiles } from "@/lib/import/storage";
 
 export const runtime = "nodejs";
 
@@ -88,6 +89,14 @@ export async function PATCH(req: NextRequest) {
   if (body.label !== undefined) update.label = body.label || null;
   if (Object.keys(update).length === 0) return jsonOk(summary(b));
 
+  if (body.status === "discarded") {
+    try {
+      await removeBatchFiles(body.id);
+    } catch (err) {
+      console.error("Could not remove discarded import files:", err);
+      return jsonError("Could not remove the discarded notebook photos.", 500);
+    }
+  }
   await db.update(importBatches).set(update).where(eq(importBatches.id, body.id));
   const [fresh] = await db
     .select()

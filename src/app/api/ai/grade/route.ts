@@ -14,7 +14,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db/client";
 import { cards, conjugations } from "@/lib/db/schema";
-import { chatJSON } from "@/lib/openai";
+import { getEnabledProviders, runStructured } from "@/lib/ai/providers";
 import {
   GradeResultSchema,
   GradeResultJsonSchema,
@@ -60,7 +60,8 @@ export async function POST(req: NextRequest) {
 
   let result;
   try {
-    result = await chatJSON({
+    result = (await runStructured({
+      purpose: "grade",
       system: gradeSystemPrompt(),
       user: gradeUserPrompt({
         target: body.target,
@@ -68,10 +69,9 @@ export async function POST(req: NextRequest) {
         infinitive: body.infinitive,
         tense: body.tense,
       }),
-      schema: GradeResultSchema,
       schemaName: "grade_result",
       jsonSchema: GradeResultJsonSchema as Record<string, unknown>,
-    });
+    }, GradeResultSchema, await getEnabledProviders())).data;
   } catch (err) {
     console.error("AI grade error:", err);
     return jsonError("AI unavailable. Try again in a moment.", 502);

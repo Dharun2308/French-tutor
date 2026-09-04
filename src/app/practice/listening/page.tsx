@@ -5,15 +5,16 @@ import Link from "next/link";
 import { ArrowLeft, Ear, Loader2, RotateCcw, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { FrenchInput } from "@/components/french-input";
 import { AccentBar } from "@/components/accent-bar";
 import { RateButtons } from "@/components/rate-buttons";
 import { useTts } from "@/components/tts-provider";
 import { speak } from "@/lib/client-tts";
+import { createReviewRequestId, reviewElapsedMs } from "@/lib/client-review";
 import type { Rating } from "@/types";
 
 interface Item { id: number; promptEn: string; targetFr: string; mode: string; reps: number }
-interface Grade { verdict: string; errorType: string; corrected: string; reason: string; suggestedRating: Rating | null; gradedBy: string | null }
+interface Grade { verdict: string; errorType?: string; corrected: string; reason: string; suggestedRating: Rating | null; gradedBy: string | null }
 
 export default function ListeningPage() {
   const [items, setItems] = useState<Item[] | null>(null);
@@ -23,8 +24,11 @@ export default function ListeningPage() {
   const [grade, setGrade] = useState<Grade | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [playing, setPlaying] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const { mode, voice } = useTts();
   const startedAt = useRef(Date.now());
+  const requestId = useRef<string | null>(null);
+  const saving = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const item = items?.[index];
 
@@ -46,7 +50,7 @@ export default function ListeningPage() {
     if (!item || !answer.trim()) return;
     setPhase("grading");
     try {
-      const r = await fetch("/api/ai/grade-item", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ itemId: item.id, attempt: answer.trim() }) });
+      const r = await fetch("/api/ai/grade-item", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ itemId: item.id, attempt: answer.trim(), direction: "listening" }) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error);
       setGrade(d);
@@ -59,18 +63,29 @@ export default function ListeningPage() {
 
   const reveal = () => {
     if (!item) return;
-    setGrade({ verdict: "WRONG", errorType: "other", corrected: item.targetFr, reason: "Listen again while reading the transcript.", suggestedRating: 0, gradedBy: "local" });
+    setGrade({ verdict: "WRONG", corrected: item.targetFr, reason: "Listen again while reading the transcript.", suggestedRating: 0, gradedBy: "local" });
     setPhase("graded");
   };
 
   const rate = async (rating: Rating) => {
-    if (!item || !grade) return;
-    const r = await fetch("/api/items/review", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ itemId: item.id, rating, direction: "listening", verdict: grade.verdict, errorType: grade.errorType, userAnswer: answer.trim() || undefined, correctedAnswer: grade.corrected, gradeReason: grade.reason, elapsedMs: Date.now() - startedAt.current, gradedBy: grade.gradedBy ?? undefined }) });
-    const d = await r.json().catch(() => ({}));
-    if (!r.ok) { setMessage(d.error ?? "Could not save review"); return; }
-    if (!items || index + 1 >= items.length) { setPhase("done"); return; }
-    setIndex((i) => i + 1); setAnswer(""); setGrade(null); setMessage(null); setPhase("answer"); startedAt.current = Date.now();
-    requestAnimationFrame(() => inputRef.current?.focus());
+    if (!item || !grade || saving.current) return;
+    saving.current = true;
+    setSubmitting(true);
+    requestId.current ??= createReviewRequestId();
+    try {
+      const r = await fetch("/api/items/review", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ requestId: requestId.current, itemId: item.id, rating, direction: "listening", verdict: grade.verdict, errorType: grade.errorType, userAnswer: answer.trim() || undefined, correctedAnswer: grade.corrected, gradeReason: grade.reason, elapsedMs: reviewElapsedMs(startedAt.current), gradedBy: grade.gradedBy ?? undefined }) });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { setMessage(d.error ?? "Could not save review"); return; }
+      requestId.current = null;
+      if (!items || index + 1 >= items.length) { setPhase("done"); return; }
+      setIndex((i) => i + 1); setAnswer(""); setGrade(null); setMessage(null); setPhase("answer"); startedAt.current = Date.now();
+      requestAnimationFrame(() => inputRef.current?.focus());
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Could not save review");
+    } finally {
+      saving.current = false;
+      setSubmitting(false);
+    }
   };
 
   if (!items) return <main className="container max-w-xl py-10"><div className="h-52 animate-pulse rounded-xl bg-muted" /></main>;
@@ -88,13 +103,13 @@ export default function ListeningPage() {
           <Button size="lg" className="h-20 w-full text-lg" onClick={() => play(1)} disabled={playing}><Volume2 className="h-6 w-6"/>{playing ? "Playing…" : "Listen at 1×"}</Button>
           <div className="grid grid-cols-2 gap-2"><Button variant="outline" onClick={() => play(.85)} disabled={playing}><RotateCcw className="h-4 w-4"/>0.85×</Button><Button variant="outline" onClick={() => play(.7)} disabled={playing}><RotateCcw className="h-4 w-4"/>0.7×</Button></div>
           {phase === "answer" || phase === "grading" ? <>
-            <Input ref={inputRef} value={answer} onChange={(e) => setAnswer(e.target.value)} onKeyDown={(e) => e.key === "Enter" && check()} placeholder="Type the French you hear" autoComplete="off" />
+            <FrenchInput ref={inputRef} value={answer} onChange={(e) => setAnswer(e.target.value)} onKeyDown={(e) => e.key === "Enter" && check()} placeholder="Type the French you hear" />
             <AccentBar inputRef={inputRef} value={answer} onChange={setAnswer}/>
             <div className="flex gap-2"><Button className="flex-1" onClick={check} disabled={!answer.trim() || phase === "grading"}>{phase === "grading" && <Loader2 className="h-4 w-4 animate-spin"/>}Check</Button><Button variant="ghost" onClick={reveal}>Reveal</Button></div>
           </> : <>
             <div className="rounded-lg bg-muted p-4"><p className="text-lg font-medium">{grade?.corrected}</p><p className="mt-1 text-sm text-muted-foreground">{item.promptEn}</p>{grade?.reason && <p className="mt-3 text-sm">{grade.reason}</p>}</div>
             <Button variant="outline" className="w-full" onClick={() => play(.85)}><Volume2 className="h-4 w-4"/>Listen while reading</Button>
-            <RateButtons onRate={rate}/>
+            <RateButtons onRate={rate} disabled={submitting}/>
           </>}
           {message && <p className="text-sm text-destructive">{message}</p>}
         </CardContent>

@@ -37,6 +37,7 @@ const Body = z.object({
   itemId: z.number().int().positive(),
   attempt: z.string().trim().min(1).max(500),
   variationId: z.number().int().positive().optional(),
+  direction: z.enum(["production", "recognition", "listening"]).default("production"),
 });
 
 const VERDICT_RATING: Record<ItemVerdict, Rating> = {
@@ -106,7 +107,7 @@ export async function POST(req: NextRequest) {
     const r = await runStructured(
       {
         purpose: "grade",
-        system: gradeItemSystemPrompt(),
+        system: gradeItemSystemPrompt(body.direction),
         user: gradeItemUserPrompt({
           french: item.french,
           english: item.english,
@@ -125,7 +126,7 @@ export async function POST(req: NextRequest) {
       errorType: r.data.error_type,
       corrected: r.data.corrected,
       reason: r.data.reason,
-      suggestedRating: VERDICT_RATING[r.data.verdict],
+      suggestedRating: r.data.verdict === "CORRECT" && item.reps >= 3 ? 3 : VERDICT_RATING[r.data.verdict],
       gradedBy: r.provider,
       target,
     });

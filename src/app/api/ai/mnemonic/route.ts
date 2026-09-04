@@ -11,7 +11,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db/client";
 import { cards, conjugations, phrases, verbs } from "@/lib/db/schema";
-import { chatJSON } from "@/lib/openai";
+import { getEnabledProviders, runStructured } from "@/lib/ai/providers";
 import {
   MnemonicSchema,
   MnemonicJsonSchema,
@@ -64,7 +64,8 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      const result = await chatJSON({
+      const result = (await runStructured({
+        purpose: "mnemonic",
         system: mnemonicSystemPrompt(),
         user: [
           `French: "${p.french}"`,
@@ -74,10 +75,9 @@ export async function POST(req: NextRequest) {
         ]
           .filter(Boolean)
           .join("\n"),
-        schema: MnemonicSchema,
         schemaName: "mnemonic",
         jsonSchema: MnemonicJsonSchema as Record<string, unknown>,
-      });
+      }, MnemonicSchema, await getEnabledProviders())).data;
       await db
         .update(phrases)
         .set({ mnemonic: result.mnemonic })
@@ -114,7 +114,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const result = await chatJSON({
+    const result = (await runStructured({
+      purpose: "mnemonic",
       system: mnemonicSystemPrompt(),
       user: [
         `Verb: "${c.infinitive}" (${c.english})`,
@@ -122,10 +123,9 @@ export async function POST(req: NextRequest) {
         `Target form: "${PERSON_PRONOUNS[c.person as Person]} ${c.form}"`,
         "The learner keeps failing this conjugation. Give a hook for recalling this exact form.",
       ].join("\n"),
-      schema: MnemonicSchema,
       schemaName: "mnemonic",
       jsonSchema: MnemonicJsonSchema as Record<string, unknown>,
-    });
+    }, MnemonicSchema, await getEnabledProviders())).data;
     await db
       .update(cards)
       .set({ mnemonic: result.mnemonic })

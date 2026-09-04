@@ -28,9 +28,12 @@ export const GradeItemJsonSchema = {
   },
 } as const;
 
-export function gradeItemSystemPrompt(): string {
+export function gradeItemSystemPrompt(direction: "production" | "recognition" | "listening" = "production"): string {
+  const task = direction === "listening"
+    ? "The learner heard a French recording and is transcribing exactly what they heard. Do not accept a paraphrase with similar meaning as CORRECT; grade the dictated words, grammar, and accents."
+    : "The learner is producing French from an English prompt. A fully natural equivalent phrasing may be correct if it preserves the target meaning.";
   return [
-    "You are a precise but kind French teacher grading an A2 learner's typed answer. The learner is producing French from an English prompt.",
+    `You are a precise but kind French teacher grading an A2 learner's typed answer. ${task}`,
     "Verdicts:",
     "- CORRECT: right, or a different phrasing that is fully correct and uses the target phrase (or an equally natural one).",
     "- ACCEPTABLE: understandable and grammatical with a small slip that a native speaker would barely notice (one typo, missing punctuation, minor word choice).",

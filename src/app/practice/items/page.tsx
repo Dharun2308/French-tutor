@@ -21,13 +21,14 @@ import {
 import { PracticeShell } from "@/components/practice-shell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { FrenchInput } from "@/components/french-input";
 import { EmptyState } from "@/components/empty-state";
 import { SpeakButton } from "@/components/speak-button";
 import { AccentBar } from "@/components/accent-bar";
 import { RateButtons } from "@/components/rate-buttons";
 import { useHotkeys } from "@/hooks/use-hotkeys";
 import { cn } from "@/lib/utils";
+import { createReviewRequestId, reviewElapsedMs } from "@/lib/client-review";
 import {
   LEARNING_ITEM_TYPE_LABELS,
   RATING_LABELS,
@@ -59,7 +60,7 @@ type Verdict = "CORRECT" | "ACCEPTABLE" | "MINOR_ERROR" | "WRONG" | "UNGRADED";
 
 interface Grade {
   verdict: Verdict;
-  errorType: string;
+  errorType?: string;
   corrected: string;
   reason: string;
   suggestedRating: Rating | null;
@@ -96,6 +97,8 @@ export default function ItemsReviewPage() {
   const [counts, setCounts] = useState<Record<Rating, number>>({ 0: 0, 1: 0, 2: 0, 3: 0 });
   const [submitting, setSubmitting] = useState(false);
   const startedAt = useRef<number>(Date.now());
+  const requestId = useRef<string | null>(null);
+  const saving = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
@@ -160,7 +163,6 @@ export default function ItemsReviewPage() {
     if (!item || phase !== "answering") return;
     setGrade({
       verdict: "WRONG",
-      errorType: "other",
       corrected: item.targetFr,
       reason: "",
       suggestedRating: 0,
@@ -171,14 +173,17 @@ export default function ItemsReviewPage() {
   };
 
   const rate = async (rating: Rating) => {
-    if (!item || phase !== "graded" || submitting) return;
+    if (!item || phase !== "graded" || saving.current) return;
+    saving.current = true;
     setSubmitting(true);
+    requestId.current ??= createReviewRequestId();
     let saved = false;
     try {
       const res = await fetch("/api/items/review", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
+          requestId: requestId.current,
           itemId: item.id,
           rating,
           direction: "production",
@@ -187,7 +192,7 @@ export default function ItemsReviewPage() {
           userAnswer: answer.trim() || undefined,
           correctedAnswer: grade?.corrected,
           gradeReason: grade?.reason,
-          elapsedMs: Math.min(3_600_000, Date.now() - startedAt.current),
+          elapsedMs: reviewElapsedMs(startedAt.current),
           gradedBy: grade?.gradedBy ?? undefined,
         }),
       });
@@ -197,9 +202,11 @@ export default function ItemsReviewPage() {
     } catch (e) {
       setGradeNote(`Couldn't save this review: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
+      saving.current = false;
       setSubmitting(false);
     }
     if (!saved) return;
+    requestId.current = null;
     setCounts((c) => ({ ...c, [rating]: c[rating] + 1 }));
     if (!items || index + 1 >= items.length) {
       setPhase("done");
@@ -335,7 +342,7 @@ export default function ItemsReviewPage() {
           {/* ── Answer ── */}
           {phase === "answering" || phase === "grading" ? (
             <>
-              <Input
+              <FrenchInput
                 ref={inputRef}
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
@@ -346,10 +353,6 @@ export default function ItemsReviewPage() {
                   }
                 }}
                 placeholder="Type it in French…"
-                lang="fr"
-                autoComplete="off"
-                autoCorrect="off"
-                spellCheck={false}
                 disabled={phase === "grading"}
                 className="h-12 text-lg font-serif"
               />

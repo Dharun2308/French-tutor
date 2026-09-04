@@ -28,6 +28,9 @@ export async function GET() {
   ]);
   const correctionIds = [...new Set(corrections.map((x) => x.itemId).concat(items.filter((x) => x.type === "correction").map((x) => x.id)))];
   const plan = buildFocusPlan(items, weak.map((x) => x.id), correctionIds);
+  if (plan.length === 0) {
+    return jsonOk({ sessionId: null, startedAt: new Date(), currentIndex: 0, items: [] });
+  }
   const [created] = await db.insert(focusSessions).values({ plan }).returning();
   return jsonOk(await serialize(created));
 }

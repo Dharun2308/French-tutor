@@ -9,7 +9,7 @@ import { getEnabledProviders, runStructured } from "@/lib/ai/providers";
 import { rateLimit } from "@/lib/rate-limit";
 
 const Summary = z.object({ headline: z.string().max(120), reflection: z.string().max(500), nextFocus: z.string().max(300) });
-const schema = { type: "object", additionalProperties: false, required: ["headline", "reflection", "nextFocus"], properties: { headline: { type: "string" }, reflection: { type: "string" }, nextFocus: { type: "string" } } };
+const schema = { type: "object", additionalProperties: false, required: ["headline", "reflection", "nextFocus"], properties: { headline: { type: "string", maxLength: 120 }, reflection: { type: "string", maxLength: 500 }, nextFocus: { type: "string", maxLength: 300 } } };
 
 async function facts() {
   const settings = await getSettings();
@@ -27,7 +27,7 @@ export async function GET() {
   const data = await facts();
   const hash = createHash("sha256").update(JSON.stringify(data)).digest("hex");
   const [cached] = await db.select().from(weeklySummaries).where(eq(weeklySummaries.weekStart, data.weekStart)).limit(1);
-  return jsonOk({ facts: data, summary: cached?.factsHash === hash ? cached.summary : null, summaryStale: Boolean(cached && cached.factsHash !== hash) });
+  return jsonOk({ facts: data, summary: cached?.summary ?? null, summaryStale: Boolean(cached && cached.factsHash !== hash) });
 }
 
 export async function POST() {
@@ -35,7 +35,7 @@ export async function POST() {
   const data = await facts();
   const hash = createHash("sha256").update(JSON.stringify(data)).digest("hex");
   try {
-    const r = await runStructured({ purpose: "summary", system: "Write a concise, calm weekly reflection for an A2 French learner. Use only the supplied facts. Do not invent progress, scores, or praise. When evidence is sparse, say so plainly. Return JSON only.", user: `Weekly facts: ${JSON.stringify(data)}\nGive one headline, a 1–3 sentence reflection, and one concrete next focus.`, schemaName: "weekly_summary", jsonSchema: schema }, Summary, await getEnabledProviders());
+    const r = await runStructured({ purpose: "summary", system: "Write a concise, calm weekly reflection for an A2 French learner. Use only the supplied facts. Do not invent progress, scores, or praise. When evidence is sparse, say so plainly. Keep the headline under 120 characters, reflection under 500, and next focus under 300. Return JSON only.", user: `Weekly facts: ${JSON.stringify(data)}\nGive one headline, a 1–3 sentence reflection, and one concrete next focus.`, schemaName: "weekly_summary", jsonSchema: schema }, Summary, await getEnabledProviders());
     await db.insert(weeklySummaries).values({ weekStart: data.weekStart, factsHash: hash, summary: r.data, provider: r.provider, model: r.model }).onConflictDoUpdate({ target: weeklySummaries.weekStart, set: { generatedAt: new Date(), factsHash: hash, summary: r.data, provider: r.provider, model: r.model } });
     return jsonOk({ facts: data, summary: r.data, provider: r.provider });
   } catch (e) { return jsonError(e instanceof Error ? e.message : String(e), 502); }

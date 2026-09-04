@@ -14,6 +14,7 @@ import { ITEM_ERROR_TYPES, ITEM_VERDICTS, REVIEW_DIRECTIONS } from "@/types";
 export const runtime = "nodejs";
 
 const Body = z.object({
+  requestId: z.string().min(8).max(100).optional(),
   itemId: z.number().int().positive(),
   rating: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]),
   direction: z.enum(REVIEW_DIRECTIONS).default("production"),
@@ -22,7 +23,7 @@ const Body = z.object({
   userAnswer: z.string().max(500).optional(),
   correctedAnswer: z.string().max(500).optional(),
   gradeReason: z.string().max(1_000).optional(),
-  elapsedMs: z.number().int().min(0).max(3_600_000).optional(),
+  elapsedMs: z.number().int().min(0).optional(),
   gradedBy: z.string().max(20).optional(),
 });
 
@@ -37,34 +38,70 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const [item] = await db
-    .select()
-    .from(learningItems)
-    .where(eq(learningItems.id, body.itemId))
-    .limit(1);
-  if (!item) return jsonError("Item not found", 404);
-
   const now = new Date();
-  const next = applyItemRating(
-    {
-      fsrsState: item.fsrsState,
-      stability: item.stability,
-      difficulty: item.difficulty,
-      elapsedDays: item.elapsedDays,
-      scheduledDays: item.scheduledDays,
-      learningSteps: item.learningSteps,
-      reps: item.reps,
-      lapses: item.lapses,
-      dueAt: item.dueAt,
-      lastReviewedAt: item.lastReviewedAt ?? null,
-    },
-    body.rating,
-    now
-  );
   const success = body.rating >= 2;
-
   const dir = body.direction;
-  await db.transaction(async (tx) => {
+  const result = await db.transaction(async (tx) => {
+    const [item] = await tx
+      .select()
+      .from(learningItems)
+      .where(eq(learningItems.id, body.itemId))
+      .limit(1);
+    if (!item) return null;
+
+    const next = applyItemRating(
+      {
+        fsrsState: item.fsrsState,
+        stability: item.stability,
+        difficulty: item.difficulty,
+        elapsedDays: item.elapsedDays,
+        scheduledDays: item.scheduledDays,
+        learningSteps: item.learningSteps,
+        reps: item.reps,
+        lapses: item.lapses,
+        dueAt: item.dueAt,
+        lastReviewedAt: item.lastReviewedAt ?? null,
+      },
+      body.rating,
+      now
+    );
+
+    const inserted = await tx
+      .insert(itemReviews)
+      .values({
+        requestId: body.requestId ?? null,
+        itemId: item.id,
+        ratedAt: now,
+        rating: body.rating,
+        direction: dir,
+        verdict: body.verdict ?? null,
+        errorType: body.errorType ?? null,
+        userAnswer: body.userAnswer ?? null,
+        correctedAnswer: body.correctedAnswer ?? null,
+        gradeReason: body.gradeReason ?? null,
+        elapsedMs: body.elapsedMs === undefined ? null : Math.min(body.elapsedMs, 3_600_000),
+        gradedBy: body.gradedBy ?? null,
+        stabilityAfter: next.stability,
+        difficultyAfter: next.difficulty,
+        scheduledDays: next.scheduledDays,
+      })
+      .onConflictDoNothing({ target: [itemReviews.itemId, itemReviews.requestId] })
+      .returning({ id: itemReviews.id });
+
+    // The first request already committed this evidence; retries are successful no-ops.
+    if (body.requestId && inserted.length === 0) {
+      return {
+        itemId: item.id,
+        rating: body.rating,
+        state: FSRS_STATE_LABELS[item.fsrsState] ?? String(item.fsrsState),
+        dueAt: item.dueAt.toISOString(),
+        scheduledDays: item.scheduledDays,
+        stability: Math.round(item.stability * 100) / 100,
+        difficulty: Math.round(item.difficulty * 100) / 100,
+        idempotent: true,
+      };
+    }
+
     await tx
       .update(learningItems)
       .set({
@@ -90,23 +127,6 @@ export async function POST(req: NextRequest) {
         listeningCorrect: item.listeningCorrect + (dir === "listening" && success ? 1 : 0),
       })
       .where(eq(learningItems.id, item.id));
-
-    await tx.insert(itemReviews).values({
-      itemId: item.id,
-      ratedAt: now,
-      rating: body.rating,
-      direction: dir,
-      verdict: body.verdict ?? null,
-      errorType: body.errorType ?? null,
-      userAnswer: body.userAnswer ?? null,
-      correctedAnswer: body.correctedAnswer ?? null,
-      gradeReason: body.gradeReason ?? null,
-      elapsedMs: body.elapsedMs ?? null,
-      gradedBy: body.gradedBy ?? null,
-      stabilityAfter: next.stability,
-      difficultyAfter: next.difficulty,
-      scheduledDays: next.scheduledDays,
-    });
 
     const trackPattern =
       dir === "production" &&
@@ -138,15 +158,18 @@ export async function POST(req: NextRequest) {
           },
         });
     }
-  });
 
-  return jsonOk({
-    itemId: item.id,
-    rating: body.rating,
-    state: FSRS_STATE_LABELS[next.fsrsState] ?? String(next.fsrsState),
-    dueAt: next.dueAt.toISOString(),
-    scheduledDays: next.scheduledDays,
-    stability: Math.round(next.stability * 100) / 100,
-    difficulty: Math.round(next.difficulty * 100) / 100,
+    return {
+      itemId: item.id,
+      rating: body.rating,
+      state: FSRS_STATE_LABELS[next.fsrsState] ?? String(next.fsrsState),
+      dueAt: next.dueAt.toISOString(),
+      scheduledDays: next.scheduledDays,
+      stability: Math.round(next.stability * 100) / 100,
+      difficulty: Math.round(next.difficulty * 100) / 100,
+      idempotent: false,
+    };
   });
+  if (!result) return jsonError("Item not found", 404);
+  return jsonOk(result);
 }

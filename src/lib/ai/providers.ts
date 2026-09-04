@@ -31,7 +31,7 @@ export const PROVIDER_BIN: Record<"codex" | "claude", string> = {
   claude: process.env.CLAUDE_BIN || path.join(HOME, ".local/bin/claude"),
 };
 
-export type Purpose = "extract" | "grade" | "test" | "variation" | "conversation" | "summary";
+export type Purpose = "extract" | "grade" | "test" | "variation" | "conversation" | "summary" | "sentence" | "translate" | "explain" | "mnemonic";
 
 export interface StructuredRequest {
   purpose: Purpose;
@@ -229,6 +229,10 @@ const DEFAULT_TIMEOUT: Record<Purpose, number> = {
   variation: 75_000,
   conversation: 75_000,
   summary: 75_000,
+  sentence: 75_000,
+  translate: 60_000,
+  explain: 60_000,
+  mnemonic: 60_000,
 };
 
 // ── runners ──
@@ -253,7 +257,7 @@ const runCodex: Runner = async (req) => {
       prompt: `${req.system}\n\n${req.user}`,
     });
     const r = await run(PROVIDER_BIN.codex, args, {
-      env: envWithout(["OPENAI_API_KEY"]),
+      env: envWithout(["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "SEED_TOKEN", "TURSO_DATABASE_URL", "TURSO_AUTH_TOKEN"]),
       cwd: dir,
       timeoutMs: req.timeoutMs ?? DEFAULT_TIMEOUT[req.purpose],
     });
@@ -289,7 +293,7 @@ const runClaude: Runner = async (req) => {
   });
   const cwd = images.length > 0 ? path.dirname(images[0]) : os.tmpdir();
   const r = await run(PROVIDER_BIN.claude, args, {
-    env: envWithout(["ANTHROPIC_API_KEY", "CLAUDECODE", "CLAUDE_CODE_ENTRYPOINT"]),
+    env: envWithout(["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "SEED_TOKEN", "TURSO_DATABASE_URL", "TURSO_AUTH_TOKEN", "CLAUDECODE", "CLAUDE_CODE_ENTRYPOINT"]),
     cwd,
     timeoutMs: req.timeoutMs ?? DEFAULT_TIMEOUT[req.purpose],
   });

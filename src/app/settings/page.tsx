@@ -49,7 +49,6 @@ interface Settings {
   activeTenses: Tense[];
   activeLevels: Level[];
   preferredRegister: "formal" | "neutral" | "informal" | "all";
-  modelOverride: string | null;
   ttsMode: TtsMode;
   ttsVoice: string;
   learningStage: LearningStage;
@@ -77,7 +76,6 @@ export default function SettingsPage() {
         activeTenses: data.activeTenses ?? [],
         activeLevels: data.activeLevels,
         preferredRegister: data.preferredRegister,
-        modelOverride: data.modelOverride,
         ttsMode: data.ttsMode ?? "browser",
         ttsVoice: data.ttsVoice ?? "alloy",
         learningStage: data.learningStage ?? "present",
@@ -484,28 +482,6 @@ export default function SettingsPage() {
             <CardTitle>Advanced</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="model">OpenAI model override</Label>
-              <Input
-                id="model"
-                placeholder="gpt-5-mini (default)"
-                value={settings.modelOverride ?? ""}
-                onChange={(e) =>
-                  setSettings((s) =>
-                    s
-                      ? {
-                          ...s,
-                          modelOverride: e.target.value || null,
-                        }
-                      : s
-                  )
-                }
-              />
-              <p className="text-xs text-muted-foreground">
-                Leave blank to use <code>gpt-5-mini</code>. Env var{" "}
-                <code>OPENAI_MODEL</code> takes precedence on the server.
-              </p>
-            </div>
             <div className="space-y-2">
               <Label htmlFor="tz">Timezone</Label>
               <Input
