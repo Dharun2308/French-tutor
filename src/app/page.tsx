@@ -10,7 +10,6 @@ import {
   CalendarDays,
   Clock3,
   Ear,
-  GraduationCap,
   Hash,
   ListChecks,
   MessageSquare,
@@ -19,7 +18,6 @@ import {
   Target,
   Zap,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TranslateBox } from "@/components/translate-box";
@@ -28,9 +26,6 @@ import { guessTimezone } from "@/lib/utils";
 interface Stats {
   timezone: string;
   learningItemsTotal: number;
-  learningItemsThisWeek: number;
-  importsPending: number;
-  importsFailed: number;
 }
 
 const PRACTICE_LINKS = [
@@ -99,7 +94,6 @@ export default function DashboardPage() {
     return <div className="container max-w-4xl py-8"><div className="h-52 animate-pulse rounded-xl bg-muted" /></div>;
   }
 
-  const pendingReview = Math.max(0, stats.importsPending - stats.importsFailed);
   const hasLessonItems = stats.learningItemsTotal > 0;
 
   return (
@@ -140,42 +134,6 @@ export default function DashboardPage() {
           <CardContent><Button asChild><Link href="/import"><Camera className="h-4 w-4" />Import notes</Link></Button></CardContent>
         </Card>
       )}
-
-      <div className="mb-7 grid gap-3 sm:grid-cols-2">
-        {hasLessonItems && (
-          <Link href="/practice/items" className="group">
-            <Card className="h-full transition-colors group-hover:border-indigo-500/60">
-              <CardContent className="flex items-center gap-3 py-4">
-                <GraduationCap className="h-5 w-5 shrink-0 text-indigo-600 dark:text-indigo-400" />
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium">Review lesson French</div>
-                  <div className="text-xs text-muted-foreground">English → French, typed</div>
-                </div>
-                <ArrowRight className="h-4 w-4 text-muted-foreground" />
-              </CardContent>
-            </Card>
-          </Link>
-        )}
-        <Link href="/import" className="group">
-          <Card className="h-full transition-colors group-hover:border-rose-500/60">
-            <CardContent className="flex items-center gap-3 py-4">
-              <Camera className="h-5 w-5 shrink-0 text-rose-600 dark:text-rose-400" />
-              <div className="min-w-0 flex-1">
-                <div className="font-medium">Import lesson notes</div>
-                <div className="text-xs text-muted-foreground">
-                  {stats.learningItemsThisWeek} added this week
-                </div>
-              </div>
-              {stats.importsFailed > 0 ? (
-                <Badge variant="destructive">{stats.importsFailed} failed</Badge>
-              ) : pendingReview > 0 ? (
-                <Badge>{pendingReview} to review</Badge>
-              ) : null}
-              <ArrowRight className="h-4 w-4 text-muted-foreground" />
-            </CardContent>
-          </Card>
-        </Link>
-      </div>
 
       {hasLessonItems && <section className="mb-7">
         <h2 className="mb-3 text-lg font-semibold">Practice now</h2>
