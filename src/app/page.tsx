@@ -26,19 +26,11 @@ import { TranslateBox } from "@/components/translate-box";
 import { guessTimezone } from "@/lib/utils";
 
 interface Stats {
-  dueNow: number;
-  dueNowVerb: number;
-  dueNowPhrase: number;
-  totalActiveVerb: number;
-  totalActivePhrase: number;
-  dailyTarget: number;
-  reviewedToday: number;
   timezone: string;
   learningItemsTotal: number;
   learningItemsThisWeek: number;
   importsPending: number;
   importsFailed: number;
-  learningItemsDue: number;
 }
 
 const PRACTICE_LINKS = [
@@ -107,7 +99,6 @@ export default function DashboardPage() {
     return <div className="container max-w-4xl py-8"><div className="h-52 animate-pulse rounded-xl bg-muted" /></div>;
   }
 
-  const reviewDue = stats.dueNow + stats.learningItemsDue;
   const pendingReview = Math.max(0, stats.importsPending - stats.importsFailed);
   const hasLessonItems = stats.learningItemsTotal > 0;
 
@@ -117,21 +108,6 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-semibold tracking-tight">{greeting()}</h1>
         <p className="mt-1 text-sm text-muted-foreground">Practice the French you want to use in conversation.</p>
       </header>
-
-      <div className="mb-5 grid grid-cols-3 overflow-hidden rounded-xl border bg-card">
-        <div className="px-3 py-3 text-center">
-          <div className="text-xl font-semibold">{stats.learningItemsDue}</div>
-          <div className="text-[11px] text-muted-foreground">lesson items due</div>
-        </div>
-        <div className="border-x px-3 py-3 text-center">
-          <div className="text-xl font-semibold">{reviewDue}</div>
-          <div className="text-[11px] text-muted-foreground">all review due</div>
-        </div>
-        <div className="px-3 py-3 text-center">
-          <div className="text-xl font-semibold">{stats.reviewedToday}</div>
-          <div className="text-[11px] text-muted-foreground">reviewed today</div>
-        </div>
-      </div>
 
       {hasLessonItems ? (
         <Card className="mb-4 border-rose-500/40 bg-gradient-to-br from-rose-500/10 via-background to-background">
@@ -175,7 +151,6 @@ export default function DashboardPage() {
                   <div className="font-medium">Review lesson French</div>
                   <div className="text-xs text-muted-foreground">English → French, typed</div>
                 </div>
-                {stats.learningItemsDue > 0 && <Badge>{stats.learningItemsDue} due</Badge>}
                 <ArrowRight className="h-4 w-4 text-muted-foreground" />
               </CardContent>
             </Card>
@@ -219,7 +194,6 @@ export default function DashboardPage() {
             <h2 className="text-lg font-semibold">More practice</h2>
             <p className="text-xs text-muted-foreground">Short drills when you want them.</p>
           </div>
-          {stats.dueNow > 0 && <Badge variant="secondary">{stats.dueNow} due</Badge>}
         </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {PRACTICE_LINKS.map(({ href, title, detail, icon: Icon }) => (

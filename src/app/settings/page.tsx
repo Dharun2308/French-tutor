@@ -1,6 +1,8 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Check, Loader2, Sparkles, Volume2 } from "lucide-react";
+import { useTheme } from "next-themes";
+import { Check, ChevronDown, Library, Loader2, Moon, Sun, Volume2 } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -62,6 +64,7 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { setMode: setTtsModeCtx, setVoice: setTtsVoiceCtx } = useTts();
+  const { resolvedTheme, setTheme } = useTheme();
 
   useEffect(() => {
     (async () => {
@@ -192,100 +195,123 @@ export default function SettingsPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
         <p className="mt-1 text-muted-foreground">
-          Tune your pace and which forms you&apos;re practicing.
+          Keep the app comfortable. Your lesson notes and review history handle
+          most learning choices automatically.
         </p>
       </div>
 
       <div className="space-y-6">
-        <Card className="border-primary/30 bg-primary/5">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5" />
-              Where are you in your French journey?
-            </CardTitle>
-            <CardDescription>
-              Pick the stage that best matches what you&apos;ve learned so far.
-              This configures tenses, levels, and foundation categories in one
-              click. You can still fine-tune each below.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {LEARNING_STAGES.map((stage) => {
-                const preset = STAGE_PRESETS[stage];
-                const active = settings.learningStage === stage;
-                return (
-                  <button
-                    key={stage}
-                    type="button"
-                    onClick={() => applyStage(stage)}
-                    className={cn(
-                      "rounded-lg border p-3 text-left transition-all",
-                      active
-                        ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                        : "border-input bg-background hover:border-primary/50 hover:bg-accent"
-                    )}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold">{preset.label}</span>
-                      {active && <Check className="h-4 w-4" />}
-                    </div>
-                    <p
-                      className={cn(
-                        "mt-1 text-xs leading-relaxed",
-                        active ? "opacity-80" : "text-muted-foreground"
-                      )}
-                    >
-                      {preset.description}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-            <p className="mt-3 text-xs text-muted-foreground">
-              Tip: start one stage below where you feel — the SRS will quickly
-              surface what you already know and let you move up.
-            </p>
-          </CardContent>
-        </Card>
-
         <Card>
-          <CardHeader>
-            <CardTitle>Daily target</CardTitle>
-            <CardDescription>
-              How many cards you want to review per day. Used for the progress
-              bar on the dashboard.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-3">
-              <Input
-                type="number"
-                min={1}
-                max={500}
-                value={settings.dailyTarget}
-                onChange={(e) =>
-                  setSettings((s) =>
-                    s ? { ...s, dailyTarget: parseInt(e.target.value) || 20 } : s
-                  )
-                }
-                className="w-32"
-              />
-              <span className="text-sm text-muted-foreground">cards/day</span>
+          <CardContent className="divide-y p-5">
+            <div className="flex items-center justify-between gap-4 pb-4">
+              <div>
+                <p className="font-medium">Reference library</p>
+                <p className="text-sm text-muted-foreground">Browse verbs and conjugations.</p>
+              </div>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/library">
+                  <Library className="h-4 w-4" />
+                  Library
+                </Link>
+              </Button>
+            </div>
+            <div className="flex items-center justify-between gap-4 pt-4">
+              <div>
+                <p className="font-medium">Appearance</p>
+                <p className="text-sm text-muted-foreground">Choose light or dark.</p>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={resolvedTheme === "light" ? "default" : "outline"}
+                  onClick={() => setTheme("light")}
+                  aria-label="Use light appearance"
+                >
+                  <Sun className="h-4 w-4" />
+                  <span className="hidden sm:inline">Light</span>
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={resolvedTheme === "dark" ? "default" : "outline"}
+                  onClick={() => setTheme("dark")}
+                  aria-label="Use dark appearance"
+                >
+                  <Moon className="h-4 w-4" />
+                  <span className="hidden sm:inline">Dark</span>
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Active tenses</CardTitle>
+            <CardTitle>Learning</CardTitle>
             <CardDescription>
-              Only verb forms in these tenses will appear in verb practice
-              modes. Leave empty to skip verb practice entirely (Newcomer /
-              Foundations stage).
+              Imported lesson items, Listening, Weak French, and Focus adapt
+              from your actual practice automatically.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="learning-stage">Foundation practice stage</Label>
+              <select
+                id="learning-stage"
+                value={settings.learningStage}
+                onChange={(e) => applyStage(e.target.value as LearningStage)}
+                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+              >
+                {LEARNING_STAGES.map((stage) => (
+                  <option key={stage} value={stage}>
+                    {STAGE_PRESETS[stage].label}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground">
+                {STAGE_PRESETS[settings.learningStage].description}
+              </p>
+            </div>
+            <div className="flex items-center justify-between gap-4 border-t pt-4">
+              <div>
+                <Label htmlFor="daily-target">Daily review target</Label>
+                <p className="text-xs text-muted-foreground">Used by dashboard progress.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="daily-target"
+                  type="number"
+                  min={1}
+                  max={500}
+                  value={settings.dailyTarget}
+                  onChange={(e) =>
+                    setSettings((s) =>
+                      s ? { ...s, dailyTarget: parseInt(e.target.value) || 20 } : s
+                    )
+                  }
+                  className="w-20"
+                />
+                <span className="text-xs text-muted-foreground">/ day</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <details className="group rounded-xl border bg-card text-card-foreground shadow-sm">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-5 [&::-webkit-details-marker]:hidden">
+            <div>
+              <p className="font-semibold">Extra practice controls</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Fine-tune the older verb, phrase, and sentence modes.
+              </p>
+            </div>
+            <ChevronDown className="h-5 w-5 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="space-y-6 border-t p-5">
+            <div className="space-y-2">
+              <Label>Active tenses</Label>
+              <p className="text-xs text-muted-foreground">Only affects verb practice.</p>
             <div className="flex flex-wrap gap-2">
               {TENSES.map((t) => {
                 const active = settings.activeTenses.includes(t);
@@ -301,18 +327,11 @@ export default function SettingsPage() {
                 );
               })}
             </div>
-          </CardContent>
-        </Card>
+            </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Foundation categories</CardTitle>
-            <CardDescription>
-              Non-verb content for the Foundations flashcards and the
-              fill-in-the-blank drills — toggle topics on or off.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+            <div className="space-y-2">
+              <Label>Foundation categories</Label>
+              <p className="text-xs text-muted-foreground">Only affects foundation flashcards and drills.</p>
             <div className="flex flex-wrap gap-2">
               {PHRASE_CATEGORIES.map((c) => {
                 const active = settings.activePhraseCategories.includes(c);
@@ -328,18 +347,10 @@ export default function SettingsPage() {
                 );
               })}
             </div>
-          </CardContent>
-        </Card>
+            </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Active levels</CardTitle>
-            <CardDescription>
-              Verbs at these CEFR levels will be included. Start narrow, expand
-              as you grow.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+            <div className="space-y-2">
+              <Label>Verb levels</Label>
             <div className="flex flex-wrap gap-2">
               {LEVELS.map((l) => {
                 const active = settings.activeLevels.includes(l);
@@ -355,18 +366,10 @@ export default function SettingsPage() {
                 );
               })}
             </div>
-          </CardContent>
-        </Card>
+            </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Preferred register</CardTitle>
-            <CardDescription>
-              Default register for AI-generated exercises in the sentence
-              builder. You can always override per exercise.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+            <div className="space-y-2">
+              <Label>Sentence-builder register</Label>
             <div className="flex flex-wrap gap-2">
               {(["formal", "neutral", "informal", "all"] as const).map((r) => (
                 <Button
@@ -386,8 +389,9 @@ export default function SettingsPage() {
                 </Button>
               ))}
             </div>
-          </CardContent>
-        </Card>
+            </div>
+          </div>
+        </details>
 
         <Card>
           <CardHeader>
@@ -475,30 +479,6 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        <ProviderSettings />
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Advanced</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="tz">Timezone</Label>
-              <Input
-                id="tz"
-                value={settings.timezone}
-                onChange={(e) =>
-                  setSettings((s) => (s ? { ...s, timezone: e.target.value } : s))
-                }
-              />
-              <p className="text-xs text-muted-foreground">
-                IANA timezone, e.g. <code>America/Los_Angeles</code>. Used to
-                anchor &ldquo;due today&rdquo;.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
         <div className="flex items-center justify-between">
           {error && <Badge variant="destructive">{error}</Badge>}
           <div className="ml-auto flex items-center gap-3">
@@ -519,6 +499,34 @@ export default function SettingsPage() {
             </Button>
           </div>
         </div>
+
+        <ProviderSettings />
+
+        <details className="group rounded-xl border bg-card text-card-foreground shadow-sm">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-5 [&::-webkit-details-marker]:hidden">
+            <div>
+              <p className="font-semibold">Technical</p>
+              <p className="mt-1 text-sm text-muted-foreground">Timezone used for daily and weekly boundaries.</p>
+            </div>
+            <ChevronDown className="h-5 w-5 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="border-t p-5">
+            <div className="space-y-2">
+              <Label htmlFor="tz">Timezone</Label>
+              <Input
+                id="tz"
+                value={settings.timezone}
+                onChange={(e) =>
+                  setSettings((s) => (s ? { ...s, timezone: e.target.value } : s))
+                }
+              />
+              <p className="text-xs text-muted-foreground">
+                IANA timezone, e.g. <code>America/Los_Angeles</code>. Used to
+                anchor &ldquo;due today&rdquo;.
+              </p>
+            </div>
+          </div>
+        </details>
       </div>
     </div>
   );

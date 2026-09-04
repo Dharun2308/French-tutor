@@ -35,10 +35,31 @@ function pickFrenchVoice(): SpeechSynthesisVoice | null {
   if (typeof window === "undefined" || !window.speechSynthesis) return null;
   const voices = window.speechSynthesis.getVoices();
   if (voices.length === 0) return null;
-  // Prefer fr-FR
-  const fr = voices.find((v) => v.lang === "fr-FR");
-  if (fr) return fr;
-  return voices.find((v) => v.lang.startsWith("fr")) ?? null;
+  const isExactFrench = (voice: SpeechSynthesisVoice) =>
+    voice.lang.toLowerCase().replace("_", "-") === "fr-fr";
+  const isFrench = (voice: SpeechSynthesisVoice) =>
+    voice.lang.toLowerCase().startsWith("fr");
+
+  // Local/system voices are more likely than remote browser voices to honor
+  // rate and pitch on mobile. Keep fr-FR first when the device provides it.
+  return voices.find((voice) => isExactFrench(voice) && voice.localService)
+    ?? voices.find((voice) => isFrench(voice) && voice.localService)
+    ?? voices.find(isExactFrench)
+    ?? voices.find(isFrench)
+    ?? null;
+}
+
+/**
+ * Mobile speech engines commonly compress nearby sub-1 rates into the same
+ * preset. Spread our two learner-facing slow speeds farther apart so 0.85x
+ * and 0.7x remain audibly distinct. OpenAI audio keeps its exact rate.
+ */
+export function effectiveBrowserRate(rate: number): number {
+  const requested = Math.min(1.25, Math.max(0.5, rate));
+  if (requested >= 1) return requested;
+  if (requested <= 0.7) return 0.5;
+  if (requested <= 0.85) return 0.7;
+  return requested;
 }
 
 export function speakBrowser(text: string, rate = 1) {
@@ -47,8 +68,12 @@ export function speakBrowser(text: string, rate = 1) {
   const u = new SpeechSynthesisUtterance(normalizeText(text));
   u.lang = "fr-FR";
   const voice = pickFrenchVoice();
-  if (voice) u.voice = voice;
-  u.rate = Math.min(1.25, Math.max(0.5, rate));
+  if (voice) {
+    u.voice = voice;
+    // Android Chrome needs the utterance language to match the selected voice.
+    u.lang = voice.lang;
+  }
+  u.rate = effectiveBrowserRate(rate);
   u.pitch = 1.0;
   window.speechSynthesis.speak(u);
 }

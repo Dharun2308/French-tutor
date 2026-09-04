@@ -21,6 +21,7 @@ export default function FocusPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [index, setIndex] = useState(0);
   const [answer, setAnswer] = useState("");
+  const [submittedAnswer, setSubmittedAnswer] = useState("");
   const [grade, setGrade] = useState<Grade | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,11 +35,11 @@ export default function FocusPage() {
   useEffect(() => { fetch("/api/focus-session", { cache: "no-store" }).then(async (r) => { const d = await r.json(); if (!r.ok) throw new Error(d.error); return d; }).then((d) => { setSession(d); setIndex(Math.min(d.currentIndex, Math.max(0, d.items.length - 1))); }).catch((e) => setError(String(e))); }, []);
   useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(timer); }, []);
   const seconds = useMemo(() => Math.max(0, 600 - Math.floor((now - timerStarted.current) / 1000)), [now]);
-  const check = async () => { if (!item || !answer.trim()) return; setBusy(true); try { const r = await fetch("/api/ai/grade-item", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ itemId: item.itemId, attempt: answer, direction: item.direction }) }); const d = await r.json(); if (!r.ok) throw new Error(d.error); setGrade(d); } catch (e) { setError(e instanceof Error ? e.message : String(e)); setGrade({ verdict: "UNGRADED", errorType: "other", corrected: item.targetFr, reason: "Compare and rate yourself.", suggestedRating: null, gradedBy: null }); } finally { setBusy(false); } };
-  const reveal = () => item && setGrade({ verdict: "WRONG", corrected: item.targetFr, reason: "Review the answer, then rate it.", suggestedRating: 0, gradedBy: "local" });
+  const check = async () => { if (!item || !answer.trim()) return; const attempt = answer.trim(); setSubmittedAnswer(attempt); setBusy(true); try { const r = await fetch("/api/ai/grade-item", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ itemId: item.itemId, attempt, direction: item.direction }) }); const d = await r.json(); if (!r.ok) throw new Error(d.error); setGrade(d); } catch (e) { setError(e instanceof Error ? e.message : String(e)); setGrade({ verdict: "UNGRADED", errorType: "other", corrected: item.targetFr, reason: "Compare and rate yourself.", suggestedRating: null, gradedBy: null }); } finally { setBusy(false); } };
+  const reveal = () => { if (!item) return; setSubmittedAnswer(answer.trim()); setGrade({ verdict: "WRONG", corrected: item.targetFr, reason: "Review the answer, then rate it.", suggestedRating: 0, gradedBy: "local" }); };
   const rate = async (rating: Rating) => { if (!session || !session.sessionId || !item || !grade || saving.current) return; saving.current = true; setBusy(true); requestId.current ??= createReviewRequestId(); try {
-    const r = await fetch("/api/items/review", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ requestId: requestId.current, itemId: item.itemId, rating, direction: item.direction, verdict: grade.verdict, errorType: grade.errorType, userAnswer: answer || undefined, correctedAnswer: grade.corrected, gradeReason: grade.reason, elapsedMs: reviewElapsedMs(started.current), gradedBy: grade.gradedBy ?? undefined }) }); if (!r.ok) throw new Error((await r.json()).error);
-    const next = index + 1; const finish = next >= session.items.length; await fetch("/api/focus-session", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sessionId: session.sessionId, currentIndex: next, finish }) }); requestId.current = null; setIndex(next); setAnswer(""); setGrade(null); started.current = Date.now();
+    const r = await fetch("/api/items/review", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ requestId: requestId.current, itemId: item.itemId, rating, direction: item.direction, verdict: grade.verdict, errorType: grade.errorType, userAnswer: submittedAnswer || undefined, correctedAnswer: grade.corrected, gradeReason: grade.reason, elapsedMs: reviewElapsedMs(started.current), gradedBy: grade.gradedBy ?? undefined }) }); if (!r.ok) throw new Error((await r.json()).error);
+    const next = index + 1; const finish = next >= session.items.length; await fetch("/api/focus-session", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sessionId: session.sessionId, currentIndex: next, finish }) }); requestId.current = null; setIndex(next); setAnswer(""); setSubmittedAnswer(""); setGrade(null); started.current = Date.now();
   } catch (e) { setError(e instanceof Error ? e.message : String(e)); } finally { saving.current = false; setBusy(false); } };
   if (!session) return <main className="container max-w-xl py-8">{error ? <p className="text-destructive">{error}</p> : <div className="h-52 animate-pulse rounded-xl bg-muted"/>}</main>;
   if (!session.items.length) return <main className="container max-w-xl py-8"><p>Import lesson notes to build a focus session.</p></main>;
@@ -52,7 +53,7 @@ export default function FocusPage() {
       {item.direction === "listening" && !grade ? <Button className="h-20 w-full text-lg" onClick={() => speak(mode, item.targetFr, voice, 1)}><Ear className="h-6 w-6"/>Listen</Button> : !grade ? <p className="text-xl">{item.promptEn}</p> : null}
       {!grade ? <><FrenchInput value={answer} onChange={(e) => setAnswer(e.target.value)} onKeyDown={(e) => e.key === "Enter" && check()} placeholder={item.direction === "listening" ? "Type what you hear" : "Type it in French"}/><div className="flex gap-2"><Button className="flex-1" onClick={check} disabled={busy || !answer.trim()}>{busy && <Loader2 className="h-4 w-4 animate-spin"/>}Check</Button><Button variant="outline" onClick={reveal} disabled={busy}>Reveal</Button></div></> : <><div className="rounded-lg bg-muted p-4">
         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">You typed</p>
-        <p className="mt-1 text-base">{answer.trim() || "—"}</p>
+        <p className="mt-1 text-base" lang="fr">{submittedAnswer || "—"}</p>
         <div className="my-3 border-t" />
         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Correct answer</p>
         <div className="mt-1 flex gap-2"><p className="flex-1 text-lg font-medium">{grade.corrected}</p><SpeakButton text={grade.corrected}/></div>

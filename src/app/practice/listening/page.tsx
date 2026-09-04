@@ -20,6 +20,7 @@ export default function ListeningPage() {
   const [items, setItems] = useState<Item[] | null>(null);
   const [index, setIndex] = useState(0);
   const [answer, setAnswer] = useState("");
+  const [submittedAnswer, setSubmittedAnswer] = useState("");
   const [phase, setPhase] = useState<"answer" | "grading" | "graded" | "done">("answer");
   const [grade, setGrade] = useState<Grade | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -48,9 +49,11 @@ export default function ListeningPage() {
 
   const check = async () => {
     if (!item || !answer.trim()) return;
+    const attempt = answer.trim();
+    setSubmittedAnswer(attempt);
     setPhase("grading");
     try {
-      const r = await fetch("/api/ai/grade-item", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ itemId: item.id, attempt: answer.trim(), direction: "listening" }) });
+      const r = await fetch("/api/ai/grade-item", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ itemId: item.id, attempt, direction: "listening" }) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error);
       setGrade(d);
@@ -63,6 +66,7 @@ export default function ListeningPage() {
 
   const reveal = () => {
     if (!item) return;
+    setSubmittedAnswer(answer.trim());
     setGrade({ verdict: "WRONG", corrected: item.targetFr, reason: "Listen again while reading the transcript.", suggestedRating: 0, gradedBy: "local" });
     setPhase("graded");
   };
@@ -73,12 +77,12 @@ export default function ListeningPage() {
     setSubmitting(true);
     requestId.current ??= createReviewRequestId();
     try {
-      const r = await fetch("/api/items/review", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ requestId: requestId.current, itemId: item.id, rating, direction: "listening", verdict: grade.verdict, errorType: grade.errorType, userAnswer: answer.trim() || undefined, correctedAnswer: grade.corrected, gradeReason: grade.reason, elapsedMs: reviewElapsedMs(startedAt.current), gradedBy: grade.gradedBy ?? undefined }) });
+      const r = await fetch("/api/items/review", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ requestId: requestId.current, itemId: item.id, rating, direction: "listening", verdict: grade.verdict, errorType: grade.errorType, userAnswer: submittedAnswer || undefined, correctedAnswer: grade.corrected, gradeReason: grade.reason, elapsedMs: reviewElapsedMs(startedAt.current), gradedBy: grade.gradedBy ?? undefined }) });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) { setMessage(d.error ?? "Could not save review"); return; }
       requestId.current = null;
       if (!items || index + 1 >= items.length) { setPhase("done"); return; }
-      setIndex((i) => i + 1); setAnswer(""); setGrade(null); setMessage(null); setPhase("answer"); startedAt.current = Date.now();
+      setIndex((i) => i + 1); setAnswer(""); setSubmittedAnswer(""); setGrade(null); setMessage(null); setPhase("answer"); startedAt.current = Date.now();
       requestAnimationFrame(() => inputRef.current?.focus());
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Could not save review");
@@ -103,11 +107,19 @@ export default function ListeningPage() {
           <Button size="lg" className="h-20 w-full text-lg" onClick={() => play(1)} disabled={playing}><Volume2 className="h-6 w-6"/>{playing ? "Playing…" : "Listen at 1×"}</Button>
           <div className="grid grid-cols-2 gap-2"><Button variant="outline" onClick={() => play(.85)} disabled={playing}><RotateCcw className="h-4 w-4"/>0.85×</Button><Button variant="outline" onClick={() => play(.7)} disabled={playing}><RotateCcw className="h-4 w-4"/>0.7×</Button></div>
           {phase === "answer" || phase === "grading" ? <>
-            <FrenchInput ref={inputRef} value={answer} onChange={(e) => setAnswer(e.target.value)} onKeyDown={(e) => e.key === "Enter" && check()} placeholder="Type the French you hear" />
+            <FrenchInput ref={inputRef} value={answer} onChange={(e) => setAnswer(e.target.value)} onKeyDown={(e) => e.key === "Enter" && check()} placeholder="Type the French you hear" disabled={phase === "grading"} />
             <AccentBar inputRef={inputRef} value={answer} onChange={setAnswer}/>
             <div className="flex gap-2"><Button className="flex-1" onClick={check} disabled={!answer.trim() || phase === "grading"}>{phase === "grading" && <Loader2 className="h-4 w-4 animate-spin"/>}Check</Button><Button variant="ghost" onClick={reveal}>Reveal</Button></div>
           </> : <>
-            <div className="rounded-lg bg-muted p-4"><p className="text-lg font-medium">{grade?.corrected}</p><p className="mt-1 text-sm text-muted-foreground">{item.promptEn}</p>{grade?.reason && <p className="mt-3 text-sm">{grade.reason}</p>}</div>
+            <div className="rounded-lg bg-muted p-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">You typed</p>
+              <p className="mt-1 text-base" lang="fr">{submittedAnswer || "—"}</p>
+              <div className="my-3 border-t" />
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Correct answer</p>
+              <p className="mt-1 text-lg font-medium" lang="fr">{grade?.corrected}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{item.promptEn}</p>
+              {grade?.reason && <p className="mt-3 text-sm">{grade.reason}</p>}
+            </div>
             <Button variant="outline" className="w-full" onClick={() => play(.85)}><Volume2 className="h-4 w-4"/>Listen while reading</Button>
             <RateButtons onRate={rate} disabled={submitting}/>
           </>}

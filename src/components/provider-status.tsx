@@ -5,10 +5,10 @@
 // Both read /api/ai/providers. Toggles save immediately (PUT /api/settings),
 // independent of the page's main Save button.
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, CheckCircle2, Loader2, XCircle } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertTriangle, CheckCircle2, ChevronDown, Loader2, XCircle } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
@@ -124,6 +124,18 @@ export function ProviderSettings() {
   const [busy, setBusy] = useState<ProviderId | null>(null);
   const [testResult, setTestResult] = useState<Record<string, { ok: boolean; ms: number; error: string | null }>>({});
   const [saveError, setSaveError] = useState<string | null>(null);
+  const detailsRef = useRef<HTMLDetailsElement>(null);
+
+  useEffect(() => {
+    const openFromHash = () => {
+      if (window.location.hash === "#providers" && detailsRef.current) {
+        detailsRef.current.open = true;
+      }
+    };
+    openFromHash();
+    window.addEventListener("hashchange", openFromHash);
+    return () => window.removeEventListener("hashchange", openFromHash);
+  }, []);
 
   const toggle = async (id: ProviderId, enabled: boolean) => {
     setSaveError(null);
@@ -168,17 +180,22 @@ export function ProviderSettings() {
 
   return (
     <Card id="providers">
-      <CardHeader>
-        <CardTitle>AI providers</CardTitle>
-        <CardDescription>
-          Used for notebook extraction, grading, sentence practice,
-          translations, explanations, mnemonics, conversations, and summaries.
-          Tried top to bottom; the first one that works wins. Codex and Claude
-          use your subscriptions. OpenAI bills the API per call. Premium speech
-          is controlled separately above.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
+      <details ref={detailsRef} className="group">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-5 [&::-webkit-details-marker]:hidden">
+          <div>
+            <p className="font-semibold">AI providers</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Codex first, then Claude. OpenAI stays off unless enabled.
+            </p>
+          </div>
+          <ChevronDown className="h-5 w-5 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
+        </summary>
+      <CardContent className="space-y-3 border-t pt-5">
+        <p className="text-xs text-muted-foreground">
+          Used for notebook extraction, grading, conversations, and summaries.
+          Codex and Claude use your subscriptions; OpenAI bills the API per call.
+          Premium speech is controlled separately above.
+        </p>
         {error && (
           <p className="text-sm text-destructive">Could not load provider status: {error}</p>
         )}
@@ -251,6 +268,7 @@ export function ProviderSettings() {
           );
         })}
       </CardContent>
+      </details>
     </Card>
   );
 }

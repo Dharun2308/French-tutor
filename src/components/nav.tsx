@@ -1,26 +1,19 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
-import { Moon, Sun, Settings, Library, Home, Camera, Target, Ear } from "lucide-react";
+import { Settings, Home, Camera, Target, Ear } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 const LINKS = [
   { href: "/", label: "Dashboard", icon: Home },
   { href: "/practice/listening", label: "Listening", icon: Ear },
   { href: "/import", label: "Import", icon: Camera },
   { href: "/weak", label: "Weak French", icon: Target },
-  { href: "/library", label: "Library", icon: Library },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 export function Nav() {
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -34,7 +27,8 @@ export function Nav() {
             const Icon = link.icon;
             const active =
               pathname === link.href ||
-              (link.href !== "/" && pathname?.startsWith(link.href));
+              (link.href !== "/" && pathname?.startsWith(link.href)) ||
+              (link.href === "/settings" && pathname?.startsWith("/library"));
             return (
               <Link
                 key={link.href}
@@ -51,22 +45,6 @@ export function Nav() {
               </Link>
             );
           })}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            aria-label="Toggle theme"
-          >
-            {mounted ? (
-              theme === "dark" ? (
-                <Sun className="h-4 w-4" />
-              ) : (
-                <Moon className="h-4 w-4" />
-              )
-            ) : (
-              <Moon className="h-4 w-4 opacity-0" />
-            )}
-          </Button>
         </nav>
       </div>
     </header>
