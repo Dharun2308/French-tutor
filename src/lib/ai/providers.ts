@@ -84,9 +84,8 @@ export function shortLabel(p: ProviderId): string {
 }
 
 export function modelFor(p: ProviderId, purpose: Purpose): string {
-  // ChatGPT-account Codex offers gpt-5.6-terra / gpt-5.6-luna / gpt-5.5 / gpt-5.4-mini.
-  if (p === "codex") return process.env.CODEX_MODEL || "gpt-5.6-terra";
-  if (p === "claude") return process.env.CLAUDE_MODEL || "sonnet";
+  if (p === "codex") return process.env.CODEX_MODEL || "gpt-5.6-sol";
+  if (p === "claude") return process.env.CLAUDE_MODEL || "opus";
   return purpose === "extract" ? getVisionModel() : getModel();
 }
 
@@ -241,7 +240,7 @@ type Runner = (req: StructuredRequest) => Promise<{ raw: unknown; model: string 
 
 const runCodex: Runner = async (req) => {
   const model = modelFor("codex", req.purpose);
-  const effort = process.env.CODEX_REASONING_EFFORT || "low";
+  const effort = process.env.CODEX_REASONING_EFFORT || "medium";
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "ft-codex-"));
   try {
     const schemaPath = path.join(dir, "schema.json");
@@ -286,7 +285,7 @@ const runClaude: Runner = async (req) => {
   ].join("\n");
   const args = claudeArgs({
     model,
-    effort: process.env.CLAUDE_EFFORT || "medium",
+    effort: process.env.CLAUDE_EFFORT || "high",
     jsonSchema: req.jsonSchema,
     maxTurns: 3 + images.length,
     prompt,

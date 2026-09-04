@@ -81,8 +81,8 @@ page, toggles save immediately via `PUT /api/settings {extractProviders:{id:bool
 (Import page). Enabled set lives in `settings.extract_providers` JSON; default
 `{"codex":true,"claude":true,"openai":false}` — **owner said keep API off.**
 
-- Codex: `codex exec -i … -m gpt-5.6-terra -c model_reasoning_effort=low --output-schema f -o out -s read-only --skip-git-repo-check -C tmpdir "<prompt>"`, `OPENAI_API_KEY` stripped from env → ChatGPT-account auth. Owner chose terra/low (or luna/medium).
-- Claude: `claude -p --allowedTools Read --output-format json --json-schema '<json>' --model sonnet --effort medium --max-turns N --no-session-persistence "<prompt>"`, `ANTHROPIC_API_KEY`/`CLAUDECODE`/`CLAUDE_CODE_ENTRYPOINT` stripped. Result in `structured_output`. Owner chose sonnet/medium.
+- Codex: `codex exec -i … -m gpt-5.6-sol -c model_reasoning_effort=medium --output-schema f -o out -s read-only --skip-git-repo-check -C tmpdir "<prompt>"`, `OPENAI_API_KEY` stripped from env → ChatGPT-account auth. Owner chose sol/medium on 2026-09-03; this model had previously been rejected by the local ChatGPT-account CLI, so verify it and expect automatic Claude fallback if unsupported.
+- Claude: `claude -p --allowedTools Read --output-format json --json-schema '<json>' --model opus --effort high --max-turns N --no-session-persistence "<prompt>"`, `ANTHROPIC_API_KEY`/`CLAUDECODE`/`CLAUDE_CODE_ENTRYPOINT` stripped. Result in `structured_output`. Owner chose opus/high on 2026-09-03.
 - OpenAI: existing `chatJSON` with images as data URLs. Off by default.
 
 ### Phase 2 — FSRS review (built; see §6 for verification status)
