@@ -46,6 +46,7 @@ export interface ChatJSONOptions<T extends ZodTypeAny> {
   /** Optional image parts (data: URLs) sent alongside the user text. */
   images?: string[];
   imageDetail?: "low" | "high" | "auto";
+  timeoutMs?: number;
 }
 
 /**
@@ -87,7 +88,7 @@ export async function chatJSON<T extends ZodTypeAny>(
       },
     },
     ...(opts.temperature !== undefined ? { temperature: opts.temperature } : {}),
-  });
+  }, { timeout: opts.timeoutMs ?? 60_000, maxRetries: 0 });
 
   const raw = completion.choices[0]?.message?.content;
   if (!raw) {

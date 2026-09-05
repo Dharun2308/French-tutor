@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { settings } from "@/lib/db/schema";
+import { DEFAULT_EXTRACT_PROVIDERS } from "@/types";
 
 /** Return the singleton settings row. Create it with defaults if missing. */
 export async function getSettings() {
@@ -12,6 +13,7 @@ export async function getSettings() {
 
   await db.insert(settings).values({
     id: 1,
+    extractProviders: DEFAULT_EXTRACT_PROVIDERS,
     dailyTarget: 20,
     activeTenses: ["present"],
     activeLevels: ["A1"],

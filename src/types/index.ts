@@ -240,7 +240,7 @@ export type ImportBatchStatus = (typeof IMPORT_BATCH_STATUSES)[number];
 
 // ---------- AI providers for structured calls (extraction, grading) ----------
 // Fixed fallback order. The two CLI providers run under the user's ChatGPT /
-// Claude subscriptions; the API provider bills per call and is off by default.
+// Claude subscriptions; the API provider bills per call and is enabled as the final fallback.
 export const PROVIDER_ORDER = ["codex", "claude", "openai"] as const;
 export type ProviderId = (typeof PROVIDER_ORDER)[number];
 
@@ -253,7 +253,7 @@ export const PROVIDER_LABELS: Record<ProviderId, string> = {
 export const DEFAULT_EXTRACT_PROVIDERS: Record<ProviderId, boolean> = {
   codex: true,
   claude: true,
-  openai: false,
+  openai: true,
 };
 
 // ---------- Lesson-item review ----------

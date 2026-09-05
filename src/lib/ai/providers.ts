@@ -3,7 +3,7 @@
 // Order is fixed (codex → claude → openai); Settings switches each one on or
 // off. The two CLI providers run under the user's ChatGPT / Claude
 // subscriptions, so an import costs nothing; the API provider bills per call
-// and is off by default. Each CLI is spawned with its API-key env var
+// and is the final enabled fallback. Each CLI is spawned with its API-key env var
 // stripped so it can never silently flip to API billing (the Hermes cron
 // lesson). Every attempt is logged to provider_events so the UI can say what
 // worked and what didn't.
@@ -31,7 +31,7 @@ export const PROVIDER_BIN: Record<"codex" | "claude", string> = {
   claude: process.env.CLAUDE_BIN || path.join(HOME, ".local/bin/claude"),
 };
 
-export type Purpose = "extract" | "grade" | "test" | "variation" | "conversation" | "summary" | "sentence" | "translate" | "explain" | "mnemonic";
+export type Purpose = "extract" | "grade" | "test" | "variation" | "conversation" | "summary" | "sentence" | "translate" | "explain" | "mnemonic" | "curriculum";
 
 export interface StructuredRequest {
   purpose: Purpose;
@@ -72,7 +72,7 @@ export class AllProvidersFailed extends Error {
 /** "Codex: timeout after 150s · Claude: exit 1 (…)" — or the no-providers message. */
 export function summarizeAttempts(attempts: ProviderAttempt[]): string {
   if (attempts.length === 0) {
-    return "No AI providers are enabled — turn one on in Settings → Lesson note extraction.";
+    return "No AI providers are enabled — turn one on in Settings → AI providers.";
   }
   return attempts
     .map((a) => `${shortLabel(a.provider)}: ${a.ok ? "ok" : a.error ?? "failed"}`)
@@ -232,6 +232,7 @@ const DEFAULT_TIMEOUT: Record<Purpose, number> = {
   translate: 60_000,
   explain: 60_000,
   mnemonic: 60_000,
+  curriculum: 25_000,
 };
 
 // ── runners ──
@@ -336,6 +337,7 @@ const runOpenAI: Runner = async (req) => {
     model,
     images,
     imageDetail: "high",
+    timeoutMs: req.timeoutMs ?? DEFAULT_TIMEOUT[req.purpose],
   });
   return { raw, model };
 };

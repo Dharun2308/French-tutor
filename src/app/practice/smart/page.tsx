@@ -15,6 +15,8 @@ import { EmptyState } from "@/components/empty-state";
 import { SpeakButton } from "@/components/speak-button";
 import { AccentBar } from "@/components/accent-bar";
 import { useHotkeys } from "@/hooks/use-hotkeys";
+import { PersonalPracticeCard, type PersonalPracticeItem } from "@/components/personal-practice-card";
+import { weavePersonalPractice } from "@/lib/items/weekly-practice";
 import {
   fetchNextCards,
   submitReview,
@@ -40,6 +42,7 @@ interface SmartPhrase {
 
 type SmartItem =
   | { kind: "verb"; verb: PracticeCard }
+  | { kind: "personal"; personal: PersonalPracticeItem }
   | { kind: "phrase"; phrase: SmartPhrase };
 
 const MIN_SESSION = 6;
@@ -96,6 +99,7 @@ export default function SmartSessionPage() {
 
   const load = async () => {
     setItems(null);
+    setError(null);
     setIndex(0);
     setAnswer("");
     setPhase("answering");
@@ -120,9 +124,11 @@ export default function SmartSessionPage() {
       }
 
       const half = Math.ceil(target / 2);
-      const [{ cards: verbCards }, duePhrases] = await Promise.all([
+      const [{ cards: verbCards }, duePhrases, personalData] = await Promise.all([
         fetchNextCards("drill", half),
         fetchDuePhrases(half),
+        fetch(`/api/items/session?count=${Math.ceil(target / 3)}`, { cache: "no-store" })
+          .then(async (r) => r.ok ? await r.json() : { items: [] }).catch(() => ({ items: [] })),
       ]);
       const verbItems: SmartItem[] = (verbCards ?? []).map((v) => ({
         kind: "verb",
@@ -132,7 +138,8 @@ export default function SmartSessionPage() {
         kind: "phrase",
         phrase: p,
       }));
-      const mixed = interleave(phraseItems, verbItems, target);
+      const personalItems: SmartItem[] = personalData.items.map((personal: PersonalPracticeItem) => ({ kind: "personal", personal }));
+      const mixed = weavePersonalPractice(personalItems, interleave(phraseItems, verbItems, target), target);
       setItems(mixed);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -149,6 +156,7 @@ export default function SmartSessionPage() {
     item?.kind === "verb" ? item.verb.form : item?.kind === "phrase" ? item.phrase.french : "";
 
   const surfaceMnemonic = (it: SmartItem) => {
+    if (it.kind === "personal") return;
     const existing = it.kind === "verb" ? it.verb.mnemonic : it.phrase.mnemonic;
     if (existing) {
       setMnemonic(existing);
@@ -166,6 +174,7 @@ export default function SmartSessionPage() {
   };
 
   const submitRating = async (it: SmartItem, rating: Rating) => {
+    if (it.kind === "personal") return;
     try {
       if (it.kind === "verb") await submitReview(it.verb.cardId, rating);
       else await submitPhraseReview(it.phrase.id, rating);
@@ -175,7 +184,7 @@ export default function SmartSessionPage() {
   };
 
   const submit = async () => {
-    if (!item || phase !== "answering" || answer.trim() === "") return;
+    if (!item || item.kind === "personal" || phase !== "answering" || answer.trim() === "") return;
     const reps = item.kind === "verb" ? item.verb.repetitions : item.phrase.repetitions;
     const { rating, feedback: fb } = gradeDrill(answer, targetText, reps);
     setFeedback(fb);
@@ -192,7 +201,7 @@ export default function SmartSessionPage() {
   };
 
   const giveUp = async () => {
-    if (!item || phase !== "answering") return;
+    if (!item || item.kind === "personal" || phase !== "answering") return;
     setFeedback("wrong");
     setPhase("graded");
     surfaceMnemonic(item);
@@ -287,10 +296,19 @@ export default function SmartSessionPage() {
 
   if (!item) return null;
 
+  if (item.kind === "personal") return (
+    <PracticeShell title="Smart session" subtitle="Your weekly phrases mixed with verbs and vocabulary." current={index + 1} total={items.length}>
+      <PersonalPracticeCard key={`${index}-${item.personal.id}`} item={item.personal} onComplete={(rating) => {
+        if (rating >= 2) setCorrectCount((count) => count + 1);
+        next();
+      }} />
+    </PracticeShell>
+  );
+
   return (
     <PracticeShell
       title="Smart session"
-      subtitle="Everything due, mixed — type the answer, Enter to check."
+      subtitle="Your weekly phrases mixed with verbs and vocabulary."
       current={index + 1}
       total={items.length}
     >

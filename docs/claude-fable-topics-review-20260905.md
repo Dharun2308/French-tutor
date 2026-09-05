@@ -1,0 +1,74 @@
+# Claude Fable review — 2026-09-05
+
+Model: Fable. Effort: max. Session: `d11ee8a3-9446-40b3-8ddd-f2226e607b45`.
+Completed successfully; read-only review. Findings below are the reviewer’s report, not independently
+verified fixes. In particular, its missing-handoff and possibly-disabled-API claims are stale:
+the Topics migration/backup are documented, and the production row has all three providers enabled.
+
+Review complete. Everything below comes from reading the worktree only; nothing was edited or run, and I could not inspect `local.db`, so DB-state claims are marked as uncertain.
+
+The core loop is well built: theory to controlled to 20-question production to an 85% threshold, hints and reveals never count as independent successes, answer keys stay server-side, retries are idempotent via the revision column and the attempt unique index, and AI calls never run inside a transaction. The problems are in the state transitions and scheduling around that loop, mostly in `src/lib/curriculum/service.ts`.
+
+## Confirmed bugs, by priority
+
+1. **High. Ending a partly-covered topic early forces the beginner theory on return.** `src/lib/curriculum/service.ts:101` sends any topic in CONTROLLED_PRACTICE to the theory stage whenever the last session is marked completed. "End this session" at `src/app/topics/[id]/page.tsx:140` also sets completed, so a partial topic such as pc-imparfait that is left after two guided questions comes back to a full theory lesson, which the owner said practiced and partial topics must skip. Fix: have `completeStage` write an explicit outcome such as `reteach` into the session data and test that field, not `completed`.
+
+2. **High. "Check what I remember" resets the maintenance ladder to one day on a pass.** Revisit mode uses the production stage at `src/lib/curriculum/progression.ts:7`, and the pass branch at `service.ts:183-187` sets state to 85_PERCENT_REACHED with step 0 unless the stage is mixed. A maintained topic sitting at the 14-day or 30-day step that scores 85% or better is pulled back to a review tomorrow. Fix: when the previous state is MAINTENANCE or 85_PERCENT_REACHED, keep MAINTENANCE and advance or preserve `maintenanceStep` regardless of stage.
+
+3. **High. "Explain the rule" rewrites the topic state.** In theory mode, confirm at `service.ts:228-235` derives the next stage from `initialStage` and then writes a state from that stage. For REVISIT_REQUIRED, `progression.ts:11` yields production, so the revisit flag is erased, the targeted refresh at `service.ts:100` is skipped next time, and the learner gets 20 production questions instead of 5 targeted ones. Fix: in theory mode only set `theoryUnderstood` and `teachBack`; write CONTROLLED_PRACTICE solely from NOT_STARTED or LEARNING_THEORY, and route REVISIT_REQUIRED to the targeted stage.
+
+4. **Medium. Stale error review times keep a topic permanently due and drag passed maintenance dates into the past.** `service.ts:197-199` takes the earliest `topic_errors.review_at` for the topic, including timestamps already in the past. A tag that hit three misses keeps its review time after its three follow-ups succeed at `progression.ts:28-29`, its weight can already be 0, and `focusTags` at `service.ts:104` only includes weight above 0, so the generator is never asked for that subrule again. Success only credits `question.tag` because correct grades clear `errorTags` at `src/lib/curriculum/ai.ts:54`, so the row never clears, `due` at `service.ts:37` stays true forever, and each passed maintenance session is immediately due again. Fix: ignore review times before now when computing `earliest`, clear pending review times for the topic on a pass, and include review-pending tags in `focusTags`.
+
+5. **Medium. One answer can overwrite the topic's due date with the wrong time.** The loop at `service.ts:140-157` writes `dueAt` once per tag. With two failed tags, a third-miss tag schedules 15 minutes and the second tag then overwrites it with one day. On the success path `progression.ts:32` returns one day whenever weight is above 0, which replaces a future 30-day maintenance date and can also replace a pending 15-minute retrieval. `dailyPlan` and the detail page's "Next review" read only `dueAt`. Fix: compute a single `dueAt` after the loop as the minimum of pending review times and never move a future date later.
+
+6. **Medium. A grading outage leaves reveal as the only way forward, and reveal is punished.** When `ai.grade` throws at `service.ts:256-258` the route returns 502 at `src/app/api/topics/session/route.ts:16` and saves nothing, which is correct. But the only other action is Reveal, which records a conceptual miss with weight plus 3, a next-day due date and possibly REVISIT_REQUIRED, and it counts against accuracy. Focus and Smart have an UNGRADED path at `src/app/api/ai/grade-item/route.ts:153-161`; Topics has none. Fix: on `AllProvidersFailed` store a non-independent ungraded attempt that skips error-weight updates and is excluded from the accuracy denominator, then let the learner continue.
+
+7. **Medium. Prerequisite gating disables buttons on topics the learner already started.** `ready` at `service.ts:38` ignores the topic's own state, while the server only enforces prerequisites for NOT_STARTED at `service.ts:92`. If direct-objects drops to REVISIT_REQUIRED via `service.ts:156` after indirect-objects was started, "Continue practice" at `page.tsx:107` is disabled while "Check what I remember" at line 108 stays enabled. Fix: treat `ready` as true whenever the topic's state is not NOT_STARTED.
+
+8. **Medium. drizzle-kit does not know the four new tables.** `drizzle.config.ts:16` points only at `src/lib/db/schema.ts`, and `src/lib/curriculum/schema.ts` is not re-exported from it. A future `db:push` would offer to drop `topic_*` on top of the truncation hazard already documented in HANDOFF §4.1. Fix: re-export the curriculum tables from the main schema file or list both files in the config.
+
+9. **Medium. Communication topic IDs are positional.** `src/lib/curriculum/catalog.ts:95` builds `communication-N` from the array index, so inserting or reordering one title re-attaches progress, attempts and error rows to different topics. Fix: slugify titles or give explicit IDs.
+
+10. **Medium. The new tables are not created at boot and the handoff does not mention them.** `src/lib/seed/ensure-seeded.ts:24-36` only adds columns, so a restored `local.db.bak-*` or a fresh DB makes `/api/topics` fail with "no such table". HANDOFF.md's latest section says no migration is needed and never names `scripts/migrate-2026-09-05-topics.sql` or the pre-migration backup. Fix: add the idempotent CREATE statements to `ensureColumns` and document the migration and backup name.
+
+11. **Low. The daily mix's "current topic" is chosen by error weight, not by what is being studied.** `progression.ts:46-47` ranks by error weight, then due date, then priority, and every practiced topic starts in PRODUCTION_PRACTICE via `progression.ts:4`. On day one the four current cards go to whichever practiced topic has the most misses, not to direct-object pronouns, which sit in CONTROLLED_PRACTICE. Fix: prefer the most recently updated topic in PRODUCTION_PRACTICE or REVISIT_REQUIRED.
+
+12. **Low. The daily mix never advances maintenance.** Mixed-mode completion at `service.ts:173-174` writes only a result string, so the "20% old retrieval" answers update error weights but never move `maintenanceStep` or `dueAt`. A maintained topic progresses only through its own 10-question session. Fix: on mixed completion, credit due MAINTENANCE topics whose questions were all correct.
+
+13. **Low. A single action can run for many minutes while the session stays locked.** Codex and Claude time out at 120 seconds each at `src/lib/ai/providers.ts:235`, then the OpenAI runner at lines 321-342 uses `chatJSON` with no timeout, and targeted starts make two sequential calls at `service.ts:118-121`. The phone gives up long before, and every reload then gets 409 "already updating" from `service.ts:70-75`. Fix: pass a request timeout to the OpenAI client and shorten the curriculum timeouts.
+
+14. **Low. Any topic can be started in mixed mode, which disables progress updates.** `route.ts:11` accepts mode `mixed` for any topic and `service.ts:104` then takes the no-state-change branch at completion. Only a hand-crafted request hits this. Fix: require mode `mixed` if and only if the topic is `mixed`.
+
+15. **Low. "Leave" on a completed session overwrites its result.** `service.ts:220-223` runs before the completed check on line 224, so a retried leave replaces the "17/20 correct" summary. Fix: move the completed guard first.
+
+16. **Low. Timestamps default to whole seconds.** `src/lib/curriculum/schema.ts:12,20,34` use `unixepoch() * 1000`, and `service.ts:89,97` order sessions by that value, so two sessions created in one second sort arbitrarily and feed finding 1. Fix: pass `createdAt: new Date()` explicitly as `src/app/api/items/review/route.ts:77` does.
+
+17. **Low. Small feedback defects.** `topicTitle` is sent at `service.ts:55` but never rendered by `page.tsx`, so mixed-review learners never learn which rule a question tested. `ai.ts:53-55` does not normalise a grade with `minorOnly` true and `conceptCorrect` false, and `page.tsx:133-135` then shows "Correction" beside "Your grammar counts as correct". The hint button at `page.tsx:129` never warns that a hint removes the question from the independent count at `service.ts:167`, so four hints cap a round at 80%.
+
+18. **Low. Focus and Smart save bodies can exceed server limits.** `src/components/personal-practice-card.tsx:78` and `src/app/practice/focus/page.tsx:41` send the AI's `corrected` text, which is unbounded at `src/lib/items/grade-prompt.ts:11`, into a 500-character cap at `review/route.ts:26`. A long correction yields a 400 and the rating cannot be saved. Fix: slice client-side or raise the cap.
+
+19. **Low. Smart sessions fail entirely if personal items fail to load.** `src/app/practice/smart/page.tsx:140-141` throws on a non-OK response while the verb and phrase fetchers at lines 51-62 swallow errors. Fix: degrade to an empty personal list.
+
+20. **Low. Topics is unreachable from the dashboard without lesson items.** The Topics button at `src/app/page.tsx:123` is inside the `hasLessonItems` branch starting at line 106. Fix: move it outside the conditional.
+
+21. **Low. UI polish.** The rule-refresh `open` prop at `page.tsx:120` forces the panel closed on every render after the first answer. 409 errors tell the learner to reload but `page.tsx:87` only links to provider settings. The Focus page never clears `error` between cards at `focus/page.tsx:38-43`. "Session not found" returns 400 at `route.ts:19`.
+
+## Uncertainties and optional improvements
+
+- **API fallback may still be off in production.** `src/types/index.ts:256` and `schema.ts:141` now default `openai` to true, but `providers.ts:94` spreads the stored settings row over the defaults, and HANDOFF §6 records that row as `openai:false`. Unless a settings PUT was issued, the fallback is not enabled. The comment at `types/index.ts:243` still says off by default.
+- **Concurrent writes on the shared file connection.** `@libsql/client` detaches the connection on `transaction()` at `node_modules/@libsql/client/lib-cjs/sqlite3.js:145-149` and opens a new one lazily with no busy timeout at line 68. A concurrent write from another route during an open transaction may see "database is locked". Transactions here are milliseconds long and exclude AI calls, so this is pre-existing and unlikely, but a `busy_timeout` pragma at client creation is cheap.
+- **Duplicate-prompt rejection triggers the full fallback chain.** `ai.ts:26-34` fails the whole provider attempt on one repeated prompt, so Codex repeating a question costs a Claude call and possibly a billed API call. Retry the same provider once with the duplicate listed.
+- **Follow-ups only dedupe against the current session.** `service.ts:230,269,279` pass `data.questions`, not the 60-question history used at line 98.
+- **Listening answer keys are in the payload.** `service.ts:53-54` sends `question.audio`, which for pronunciation topics is the transcription target per `ai.ts:40`; `src/app/api/items/session/route.ts:26` and `focus-session/route.ts:18` send `targetFr`. Inherent to client TTS, invisible on screen.
+- **Overview loads every attempt row.** `service.ts:21` has no limit and the detail page fetches the whole overview at `page.tsx:50`. Fine for months, worth a per-topic window later.
+- **Untested branches** that the disposable-DB script `scripts/verify-topics.ts:34-48` never exercises: leave then resume on a partial topic, revisit on a MAINTENANCE topic, theory-mode confirm on REVISIT_REQUIRED, reveal, oral sessions, remediation inside the daily mix, provider failure during `next`, and two-tab 409 handling. Findings 1 through 6 all live in those branches.
+
+## Readiness and top three improvements
+
+Ready for the first new topic today: direct-object pronouns through theory, guided practice and the 20-question production round works, resumes after reload, and cannot double-save. Not yet ready to be trusted for maintenance scheduling or voluntary revisits, because findings 1 to 5 corrupt the state or due date on ordinary paths such as ending early, checking what you remember, re-reading a rule, or a stray agreement error. None destroy data; all are fixable inside `service.ts`. Fix findings 1 to 5 before relying on the "Needs review" list, and finding 6 before a provider outage happens mid-session.
+
+The three highest-value changes:
+
+1. **One explicit transition function.** Have `completeStage` write an outcome field, make theory mode read-only for state, and derive the next state from the previous state plus outcome so MAINTENANCE continuity survives revisits and re-reads. This closes findings 1, 2 and 3.
+2. **One due-date derivation.** Compute `dueAt` in a single place from the maintenance step and only future error review times, never later than an existing future date, and let daily-mix passes credit due topics. This closes findings 4, 5 and 12.
+3. **A graded-outage path plus real timeouts.** Store ungraded, non-independent attempts when all providers fail, add an OpenAI request timeout, and shorten curriculum timeouts so the session lock releases before the phone gives up. This closes findings 6 and 13.

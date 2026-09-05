@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, Loader2, MessageSquare, Pin, PinOff, RefreshCw, Target } from "lucide-react";
+import { AlertTriangle, Clock3, Loader2, Pin, PinOff, RefreshCw, Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -130,7 +130,7 @@ export default function WeakFrenchPage() {
           </h1>
           <p className="mt-1 text-muted-foreground">The personal French worth targeting now.</p>
         </div>
-        <Button asChild size="sm"><Link href="/tutor"><MessageSquare className="h-4 w-4" />Tutor Mode</Link></Button>
+        <Button asChild size="sm"><Link href="/practice/focus"><Clock3 className="h-4 w-4" />Practice</Link></Button>
       </div>
 
       {error && (
@@ -143,7 +143,7 @@ export default function WeakFrenchPage() {
         <CardHeader>
           <CardTitle>Active {active.items.length}</CardTitle>
           <CardDescription>
-            This week&apos;s speaking targets. The list refreshes Monday; pinned items carry forward.
+            These phrases appear automatically in Focus and Smart sessions. The list refreshes Monday; pinned items carry forward.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">

@@ -1,11 +1,12 @@
 import { NextRequest } from "next/server";
-import { and, desc, eq, gte, inArray } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lte } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db/client";
 import { focusSessions, itemReviews, learningItems } from "@/lib/db/schema";
 import { buildFocusPlan } from "@/lib/items/focus-plan";
 import { rankWeakItems } from "@/lib/items/weak";
 import { cardFor } from "@/lib/items/card";
+import { getWeeklyPracticeIds } from "@/lib/items/weekly-practice-server";
 import { jsonError, jsonOk } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
@@ -21,13 +22,14 @@ export async function GET() {
   const cutoff = new Date(Date.now() - 2 * 60 * 60 * 1000);
   const [active] = await db.select().from(focusSessions).where(and(eq(focusSessions.status, "active"), gte(focusSessions.startedAt, cutoff))).orderBy(desc(focusSessions.startedAt)).limit(1);
   if (active) return jsonOk(await serialize(active));
-  const [items, weak, corrections] = await Promise.all([
+  const [items, weak, corrections, weeklyIds] = await Promise.all([
     db.select().from(learningItems).where(eq(learningItems.suspended, false)),
     rankWeakItems(),
-    db.select({ itemId: itemReviews.itemId }).from(itemReviews).where(and(eq(itemReviews.direction, "production"), gte(itemReviews.ratedAt, new Date(Date.now() - 30 * 86_400_000)))).orderBy(desc(itemReviews.ratedAt)).limit(100),
+    db.select({ itemId: itemReviews.itemId }).from(itemReviews).where(and(eq(itemReviews.direction, "production"), lte(itemReviews.rating, 1), gte(itemReviews.ratedAt, new Date(Date.now() - 30 * 86_400_000)))).orderBy(desc(itemReviews.ratedAt)).limit(100),
+    getWeeklyPracticeIds(),
   ]);
   const correctionIds = [...new Set(corrections.map((x) => x.itemId).concat(items.filter((x) => x.type === "correction").map((x) => x.id)))];
-  const plan = buildFocusPlan(items, weak.map((x) => x.id), correctionIds);
+  const plan = buildFocusPlan(items, weak.map((x) => x.id), correctionIds, new Date(), weeklyIds);
   if (plan.length === 0) {
     return jsonOk({ sessionId: null, startedAt: new Date(), currentIndex: 0, items: [] });
   }

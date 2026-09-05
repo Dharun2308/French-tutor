@@ -138,7 +138,7 @@ export const settings = sqliteTable("settings", {
   extractProviders: text("extract_providers", { mode: "json" })
     .$type<Record<string, boolean>>()
     .notNull()
-    .default(sql`'{"codex":true,"claude":true,"openai":false}'`),
+    .default(sql`'{"codex":true,"claude":true,"openai":true}'`),
   updatedAt: integer("updated_at", { mode: "timestamp_ms" })
     .notNull()
     .default(sql`(unixepoch() * 1000)`),

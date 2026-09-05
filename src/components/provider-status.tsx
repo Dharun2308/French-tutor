@@ -185,7 +185,7 @@ export function ProviderSettings() {
           <div>
             <p className="font-semibold">AI providers</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Codex first, then Claude. OpenAI stays off unless enabled.
+              Codex first, Claude second, OpenAI API as the final fallback.
             </p>
           </div>
           <ChevronDown className="h-5 w-5 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />

@@ -1,5 +1,145 @@
 # French Tutor — handoff for the next agent (Codex)
 
+## Completed — 2026-09-05: Topics, weekly practice and both Claude reviews
+
+Owner resumed the paused work, then explicitly asked to commit and push to `main` afterward.
+Implementation and review fixes are deployed and verified. This section supersedes all historical
+pause/uncommitted/provider-policy notes below. The release checkpoint is the commit containing
+this section; use `git log -1` / `origin/main` for its identifier.
+
+- The original 21 Fable findings were addressed, with the stale migration/API claims corrected.
+  Follow-up Fable/max review completed successfully: session `1c22064c-93fb-44f4-b896-3a41d3e71b5c`,
+  service `french-topics-fix-review-20260905.service` inactive/dead, Result=success, exit 0.
+  Reports: `docs/claude-fable-topics-review-20260905.md` and
+  `docs/claude-fable-topics-fixes-20260905.md` (original JSON envelopes also retained).
+- The follow-up's eight findings and minor date-label issue were fixed and regression-tested.
+  No third review was launched. Exact dispositions and non-blocking notes:
+  `docs/topics-review-resolution.md`.
+- Maintenance dates are separate from pending error retests. Early successful voluntary checks
+  preserve spacing; failed assessments/recurring errors restart it. Actual delayed tag retrieval
+  clears deadlines. In-topic retest constraints are bounded per batch; other subrules stay varied.
+- `needs_theory` persists across interrupted sessions; `last_studied_at` tracks own-topic study
+  without drifting during mixes. Due maintained topics receive enough written mix retrieval for
+  maintenance credit even with the full catalog. Cleared error counts restart on a later slip.
+- Grading outages preserve exact ungraded answers without accuracy/error penalties. Up to five
+  replacement questions recover brief outages, including correct per-topic routing in daily mixes.
+  Generation failure preserves question/feedback for retry. Real API timeouts have no hidden retries.
+- Additive migrations are repeatable through `scripts/migrate-topics.ts` from the repo root with an
+  explicit local DB URL. It creates the original tables, then transactionally adds/backfills
+  `maintenance_due_at`, `needs_theory`, and `last_studied_at`. Stop the app and back up first;
+  never run `db:push` on production. Both schema files are included in Drizzle config.
+- Production backup: `local.db.bak-pre-topics-review-20260905-120830`. Integrity check passed;
+  before/after hashes of learner items, reviews, imports, tutor usage, settings and topic attempts
+  matched. 27 learning items, 33 reviews, 8 batches, zero fabricated topic attempts preserved.
+- Live service is active on loopback :8095. Home, Topics, direct-object detail and Topics API returned
+  200 after restart; 112 topics, direct-objects recommended new, article-negation recommended review.
+  All three structured providers remain enabled; order is Codex → Claude → OpenAI API.
+- Validation: TypeScript, all 54 individual unit tests (12 files), production build, original Topics
+  integration, expanded Fable regressions, weekly-phrase integration, repeated migration on a
+  production copy, stalled-local-API timeout, real Codex theory/questions/minor/conceptual grading,
+  and phone regressions including outage/reload/hints/reveal/stale-tab/Smart-fallback behavior.
+  Guide: `docs/topics-testing.md`. Screenshots: `~/snap/chromium/common/shots/topics-fixes-*.png`.
+- Temporary test apps :8097 and Chromium :9236 are stopped after verification. Disposable data/logs
+  remain under `/tmp/french-topics-review-validation/` and `/tmp/french-topics-review-*.log`.
+- Keep the unrelated untracked Sep3 report `docs/claude-fable-review-2026-09-03.md` out of this release.
+
+## Historical pause — owner request, 2026-09-05
+
+Owner asked: “complete? can you pause and update the hand off?” Implementation is deployed;
+the requested Fable/max review has completed, but its findings are NOT fixed yet. Stop here.
+Do not start fixes, commit or push until the owner asks to resume. This pause only updates docs.
+
+### Completed review and next work
+
+- Service `french-topics-fable-review-20260905.service`: inactive/dead, Result=success,
+  ExecMainStatus=0. JSON envelope: subtype=success, is_error=false.
+- Readable full report: `docs/claude-fable-topics-review-20260905.md`.
+  Original JSON: same stem `.json`; empty stderr log: same stem `.log`.
+  Session: `d11ee8a3-9446-40b3-8ddd-f2226e607b45`. No review is still running.
+- Reviewer reported 21 prioritized findings plus optional improvements. These are static-review
+  findings; reproduce them before changing behavior. Its main recommendation is to address
+  state transitions, due-date derivation and provider-outage behavior first.
+- Priority checks when resumed:
+  1. Ending guided practice early should not falsely trigger reteaching on return.
+  2. Passing “Check what I remember” must preserve an existing maintenance schedule/level.
+  3. Reading theory must not erase REVISIT_REQUIRED or bypass targeted remediation.
+  4. Pending zero-weight error tags must actually be retested; stale review times must not keep
+     topics permanently due. Derive one earliest due date across tags instead of last-tag wins.
+  5. Handle grading outages without forcing a penalized Reveal; validate ungraded denominators.
+  6. Allow continued work on already-started topics if an earlier prerequisite later weakens.
+  7. Include curriculum tables in Drizzle's schema config; never run db:push on production.
+  8. Make communication IDs stable, validate mixed mode/topic combinations, protect completed
+     results from retried Leave, and test the remaining UI/retry/timeouts noted in the report.
+- Add regression tests for these currently under-tested branches: early leave/resume,
+  maintenance revisit, theory refresh during revisit-required, multi-tag deadlines, delayed error
+  retrieval, provider failures, oral/reveal, daily-mix remediation and concurrent tabs.
+- Stale/uncertain reviewer claims already checked (do not blindly “fix” them):
+  * Topics migration/backup ARE documented below. “No schema migration needed” applies only to
+    the older weekly-phrase feature. Fresh/restore DB migration ergonomics can still be improved.
+  * Production `settings.extract_providers` is confirmed `{"codex":true,"claude":true,"openai":true}`.
+    API fallback is enabled, as the owner requested. Historical API-off notes are superseded.
+- Final deployed bundle includes English instructions/hints/explanations. Existing phone screenshots
+  captured the flow before that final prompt adjustment, so some show old French instructions.
+- Production check at pause: zero topic attempts (no fabricated learner results). Existing lesson
+  data is preserved. The production app was restarted and its Topics API returned112 topics with
+  direct-objects as next new and article-negation as recommended review.
+- Temporary browser (:9236) and isolated test app (:8097) were stopped after verification.
+  Disposable DB copies remain under `/tmp/french-topics-check-8v8ffc/` for reference only.
+- All new Topics/weekly-phrase code and docs are still uncommitted. Many required files are UNTRACKED;
+  preserve/include them when the owner eventually requests a commit. Keep the unrelated Sep3 report.
+
+## Latest update — 2026-09-05: Topics curriculum and background review
+
+- `/topics` and `/topics/[id]` provide individual topic lessons, voluntary revisits and a daily mix.
+  Dashboard Topics replaces View Active 10; owner requested removal of the “Woven into...” sentence.
+- 112 catalog entries preserve the owner's ChatGPT history as coverage, not invented scores:
+  covered/partial grammar, new grammar sequence, later topics, 10 pronunciation modules, 38
+  communication units. Direct object pronouns is the first recommended NEW grammar topic.
+- New flow: short English theory → five guided questions → twenty independent production questions.
+  >=85% qualifies for maintenance; 70–84% targets subrules; below70% short refresh and guided practice.
+  Exact submitted answer is retained. AI separates minor writing slips from conceptual grammar errors.
+  Hints/reveals/remediation cannot inflate independent accuracy. Oral work is self-reported speaking
+  followed by typing, not microphone assessment or proof of conversational automaticity.
+- Four additive tables in `src/lib/curriculum/schema.ts`; migration
+  `scripts/migrate-2026-09-05-topics.sql` applied with service stopped. Backup:
+  `local.db.bak-pre-topics-20260905`. Integrity check passed; 27 learning_items,33 item_reviews,
+  8 import_batches preserved. No fabricated topic attempts in production.
+- Persistent category errors, immediate follow-ups, three-question repeated-error drills,
+  delayed/next-day retrieval, expanding maintenance and resumable sessions are implemented.
+- Owner explicitly changed API policy: all three structured providers are enabled. Order remains
+  Codex gpt-5.6-sol/medium → Claude opus/high → OpenAI API. Old “keep API off” notes below are superseded.
+  Both CLI models passed live connectivity checks. Real Codex generation and minor-vs-conceptual
+  grading passed. All new exercise instructions, hints and explanations are explicitly ENGLISH.
+- Validation: TypeScript, unit suite, production builds, `scripts/verify-topics.ts` on disposable
+  migrated copies, `scripts/smoke-topics.ts` real AI, Chromium CDP interaction with an isolated
+  test app. Phone flow: topic → theory → answer → correction → reload → follow-up → reveal.
+  Screenshots: `~/snap/chromium/common/shots/topics-*.png`. Testing guide: `docs/topics-testing.md`.
+- Owner requested a detached Claude **fable / max** review once implementation was done. Started:
+  `french-topics-fable-review-20260905.service`, session `d11ee8a3-9446-40b3-8ddd-f2226e607b45`.
+  Prompt: `docs/topics-review-request.md`. Report JSON: `docs/claude-fable-topics-review-20260905.json`;
+  stderr: same stem `.log`. Read-only Read/Glob/Grep tools; max80 turns, one-hour ceiling.
+  Review is now complete; see PAUSED section above and the readable `.md` report. User lingering
+  kept it running after terminal closure. No auto-fixes or commits authorized by this review.
+- All Topics and weekly-phrase changes remain uncommitted. Preserve the unrelated Sep3 review doc.
+
+## Latest update — 2026-09-05: weekly phrases inside practice
+
+- Owner replaced the manual Tutor Mode workflow with automatic phrase practice. `/tutor` now
+  redirects to `/practice/focus`; dashboard and Weak French link directly to practice.
+- New Focus plans reserve three weekly production cards and prefer other weekly phrases for the
+  two listening cards, alongside due reviews and corrections. Existing sessions still resume.
+- Smart sessions weave personal lesson cards between legacy vocabulary/verb cards (roughly one
+  personal card in three). `/api/items/session` selects weekly phrases first, then due lesson items.
+- Weekly phrases rotate by least-recent actual review across all directions. Suspended/missing
+  items are filtered; answers use `cardFor` so prompts match the existing grader.
+- Smart personal cards show the submitted answer, use existing item grading and FSRS review,
+  and retain a request ID when retrying failed saves. They never create real-tutor usage evidence.
+- Historical tutor usage data and its API remain intact. No schema migration is needed.
+- Validation: TypeScript, unit suite, production build, phone rendering, and
+  `scripts/verify-weekly-practice.ts` against a disposable DB copy passed. The integration check
+  covers selection, exact grading, retry idempotency, rotation, suspension, Focus mix and resume.
+- Service restarted successfully. These changes have not yet been committed or pushed.
+
 _Written 2026-09-02 ~19:00 MDT by Claude Code, mid-build. Read fully before touching anything._
 
 ## 0. What this is

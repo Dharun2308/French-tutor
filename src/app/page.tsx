@@ -38,7 +38,7 @@ const PRACTICE_LINKS = [
 ] as const;
 
 const PERSONAL_LINKS = [
-  { href: "/practice/focus", title: "10-minute focus", detail: "Due, weak, listening, corrections", icon: Clock3 },
+  { href: "/practice/focus", title: "10-minute focus", detail: "Weekly phrases, review & listening", icon: Clock3 },
   { href: "/practice/listening", title: "Listening", detail: "Hear it, then type it", icon: Ear },
   { href: "/conversation", title: "AI conversation", detail: "Quietly targets weak French", icon: MessageSquare },
   { href: "/practice/variations", title: "Fresh contexts", detail: "Same French, new situations", icon: Sparkles },
@@ -111,17 +111,16 @@ export default function DashboardPage() {
                 <Target className="h-5 w-5 text-rose-600 dark:text-rose-400" />
               </div>
               <div className="min-w-0 flex-1">
-                <CardTitle className="text-lg">This week&apos;s speaking focus</CardTitle>
-                <CardDescription>Your Active 10 from real lessons—ready to use with your tutor.</CardDescription>
+                <CardTitle className="text-lg">This week&apos;s phrases</CardTitle>
               </div>
             </div>
           </CardHeader>
           <CardContent className="flex flex-col gap-2 pt-0 sm:flex-row">
             <Button asChild className="sm:flex-1">
-              <Link href="/tutor"><MessageSquare className="h-4 w-4" />Open Tutor Mode</Link>
+              <Link href="/practice/focus"><Clock3 className="h-4 w-4" />Start 10-minute focus</Link>
             </Button>
             <Button asChild variant="outline" className="sm:flex-1">
-              <Link href="/weak">View Active 10 <ArrowRight className="h-4 w-4" /></Link>
+              <Link href="/topics">Topics <ArrowRight className="h-4 w-4" /></Link>
             </Button>
           </CardContent>
         </Card>
@@ -131,7 +130,7 @@ export default function DashboardPage() {
             <CardTitle className="text-lg">Start with your lesson notes</CardTitle>
             <CardDescription>Photograph a page and approve the French worth remembering.</CardDescription>
           </CardHeader>
-          <CardContent><Button asChild><Link href="/import"><Camera className="h-4 w-4" />Import notes</Link></Button></CardContent>
+          <CardContent className="flex flex-wrap gap-2"><Button asChild><Link href="/import"><Camera className="h-4 w-4" />Import notes</Link></Button><Button asChild variant="outline"><Link href="/topics">Topics <ArrowRight className="h-4 w-4" /></Link></Button></CardContent>
         </Card>
       )}
 
