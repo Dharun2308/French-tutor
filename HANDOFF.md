@@ -1,5 +1,26 @@
 # French Tutor — handoff for the next agent (Codex)
 
+## Latest update — 2026-09-05: Language Transfer French audio
+
+- Added **Topics → Language Transfer** at `/topics/language-transfer`, with all 40 lessons from
+  Language Transfer's official free French download. About 6 hours 37 minutes of audio.
+- Player has native audio controls, ±15-second seeking, speed selection, previous/next lessons,
+  automatic position/speed/lesson resume and listened status. Progress stays in this browser;
+  no grammar scores or database rows are changed. No autoplay/automatic next lesson.
+- Official MP3s are installed in ignored `audio/language-transfer-french/` (~364 MiB). They are NOT
+  in Git. Fresh checkout/recovery: `python3 scripts/install-language-transfer.py`; requires ffprobe.
+  All 40 durations, sizes and SHA-256 hashes are tracked in `src/lib/language-transfer-lessons.json`.
+- Audio endpoints `/api/language-transfer/1` through `/40` support HEAD and byte-range seeking.
+  They serve local files only. The app credits and links to the official project.
+- Verification passed: TypeScript, unit suite (56 individual tests across 13 files), build, all
+  40 file hashes/HEAD/seek ranges, and actual phone-browser playback, seeking, speed, switching,
+  reload/resume, completion and last-lesson bounds. Screenshots: `language-transfer-*.png` under
+  `~/snap/chromium/common/shots/`. Full details: `docs/language-transfer.md`.
+- Service restarted successfully. Live page returned 200 and all 40 audio endpoints returned correct
+  206 byte ranges. No DB migration was needed. Disposable test app/browser are stopped afterward.
+- Owner's session instruction to commit/push to main applies; the commit containing this section
+  is the audio-feature checkpoint. Preserve the unrelated untracked Sep3 review note.
+
 ## Completed — 2026-09-05: Topics, weekly practice and both Claude reviews
 
 Owner resumed the paused work, then explicitly asked to commit and push to `main` afterward.

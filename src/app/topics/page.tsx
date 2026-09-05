@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, BookOpen, Search } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Headphones, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { STATE_LABELS, type Topic, type TopicState } from "@/lib/curriculum/types";
@@ -35,6 +35,7 @@ export default function TopicsPage() {
     <Link href="/" className="mb-5 inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" />Dashboard</Link>
     <h1 className="text-3xl font-semibold">Topics</h1>
     <p className="mt-2 text-sm text-muted-foreground">Learn something new, or strengthen a rule you’re unsure about.</p>
+    <Link href="/topics/language-transfer" className="mt-5 flex items-center gap-3 rounded-xl border border-blue-500/30 bg-blue-500/5 p-4"><Headphones className="h-6 w-6 shrink-0 text-blue-600 dark:text-blue-400" /><div className="flex-1"><p className="font-medium">Language Transfer</p><p className="mt-1 text-xs text-muted-foreground">Introduction to French · all 40 audio lessons</p></div><ArrowRight className="h-4 w-4" /></Link>
     <div className="my-5 grid gap-2 sm:grid-cols-2">
       {next && <Link href={`/topics/${next.id}`} className="rounded-xl border border-primary/30 bg-primary/5 p-4"><p className="text-xs text-muted-foreground">Next new topic</p><p className="mt-1 font-medium">{next.title} <ArrowRight className="inline h-4 w-4" /></p></Link>}
       {revisit && <Link href={`/topics/${revisit.id}`} className="rounded-xl border p-4"><p className="text-xs text-muted-foreground">Worth revisiting</p><p className="mt-1 font-medium">{revisit.title} <ArrowRight className="inline h-4 w-4" /></p></Link>}
