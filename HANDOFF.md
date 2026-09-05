@@ -1,5 +1,15 @@
 # French Tutor — handoff for the next agent (Codex)
 
+## Latest update — 2026-09-05: topic colours
+
+- Topics rows and recommendation cards now use green for previously practiced topics (including
+  imported practice history or recorded production/mixed attempts), red for not-started topics,
+  and amber for partly covered/in-progress topics. A text legend explains the colours.
+- Light/dark themes use tinted backgrounds, coloured left borders and readable headings. Existing
+  state/review/accuracy labels remain; green indicates practice history, not certified mastery.
+- Presentation-only change; no learner data or schema changes. TypeScript, unit suite, build and
+  phone light/dark rendering checks passed. Deployed through `french-tutor.service`.
+
 ## Latest update — 2026-09-05: Language Transfer French audio
 
 - Added **Topics → Language Transfer** at `/topics/language-transfer`, with all 40 lessons from

@@ -15,6 +15,16 @@ interface TopicView extends Topic {
 }
 interface Overview { topics: TopicView[]; recommendedNew: string | null; recommendedReview: string; mixedSessionId: string | null }
 
+function topicColour(topic: TopicView) {
+  if (topic.coverage === "practiced" || topic.production.total > 0 || topic.mixed.total > 0 || ["85_PERCENT_REACHED", "MAINTENANCE", "AUTOMATIC"].includes(topic.state)) {
+    return { surface: "border-l-emerald-500 bg-emerald-50/80 hover:bg-emerald-100/80 dark:bg-emerald-950/30 dark:hover:bg-emerald-950/50", text: "text-emerald-900 dark:text-emerald-200" };
+  }
+  if (topic.state === "NOT_STARTED") {
+    return { surface: "border-l-rose-500 bg-rose-50/80 hover:bg-rose-100/80 dark:bg-rose-950/30 dark:hover:bg-rose-950/50", text: "text-rose-900 dark:text-rose-200" };
+  }
+  return { surface: "border-l-amber-500 bg-amber-50/80 hover:bg-amber-100/80 dark:bg-amber-950/30 dark:hover:bg-amber-950/50", text: "text-amber-900 dark:text-amber-200" };
+}
+
 export default function TopicsPage() {
   const [data, setData] = useState<Overview | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -37,17 +47,22 @@ export default function TopicsPage() {
     <p className="mt-2 text-sm text-muted-foreground">Learn something new, or strengthen a rule you’re unsure about.</p>
     <Link href="/topics/language-transfer" className="mt-5 flex items-center gap-3 rounded-xl border border-blue-500/30 bg-blue-500/5 p-4"><Headphones className="h-6 w-6 shrink-0 text-blue-600 dark:text-blue-400" /><div className="flex-1"><p className="font-medium">Language Transfer</p><p className="mt-1 text-xs text-muted-foreground">Introduction to French · all 40 audio lessons</p></div><ArrowRight className="h-4 w-4" /></Link>
     <div className="my-5 grid gap-2 sm:grid-cols-2">
-      {next && <Link href={`/topics/${next.id}`} className="rounded-xl border border-primary/30 bg-primary/5 p-4"><p className="text-xs text-muted-foreground">Next new topic</p><p className="mt-1 font-medium">{next.title} <ArrowRight className="inline h-4 w-4" /></p></Link>}
-      {revisit && <Link href={`/topics/${revisit.id}`} className="rounded-xl border p-4"><p className="text-xs text-muted-foreground">Worth revisiting</p><p className="mt-1 font-medium">{revisit.title} <ArrowRight className="inline h-4 w-4" /></p></Link>}
+      {next && <Link href={`/topics/${next.id}`} className={`rounded-xl border border-l-4 p-4 transition-colors ${topicColour(next).surface}`}><p className="text-xs text-muted-foreground">Next new topic</p><p className={`mt-1 font-medium ${topicColour(next).text}`}>{next.title} <ArrowRight className="inline h-4 w-4" /></p></Link>}
+      {revisit && <Link href={`/topics/${revisit.id}`} className={`rounded-xl border border-l-4 p-4 transition-colors ${topicColour(revisit).surface}`}><p className="text-xs text-muted-foreground">Worth revisiting</p><p className={`mt-1 font-medium ${topicColour(revisit).text}`}>{revisit.title} <ArrowRight className="inline h-4 w-4" /></p></Link>}
     </div>
     <Button asChild variant="outline" className="mb-6 w-full"><Link href="/topics/mixed"><BookOpen className="h-4 w-4" />{data.mixedSessionId ? "Resume daily mix" : "Daily mix · 10 questions"}</Link></Button>
     <div className="mb-5 flex flex-col gap-2 sm:flex-row">
       <div className="relative flex-1"><Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><Input aria-label="Search topics" className="pl-9" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Articles, pronouns, past tense…" /></div>
       <select aria-label="Topic family" className="h-10 rounded-md border bg-background px-3 text-sm" value={group} onChange={(e) => setGroup(e.target.value)}>{groups.map((g) => <option key={g}>{g}</option>)}</select>
     </div>
-    {grouped.map((g) => <section key={g} className="mb-6"><h2 className="mb-2 text-sm font-semibold">{g}</h2><div className="divide-y rounded-xl border">
-      {filtered.filter((t) => t.group === g).map((t) => <Link key={t.id} href={`/topics/${t.id}`} className="flex items-center justify-between gap-3 p-3 hover:bg-muted/50">
-        <div className="min-w-0"><p className="text-sm font-medium">{t.title}</p><p className="mt-1 text-xs text-muted-foreground">{t.sessionId ? "In progress" : t.due ? "Review due" : STATE_LABELS[t.state]}{t.coverage === "practiced" && !t.production.total ? " · previously practiced" : ""}{t.coverage === "partial" && !t.controlled.total ? " · partly covered" : ""}{!t.ready ? " · prerequisites first" : ""}</p></div>
+    <div aria-label="Topic colour key" className="mb-5 flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
+      <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />Practiced</span>
+      <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-amber-500" />Partly covered / in progress</span>
+      <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-rose-500" />Not started</span>
+    </div>
+    {grouped.map((g) => <section key={g} className="mb-6"><h2 className="mb-2 text-sm font-semibold">{g}</h2><div className="divide-y overflow-hidden rounded-xl border">
+      {filtered.filter((t) => t.group === g).map((t) => <Link key={t.id} href={`/topics/${t.id}`} className={`flex items-center justify-between gap-3 border-l-4 p-3 transition-colors ${topicColour(t).surface}`}>
+        <div className="min-w-0"><p className={`text-sm font-medium ${topicColour(t).text}`}>{t.title}</p><p className="mt-1 text-xs text-muted-foreground">{t.sessionId ? "In progress" : t.due ? "Review due" : STATE_LABELS[t.state]}{t.coverage === "practiced" && !t.production.total ? " · previously practiced" : ""}{t.coverage === "partial" && !t.controlled.total ? " · partly covered" : ""}{!t.ready ? " · prerequisites first" : ""}</p></div>
         <span className="shrink-0 text-xs text-muted-foreground">{t.production.total ? `${t.production.percent}% · ${t.production.total} attempts` : <ArrowRight className="h-4 w-4" />}</span>
       </Link>)}
     </div></section>)}
