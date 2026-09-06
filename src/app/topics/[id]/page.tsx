@@ -103,7 +103,7 @@ export default function TopicPage() {
     {!loaded ? !error && <div className="h-60 animate-pulse rounded-xl bg-muted" /> : !session || session.completed ? <>
       {session?.result && <div className="mb-5 rounded-xl border border-primary/30 bg-primary/5 p-4 text-sm leading-relaxed">{session.result}</div>}
       {detail ? <>
-        <p className="mb-4 text-sm text-muted-foreground">{STATE_LABELS[detail.state]} · {detail.coverage === "practiced" ? "Previously practiced in ChatGPT" : detail.coverage === "partial" ? "Partly covered in ChatGPT" : detail.coverage === "later" ? "Later on your roadmap" : "Not systematically studied yet"}</p>
+        <p className="mb-4 text-sm text-muted-foreground">{STATE_LABELS[detail.state]} · {detail.coverage === "practiced" ? "Previously practiced" : detail.coverage === "partial" ? "Partly covered" : detail.coverage === "later" ? "Later on your roadmap" : "Not systematically studied yet"}</p>
         <div className="mb-5 grid grid-cols-2 gap-2 text-sm">
           <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Theory</p><p className="mt-1">{detail.theoryUnderstood ? "Understood · self-reported" : detail.coverage === "practiced" ? "Covered · imported history" : "Not confirmed"}</p></div>
           <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Controlled accuracy</p><p className="mt-1">{detail.controlled.total ? `${detail.controlled.correct}/${detail.controlled.total} · ${detail.controlled.percent}%` : "Not assessed here"}</p></div>
