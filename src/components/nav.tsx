@@ -1,14 +1,13 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Settings, Home, Camera, Target, Ear } from "lucide-react";
+import { Settings, Home, Camera, Ear } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const LINKS = [
   { href: "/", label: "Dashboard", icon: Home },
   { href: "/practice/listening", label: "Listening", icon: Ear },
   { href: "/import", label: "Import", icon: Camera },
-  { href: "/weak", label: "Weak French", icon: Target },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

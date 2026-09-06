@@ -1,5 +1,14 @@
 # French Tutor — handoff for the next agent (Codex)
 
+## Latest update — 2026-09-06: prune Weak French navigation
+
+- Removed Weak French from the top navigation at the owner's request. The existing
+  page and automatic phrase selection for Focus and Smart practice remain available.
+- Owner is considering a replacement Notes page for the two italki Docs and a new
+  personal notes Doc. Asked whether to use full Google Docs editor shortcuts or a
+  custom in-app editor; implementation awaits that choice. Current Google access is
+  read-only, and the third document has not been created or added to weekly imports.
+
 ## Latest update — 2026-09-06: weekly shared Google Docs imports
 
 - Connected the owner's two shared italki documents through Hermes's renewed
