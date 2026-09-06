@@ -1,4 +1,5 @@
 "use client";
+import { equivalentTopicAnswers } from "@/lib/curriculum/answer-equivalence";
 
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
@@ -163,7 +164,7 @@ export default function TopicPage() {
             <div><p className="text-xs text-muted-foreground">You wrote</p><p lang="fr" className="mt-1 whitespace-pre-wrap break-words">{session.feedback.submitted || "—"}</p></div>
             <div className="border-t pt-3"><p className="text-xs text-muted-foreground">{session.feedback.ungraded ? "Possible answer · not graded" : session.feedback.revealed && session.question.stage === "oral" ? "One possible response" : session.feedback.conceptCorrect ? "Correct French" : "Correction"}</p><div className="mt-1 flex items-start gap-2"><p lang="fr" className="flex-1 break-words">{session.feedback.corrected}</p><SpeakButton text={session.feedback.corrected} /></div></div>
             <p className="text-sm">{session.feedback.explanation}</p>
-            {session.feedback.minorOnly && <p className="text-xs text-muted-foreground">Your grammar counts as correct; this is a minor writing slip.</p>}
+            {session.feedback.minorOnly && !equivalentTopicAnswers(session.feedback.submitted, session.feedback.corrected) && <p className="text-xs text-muted-foreground">Your grammar counts as correct; this is a minor writing slip.</p>}
           </div>
           <Button className="w-full" disabled={busy} onClick={() => call("next")}>{session.feedback.ungraded || session.feedback.conceptCorrect ? "Continue" : "Practice a similar question"}</Button>
         </>}

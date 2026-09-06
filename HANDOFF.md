@@ -1,5 +1,18 @@
 # French Tutor — handoff for the next agent (Codex)
 
+## Latest update — 2026-09-06: optional final periods in topic answers
+
+- Fixed the reported answer "Elle ne mange pas de soupe" being marked as a minor
+  writing slip against "Elle ne mange pas de soupe." Topic grading now treats an
+  optional final full stop as equivalent, alongside existing whitespace/case and
+  apostrophe normalization. Accents, endings and meaningful internal punctuation
+  still require grading. The model prompt and minor-only result handling agree.
+- Existing saved feedback no longer shows the slip notice when the submitted and
+  corrected answers differ only by these presentation details. No learning-history
+  rewrite: the original minor-only answer already counted as conceptually correct.
+- Regression coverage includes the user's exact answer reaching the local grader
+  without an AI call, plus negative cases for real article/ending/accent differences.
+
 ## Latest update — 2026-09-06: Notes editor and dashboard pruning
 
 - Removed Quick choice and Verb drill links from the home dashboard. Added Notes
