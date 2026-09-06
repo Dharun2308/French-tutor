@@ -1,5 +1,39 @@
 # French Tutor — handoff for the next agent (Codex)
 
+## Latest update — 2026-09-06: weekly shared Google Docs imports
+
+- Connected the owner's two shared italki documents through Hermes's renewed
+  `dharun561561@gmail.com` account. Read-only Google Docs permission granted and Docs API enabled.
+  The deleted OAuth client was backed up/replaced with the existing valid Desktop client; primary
+  credentials/default symlinks are updated. The secondary account was not reauthorized.
+- Hermes cron job `37f28ba80922` (**French Tutor - weekly italki notes**) runs `0 0 * * 3`:
+  Wednesday 00:00 America/Denver. Confirmed system timezone and next run September 9, 2026 at 00:00 MDT.
+  Script-only, local delivery; no emails or messages to other people. Gateway is active.
+- Tested launcher installed at `~/.hermes/scripts/french-google-docs-weekly.sh`; it starts the
+  dedicated `french-google-docs-sync.service` worker (two-hour timeout). Configuration with the two
+  selected IDs is private in `~/.hermes/french-google-docs.json`. Code lives in this repository.
+- All document tabs and table text are read. The worker checkpoints snapshots/seen paragraphs and
+  pending extraction IDs in ignored `.google-docs-sync/state.json`. It imports changed/new sections,
+  avoids formatting/reordering duplicates, preserves source links, and never writes to Google Docs.
+- Atomic intake reuses the same batch after repeated/lost responses; extraction resumes saved batches
+  and does not overwrite prepared drafts. Imports await the user's review/approval. Learning scores
+  and items are not changed by sync alone. Source-note deletions do not erase study history.
+- Import page shows sources, weekly schedule, last sync/attention status and preparing/ready drafts.
+  Review page supports pending preparation, polling and a link to the original Doc.
+- Validation in isolated safety worktree `/tmp/french-tutor-google-docs-safety`: six Python sync tests,
+  disposable-DB integration including concurrent intake and unchanged learner rows, TypeScript, full
+  unit suite, launcher fixture, systemd unit validation and production build passed. No DB migration.
+- Initial import completed: 13 prepared review sections / 175 proposed items, including preserved
+  strikethrough correction context. Zero pending extractions or errors. All 27 existing learner rows
+  were byte-for-byte unchanged. A subsequent live sync created no new batches/items.
+- Live phone light/dark checks passed for the status panel, both document links, preparation and
+  prepared review screens. Screenshots: `~/snap/chromium/common/shots/google-docs-*.png`.
+  Temporary verification browser is closed; the worker is inactive after successful completion.
+- OAuth app publishing status must be checked with the owner: Testing can expire refresh tokens
+  after seven days. This was asked during setup; a reply was still pending at this checkpoint.
+- Operations/recovery details: `docs/google-docs-sync.md`. Keep the unrelated untracked Sep3 review
+  document out of commits.
+
 ## Latest update — 2026-09-06: theory on topic overviews
 
 - Topic overviews retain Controlled accuracy and Independent production, and remove the Theory

@@ -27,7 +27,8 @@ for unattended weekly operation. Reauthorization is still needed if access is re
 ## Behavior and recovery
 
 - The first run reads all selected documents, including nested tabs and text in
-  tables. Images, comments, and handwritten annotations are not imported as text.
+  tables. Crossed-out text is explicitly marked to retain correction context.
+  Images, comments, and handwritten annotations are not imported as text.
 - Subsequent runs collect new or edited paragraphs. Unicode normalization,
   whitespace changes, reordering and already-seen paragraphs do not create new
   imports. Deletion in Docs does not delete learning history.
@@ -70,3 +71,9 @@ The integration DB must first be prepared from a backup/copy, never the live DB.
 Checks cover nested tabs/tables, accents, long paragraphs, changed/deleted/reordered
 notes, repeated delivery, lost responses, extraction failure recovery, preservation
 of prepared/discarded drafts, concurrent intake and unchanged learning items.
+
+Live setup verified September 6, 2026: Hermes job `37f28ba80922`, next scheduled run
+September 9 at 00:00 MDT. Initial import prepared 13 sections / 175 proposed items;
+all 27 existing learner rows were unchanged. A live repeat created zero duplicates.
+Phone light/dark status and review screens passed. OAuth publishing status still
+requires owner confirmation in Google Cloud Audience settings.
