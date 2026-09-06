@@ -1,5 +1,12 @@
 # French Tutor — handoff for the next agent (Codex)
 
+## Latest update — 2026-09-06: simpler Topics page
+
+- Removed the Daily mix button and Next new topic / Worth revisiting cards from the Topics
+  overview. Language Transfer now leads directly into search, filters and the coloured topic list.
+- Removed the introductory sentence below the heading and "in ChatGPT" from topic detail
+  coverage labels in the preceding update. These are presentation changes only.
+
 ## Latest update — 2026-09-05: topic colours
 
 - Topics rows and recommendation cards now use green for previously practiced topics (including

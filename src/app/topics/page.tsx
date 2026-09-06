@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, BookOpen, Headphones, Search } from "lucide-react";
+import { ArrowLeft, ArrowRight, Headphones, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { STATE_LABELS, type Topic, type TopicState } from "@/lib/curriculum/types";
@@ -13,7 +13,7 @@ interface TopicView extends Topic {
   oral: number; due: boolean; ready: boolean; sessionId: string | null;
   errors: { tag: string; misses: number; weight: number }[];
 }
-interface Overview { topics: TopicView[]; recommendedNew: string | null; recommendedReview: string; mixedSessionId: string | null }
+interface Overview { topics: TopicView[] }
 
 function topicColour(topic: TopicView) {
   if (topic.coverage === "practiced" || topic.production.total > 0 || topic.mixed.total > 0 || ["85_PERCENT_REACHED", "MAINTENANCE", "AUTOMATIC"].includes(topic.state)) {
@@ -33,8 +33,6 @@ export default function TopicsPage() {
   const load = () => { setError(null); fetch("/api/topics", { cache: "no-store" }).then(async (r) => { const d = await r.json(); if (!r.ok) throw new Error(d.error); setData(d); }).catch((e) => setError(e.message)); };
   useEffect(load, []);
   if (!data) return <main className="container max-w-3xl py-8">{error ? <><p>{error}</p><Button className="mt-3" onClick={load}>Retry</Button></> : <div className="h-60 animate-pulse rounded-xl bg-muted" />}</main>;
-  const next = data.topics.find((t) => t.id === data.recommendedNew);
-  const revisit = data.topics.find((t) => t.id === data.recommendedReview);
   const groups = ["Grammar", "Needs review", "Pronunciation & listening", "Communication", ...new Set(data.topics.filter((t) => t.kind === "grammar").map((t) => t.group))];
   const filtered = data.topics.filter((t) => {
     const matches = group === "Grammar" ? t.kind === "grammar" : group === "Needs review" ? t.due || t.state === "REVISIT_REQUIRED" : t.group === group;
@@ -45,12 +43,7 @@ export default function TopicsPage() {
     <Link href="/" className="mb-5 inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" />Dashboard</Link>
     <h1 className="text-3xl font-semibold">Topics</h1>
     <Link href="/topics/language-transfer" className="mt-5 flex items-center gap-3 rounded-xl border border-blue-500/30 bg-blue-500/5 p-4"><Headphones className="h-6 w-6 shrink-0 text-blue-600 dark:text-blue-400" /><div className="flex-1"><p className="font-medium">Language Transfer</p><p className="mt-1 text-xs text-muted-foreground">Introduction to French · all 40 audio lessons</p></div><ArrowRight className="h-4 w-4" /></Link>
-    <div className="my-5 grid gap-2 sm:grid-cols-2">
-      {next && <Link href={`/topics/${next.id}`} className={`rounded-xl border border-l-4 p-4 transition-colors ${topicColour(next).surface}`}><p className="text-xs text-muted-foreground">Next new topic</p><p className={`mt-1 font-medium ${topicColour(next).text}`}>{next.title} <ArrowRight className="inline h-4 w-4" /></p></Link>}
-      {revisit && <Link href={`/topics/${revisit.id}`} className={`rounded-xl border border-l-4 p-4 transition-colors ${topicColour(revisit).surface}`}><p className="text-xs text-muted-foreground">Worth revisiting</p><p className={`mt-1 font-medium ${topicColour(revisit).text}`}>{revisit.title} <ArrowRight className="inline h-4 w-4" /></p></Link>}
-    </div>
-    <Button asChild variant="outline" className="mb-6 w-full"><Link href="/topics/mixed"><BookOpen className="h-4 w-4" />{data.mixedSessionId ? "Resume daily mix" : "Daily mix · 10 questions"}</Link></Button>
-    <div className="mb-5 flex flex-col gap-2 sm:flex-row">
+    <div className="mb-5 mt-5 flex flex-col gap-2 sm:flex-row">
       <div className="relative flex-1"><Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><Input aria-label="Search topics" className="pl-9" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Articles, pronouns, past tense…" /></div>
       <select aria-label="Topic family" className="h-10 rounded-md border bg-background px-3 text-sm" value={group} onChange={(e) => setGroup(e.target.value)}>{groups.map((g) => <option key={g}>{g}</option>)}</select>
     </div>
