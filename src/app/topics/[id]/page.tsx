@@ -136,7 +136,6 @@ export default function TopicPage() {
           <FrenchInput key={session.question.id} autoFocus maxLength={800} value={answer} disabled={busy} onChange={(e) => setAnswer(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); if (answer.trim()) void check(); } }} placeholder="Your answer…" />
           {session.question.stage === "oral" && <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={spoken} onChange={(e) => setSpoken(e.target.checked)} />I said this aloud</label>}
           {session.question.hint && <p className="rounded-lg bg-muted p-3 text-sm">{session.question.hint}</p>}
-          <p className="text-xs text-muted-foreground">Hints and reveals count as assisted answers, not independent successes.</p>
           <div className="flex flex-wrap gap-2"><Button className="flex-1" disabled={busy || !answer.trim()} onClick={() => check()}>Check</Button><Button variant="outline" disabled={busy || !!session.question.hint} onClick={() => call("hint")}>Hint</Button><Button variant="ghost" disabled={busy} onClick={() => check(true)}>Reveal</Button></div>
         </> : <>
           <div className="space-y-3 rounded-lg bg-muted p-4">
