@@ -1,0 +1,10 @@
+[Unit]
+Description=Import shared italki Google Docs into French Tutor
+After=network-online.target french-tutor.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/multi_mind/French-tutor
+ExecStart=/home/multi_mind/.hermes/hermes-agent/venv/bin/python /home/multi_mind/French-tutor/scripts/sync-google-docs.py
+TimeoutStartSec=2h
+UMask=0077

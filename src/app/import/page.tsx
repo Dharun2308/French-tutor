@@ -28,6 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ProviderStrip } from "@/components/provider-status";
+import { GoogleDocsImportStatus } from "@/components/google-docs-import-status";
 
 const MAX_IMAGES = 6;
 const MAX_EDGE = 1600;
@@ -48,6 +49,7 @@ interface BatchSummary {
   label: string | null;
   imageCount: number;
   failed?: boolean;
+  prepared?: boolean;
 }
 
 function loadImageEl(file: File): Promise<HTMLImageElement> {
@@ -115,10 +117,14 @@ export default function ImportPage() {
   const galRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    fetch("/api/import/batches", { cache: "no-store" })
+    let active = true;
+    const load = () => fetch("/api/import/batches", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : { batches: [] }))
-      .then((d) => setRecent(d.batches ?? []))
+      .then((d) => { if (active) setRecent(d.batches ?? []); })
       .catch(() => {});
+    void load();
+    const timer = setInterval(load, 30_000);
+    return () => { active = false; clearInterval(timer); };
   }, []);
 
   const onFiles = async (list: FileList | null) => {
@@ -183,6 +189,7 @@ export default function ImportPage() {
         </p>
       </div>
 
+      <GoogleDocsImportStatus />
       <ProviderStrip />
 
       {/* ── Photos ── */}
@@ -350,7 +357,7 @@ export default function ImportPage() {
                     <Badge variant="destructive">Failed — retry</Badge>
                   )}
                   {b.status === "pending" && !b.failed && (
-                    <Badge variant="default">Needs review</Badge>
+                    <Badge variant="default">{b.prepared === false ? "Preparing" : "Needs review"}</Badge>
                   )}
                   {b.status === "reviewed" && (
                     <Badge variant="success">{b.itemCount} saved</Badge>

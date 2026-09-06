@@ -41,3 +41,5 @@ uploads/
 tts-cache/
 audio/
 topic-theory-cache/
+.google-docs-sync/
+__pycache__/

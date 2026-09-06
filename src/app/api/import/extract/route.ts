@@ -58,6 +58,7 @@ const NewBody = z
   });
 
 const RetryBody = z.object({ batchId: z.number().int().positive() });
+const extractingBatches = new Set<number>();
 
 export async function POST(req: NextRequest) {
   const rl = rateLimit("import_extract", 20, 60_000);
@@ -119,19 +120,24 @@ export async function POST(req: NextRequest) {
 }
 
 async function retryBatch(batchId: number) {
-  const [b] = await db
-    .select()
-    .from(importBatches)
-    .where(eq(importBatches.id, batchId))
-    .limit(1);
-  if (!b) return jsonError("Import not found", 404);
-  if (b.status !== "pending") return jsonError(`This import was already ${b.status}.`, 409);
-  return extractBatch(batchId, {
-    imageFiles: b.imageFiles ?? [],
-    text: b.rawText ?? undefined,
-    note: b.note ?? undefined,
-    label: b.label ?? undefined,
-  });
+  if (extractingBatches.has(batchId)) return jsonError("This import is being prepared. Please try again shortly.", 409);
+  extractingBatches.add(batchId);
+  try {
+    const [b] = await db
+      .select()
+      .from(importBatches)
+      .where(eq(importBatches.id, batchId))
+      .limit(1);
+    if (!b) return jsonError("Import not found", 404);
+    if (b.status !== "pending") return jsonError(`This import was already ${b.status}.`, 409);
+    if (b.extractedJson) return jsonOk({ batchId, alreadyPrepared: true });
+    return await extractBatch(batchId, {
+      imageFiles: b.imageFiles ?? [],
+      text: b.rawText ?? undefined,
+      note: b.note ?? undefined,
+      label: b.label ?? undefined,
+    });
+  } finally { extractingBatches.delete(batchId); }
 }
 
 async function extractBatch(

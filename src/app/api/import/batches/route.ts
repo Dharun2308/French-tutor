@@ -22,6 +22,8 @@ function summary(b: typeof importBatches.$inferSelect) {
     label: b.label,
     imageCount: b.imageFiles?.length ?? 0,
     failed: b.status === "pending" && !!b.extractError,
+    prepared: Boolean(b.extractedJson),
+    sourceUrl: b.note?.match(/^Google Docs: (https:\/\/docs\.google\.com\/document\/d\/[A-Za-z0-9_-]+\/edit)/)?.[1] ?? null,
   };
 }
 

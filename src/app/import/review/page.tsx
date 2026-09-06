@@ -66,6 +66,7 @@ interface BatchDetail {
   label: string | null;
   imageCount: number;
   rawText: string | null;
+  sourceUrl: string | null;
   model: string | null;
   providerLog: { provider: string; ok: boolean; ms: number; model: string | null; error: string | null }[];
   extractError: string | null;
@@ -153,6 +154,13 @@ function ReviewInner() {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [batchId]);
+
+  useEffect(() => {
+    if (!batch || batch.status !== "pending" || batch.extraction || batch.extractError) return;
+    const timer = setInterval(load, 8000);
+    return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [batch?.id, batch?.status, !!batch?.extraction, batch?.extractError]);
 
   const retry = async () => {
     setRetrying(true);
@@ -343,8 +351,7 @@ function ReviewInner() {
             <p className="flex items-start gap-2 text-sm">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
               <span>
-                Your photos are saved — nothing was lost. Every enabled
-                provider failed:
+                Your lesson notes are saved. Extraction could not finish:
               </span>
             </p>
             <ul className="mt-3 space-y-1.5 text-sm">
@@ -403,6 +410,18 @@ function ReviewInner() {
     );
   }
 
+  if (!batch.extraction) {
+    return <Shell title="Preparing your notes" subtitle={batch.label ?? undefined}>
+      <Card><CardContent className="space-y-4 p-5 text-sm">
+        <p>Your notes are saved. Practice items will appear here when preparation finishes.</p>
+        {batch.sourceUrl && <a href={batch.sourceUrl} target="_blank" rel="noreferrer" className="block underline">Open original Google Doc</a>}
+        {error && <ErrorBox message={error} />}
+        <Button disabled={retrying} onClick={retry}>{retrying && <Loader2 className="h-4 w-4 animate-spin" />}Prepare now</Button>
+        <Link href="/import" className="ml-4 underline">Back to imports</Link>
+      </CardContent></Card>
+    </Shell>;
+  }
+
   const fallbackNote = (() => {
     const failed = batch.providerLog.filter((a) => !a.ok);
     const winner = batch.providerLog.find((a) => a.ok);
@@ -417,6 +436,7 @@ function ReviewInner() {
       subtitle={batch.extraction?.lesson_summary || batch.label || undefined}
       padBottom
     >
+      {batch.sourceUrl && <a href={batch.sourceUrl} target="_blank" rel="noreferrer" className="mb-4 inline-block text-sm underline underline-offset-2">Open original Google Doc</a>}
       {batch.imageCount > 0 && (
         <div className="mb-4">
           <button
