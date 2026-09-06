@@ -1,5 +1,23 @@
 # French Tutor — handoff for the next agent (Codex)
 
+## Latest update — 2026-09-06: theory on topic overviews
+
+- Topic overviews retain Controlled accuracy and Independent production, and remove the Theory
+  self-report and Speaking / automaticity metric cards. The earlier assisted-answer notice is gone.
+- Replaced Explain the rule with an expanded Theory section at the bottom of every topic overview.
+  It loads automatically, including for topics whose practice prerequisites are not yet met.
+  Existing practice/theory sessions and speaking practice remain available through the lesson flow.
+- `/api/topics/theory?id=…` generates general reference theory without starting a session or changing
+  learner progress. First visits may take a moment; loading/error/retry states are independent of
+  practice. Results persist in ignored `topic-theory-cache/`, keyed by topic content and cache version.
+  No migration needed. Concurrent requests share generation; invalid caches regenerate; failures retry.
+- Unit coverage checks caching/concurrency, corruption recovery, failed generation retry and access
+  for every catalog topic. The cache can be regenerated on a fresh installation.
+- TypeScript, unit suite and production build passed. Live phone light/dark checks verified theory
+  on practiced and prerequisite-locked topics, cached reload, invalid-topic 404 and unchanged scores,
+  progress states and sessions. Screenshots: `~/snap/chromium/common/shots/topic-theory-*.png`.
+  Deployed via `french-tutor.service`; temporary verification browser closed afterward.
+
 ## Latest update — 2026-09-06: simpler Topics page
 
 - Removed the Daily mix button and Next new topic / Worth revisiting cards from the Topics

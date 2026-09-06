@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { TheorySchema } from "./theory";
 import { z } from "zod";
 import { runStructured, getEnabledProviders } from "@/lib/ai/providers";
 import { LEARNER_CONTEXT, TOPIC_BY_ID } from "./catalog";
@@ -9,7 +10,6 @@ const bool = { type: "boolean" };
 function object(properties: Record<string, unknown>) {
   return { type: "object", additionalProperties: false, required: Object.keys(properties), properties };
 }
-const TheorySchema = z.object({ meaning: z.string().min(1).max(1000), usage: z.string().min(1).max(1000), formation: z.string().min(1).max(1500), caution: z.string().max(1000), examples: z.array(z.object({ french: z.string().min(1).max(300), english: z.string().min(1).max(300) })).min(2).max(4), teachBack: z.string().max(300) });
 const theoryJson = object({ meaning: string, usage: string, formation: string, caution: string, examples: { type: "array", minItems: 2, maxItems: 4, items: object({ french: string, english: string }) }, teachBack: string });
 const WireQuestion = z.object({ topicId: z.string(), prompt: z.string().min(1).max(1500), answer: z.string().min(1).max(800), hint: z.string().min(1).max(350), rule: z.string().min(1).max(500), tag: z.enum(ERROR_TAGS), audio: z.string().max(500) });
 const questionsJson = object({ questions: { type: "array", items: object({ topicId: string, prompt: string, answer: string, hint: string, rule: string, tag: { type: "string", enum: ERROR_TAGS }, audio: string }) } });

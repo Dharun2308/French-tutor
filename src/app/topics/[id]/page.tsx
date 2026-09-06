@@ -33,6 +33,28 @@ function TheoryCard({ theory }: { theory: Theory }) {
   </div>;
 }
 
+function TopicTheory({ topicId }: { topicId: string }) {
+  const [theory, setTheory] = useState<Theory | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    const controller = new AbortController();
+    setError(null);
+    fetch(`/api/topics/theory?id=${encodeURIComponent(topicId)}`, { signal: controller.signal, cache: "no-store" })
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error);
+        if (!controller.signal.aborted) setTheory(data.theory);
+      })
+      .catch((error) => { if (!controller.signal.aborted) setError(error instanceof Error ? error.message : "Could not load the theory."); });
+    return () => controller.abort();
+  }, [topicId, attempt]);
+  return <Card className="mt-6"><CardContent className="space-y-4 p-5">
+    <h2 className="flex items-center gap-2 text-lg font-semibold"><BookOpen className="h-5 w-5" />Theory</h2>
+    {theory ? <TheoryCard theory={theory} /> : error ? <div role="alert" className="space-y-3 text-sm"><p>{error}</p><Button variant="outline" onClick={() => setAttempt((value) => value + 1)}>Retry theory</Button></div> : <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Loading theory…</p>}
+  </CardContent></Card>;
+}
+
 export default function TopicPage() {
   const { id } = useParams<{ id: string }>();
   const [detail, setDetail] = useState<Detail | null>(null);
@@ -105,10 +127,8 @@ export default function TopicPage() {
       {detail ? <>
         <p className="mb-4 text-sm text-muted-foreground">{STATE_LABELS[detail.state]} · {detail.coverage === "practiced" ? "Previously practiced" : detail.coverage === "partial" ? "Partly covered" : detail.coverage === "later" ? "Later on your roadmap" : "Not systematically studied yet"}</p>
         <div className="mb-5 grid grid-cols-2 gap-2 text-sm">
-          <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Theory</p><p className="mt-1">{detail.theoryUnderstood ? "Understood · self-reported" : detail.coverage === "practiced" ? "Covered · imported history" : "Not confirmed"}</p></div>
           <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Controlled accuracy</p><p className="mt-1">{detail.controlled.total ? `${detail.controlled.correct}/${detail.controlled.total} · ${detail.controlled.percent}%` : "Not assessed here"}</p></div>
           <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Independent production</p><p className="mt-1">{detail.production.total ? `${detail.production.correct}/${detail.production.total} · ${detail.production.percent}%` : "Not assessed here"}</p></div>
-          <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Speaking / automaticity</p><p className="mt-1">{detail.oral ? `${detail.oral} spoken practice prompts` : "Not assessed"}</p></div>
         </div>
         {detail.production.total > 0 && <p className="mb-4 text-xs text-muted-foreground">Accuracy uses up to 20 recent questions. Hinted or revealed answers do not count as independent successes. Ungraded answers are excluded.</p>}
         {!!detail.errors.length && <p className="mb-4 text-sm text-muted-foreground">Focus on: {detail.errors.slice(0, 3).map((e) => e.tag.toLowerCase().replaceAll("_", " ")).join(", ")}.</p>}
@@ -116,10 +136,10 @@ export default function TopicPage() {
         <div className="flex flex-col gap-2">
           <Button disabled={busy || !detail.ready} onClick={() => start()}>{detail.state === "NOT_STARTED" ? "Learn this topic" : "Continue practice"}</Button>
           {detail.state !== "NOT_STARTED" && <Button variant="outline" disabled={busy} onClick={() => start("revisit")}>Check what I remember</Button>}
-          <Button variant="outline" disabled={busy || !detail.ready} onClick={() => start("theory")}><BookOpen className="h-4 w-4" />Explain the rule</Button>
           {oralReady && <Button variant="outline" disabled={busy} onClick={() => start("oral")}>Practice speaking</Button>}
         </div>
         {detail.dueAt && <p className="mt-3 text-xs text-muted-foreground">{new Date(detail.dueAt).getTime() <= Date.now() ? "Review due now" : `Next review: ${new Date(detail.dueAt).toLocaleDateString()}`}</p>}
+        <TopicTheory key={id} topicId={id} />
       </> : <Card><CardContent className="space-y-4 p-5"><p className="text-sm">Ten prompts mixing old rules, your current work, unpredictable translation and speaking. You decide which grammar fits.</p><Button disabled={busy} onClick={() => start("mixed")}>Start daily mix</Button></CardContent></Card>}
     </> : session.stage === "theory" && session.theory ? <Card><CardContent className="space-y-5 p-5">
       <TheoryCard theory={session.theory} />
