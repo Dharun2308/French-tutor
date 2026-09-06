@@ -5,13 +5,11 @@ import { useEffect, useState } from "react";
 import {
   AlertCircle,
   ArrowRight,
-  BookOpen,
   Camera,
   CalendarDays,
   Clock3,
   Ear,
   Hash,
-  ListChecks,
   MessageSquare,
   BarChart3,
   Sparkles,
@@ -32,9 +30,7 @@ const PRACTICE_LINKS = [
   { href: "/practice/smart", title: "Smart session", detail: "Mixed review", icon: Zap },
   { href: "/practice/sentence", title: "Sentence builder", detail: "Produce full French", icon: MessageSquare },
   { href: "/practice/phrases", title: "Foundations", detail: "Everyday phrases", icon: Hash },
-  { href: "/practice/drill", title: "Verb drill", detail: "Type conjugations", icon: BookOpen },
   { href: "/practice/flashcards", title: "Verb cards", detail: "Reveal and rate", icon: Sparkles },
-  { href: "/practice/multiple-choice", title: "Quick choice", detail: "Recognise forms", icon: ListChecks },
 ] as const;
 
 const PERSONAL_LINKS = [
@@ -152,7 +148,7 @@ export default function DashboardPage() {
             <p className="text-xs text-muted-foreground">Short drills when you want them.</p>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-2">
           {PRACTICE_LINKS.map(({ href, title, detail, icon: Icon }) => (
             <Link key={href} href={href} className="group rounded-lg border bg-card p-3 transition-colors hover:border-primary/50 hover:bg-accent/30">
               <Icon className="mb-2 h-4 w-4 text-muted-foreground group-hover:text-foreground" />

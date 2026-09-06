@@ -1,5 +1,23 @@
 # French Tutor — handoff for the next agent (Codex)
 
+## Latest update — 2026-09-06: Notes editor and dashboard pruning
+
+- Removed Quick choice and Verb drill links from the home dashboard. Added Notes
+  in the top navigation. Existing practice routes and automatic targeting remain.
+- `/notes` is a live Google Docs text editor for the two italki files and a new
+  Personal French Notes Doc created through its button after write authorization.
+  Paragraph edits preserve unchanged text runs; writes use Google revision control
+  to reject concurrent changes. Drafts stay on screen after errors/conflicts.
+- Current Google credentials remain read-only. Consent upgrade is prepared in
+  `scripts/connect-google-docs-editor.py` (begin/finish); account/scopes are verified
+  before installation. No live write or personal document creation has happened yet.
+- Tests: six editor behavior tests, six existing sync tests, JS suite and build
+  passed. Live private reads and phone light/dark checks passed; save/append/conflict
+  and creation UI were tested with simulated responses, never tutor-document writes.
+- See `docs/google-docs-editor.md` for limits and recovery. Weekly imports still
+  cover only the two tutor documents. Google OAuth publishing status also remains
+  unconfirmed; the previous Audience question has not been answered.
+
 ## Latest update — 2026-09-06: prune Weak French navigation
 
 - Removed Weak French from the top navigation at the owner's request. The existing
