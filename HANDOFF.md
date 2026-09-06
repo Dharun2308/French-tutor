@@ -8,12 +8,17 @@
   Personal French Notes Doc created through its button after write authorization.
   Paragraph edits preserve unchanged text runs; writes use Google revision control
   to reject concurrent changes. Drafts stay on screen after errors/conflicts.
-- Current Google credentials remain read-only. Consent upgrade is prepared in
-  `scripts/connect-google-docs-editor.py` (begin/finish); account/scopes are verified
-  before installation. No live write or personal document creation has happened yet.
+- Google Docs write consent completed for the primary account; Gmail/Calendar grants
+  preserved. Account/scopes verified before token replacement; previous token backed up.
+- Personal French Notes created and connected (ID stored privately in
+  `~/.hermes/french-personal-notes.json`). Live app API tests passed for creation reuse,
+  appending, paragraph edits with French accents, and stale-revision rejection. The new
+  document contains only the heading "Mes notes personnelles de français". Tutor source
+  documents were read to verify editing availability and were not modified by testing.
 - Tests: six editor behavior tests, six existing sync tests, JS suite and build
   passed. Live private reads and phone light/dark checks passed; save/append/conflict
-  and creation UI were tested with simulated responses, never tutor-document writes.
+  and creation UI were tested with simulated responses, followed by live save verification
+  using only the new personal document. All three files are now available in Notes.
 - See `docs/google-docs-editor.md` for limits and recovery. Weekly imports still
   cover only the two tutor documents. Google OAuth publishing status also remains
   unconfirmed; the previous Audience question has not been answered.

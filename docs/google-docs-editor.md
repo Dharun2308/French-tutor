@@ -39,7 +39,7 @@ to avoid racing the weekly worker's token-file writes.
 
 ## Connection
 
-Existing access is read-only until the owner completes this consent upgrade:
+Write access was connected September 6, 2026. If reauthorization is needed:
 
 ```
 ~/.hermes/hermes-agent/venv/bin/python scripts/connect-google-docs-editor.py begin
@@ -67,4 +67,8 @@ Existing JS tests, Python weekly-sync tests and production build also pass.
 Live reads of both tutor documents passed. Phone light/dark browser checks covered
 the dashboard removal, Notes navigation, live read-only display, and simulated
 edit/append/conflict/personal creation flows without modifying the tutor documents.
-Live write verification remains pending owner consent.
+After owner consent, live app API checks passed for personal document creation and
+reuse, appending, editing accented French, and rejecting an outdated revision. The
+new document contains only "Mes notes personnelles de français". Both tutor files
+load with editing enabled; testing never changed their content. All three files are
+connected. The previous primary token was backed up before the verified replacement.
