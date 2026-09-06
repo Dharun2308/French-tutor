@@ -33,7 +33,14 @@ def paragraphs(contents):
     for element in contents:
         paragraph = element.get("paragraph")
         if paragraph:
-            text = "".join(part.get("textRun", {}).get("content", "") for part in paragraph.get("elements", []))
+            parts = []
+            for element in paragraph.get("elements", []):
+                run = element.get("textRun", {})
+                content = run.get("content", "")
+                if content.strip() and run.get("textStyle", {}).get("strikethrough"):
+                    content = f" [crossed out: {content.strip()}] "
+                parts.append(content)
+            text = "".join(parts)
             text = unicodedata.normalize("NFC", text).strip()
             if text:
                 yield text

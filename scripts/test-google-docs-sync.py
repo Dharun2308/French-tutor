@@ -60,6 +60,13 @@ class SyncTests(unittest.TestCase):
         self.assertEqual(tabs[1]["paragraphs"], ["J’ai étudié le français."])
         self.assertEqual(sync.fingerprint("e\u0301cole\n"), sync.fingerprint("école"))
 
+    def test_teacher_strikethrough_preserves_correction_context(self):
+        content = [{"paragraph": {"elements": [
+            {"textRun": {"content": "à le", "textStyle": {"strikethrough": True}}},
+            {"textRun": {"content": " → au restaurant\n"}},
+        ]}}]
+        self.assertEqual(list(sync.paragraphs(content)), ["[crossed out: à le]  → au restaurant"])
+
     def test_chunks_keep_all_long_content_within_api_limit(self):
         text = "😀" * 12000
         chunks = list(sync.chunks([text]))
