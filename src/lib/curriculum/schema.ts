@@ -5,6 +5,7 @@ import type { SessionData, TopicGrade, TopicState, ErrorTag, Stage } from "./typ
 export const topicProgress = sqliteTable("topic_progress", {
   topicId: text("topic_id").primaryKey(),
   state: text("state").$type<TopicState>().notNull(),
+  manualDone: integer("manual_done", { mode: "boolean" }).notNull().default(false),
   theoryUnderstood: integer("theory_understood", { mode: "boolean" }).notNull().default(false),
   teachBack: text("teach_back"),
   maintenanceStep: integer("maintenance_step").notNull().default(0),

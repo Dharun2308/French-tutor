@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Headphones, Search } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Headphones, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { STATE_LABELS, type Topic, type TopicState } from "@/lib/curriculum/types";
@@ -11,12 +11,13 @@ interface Metric { total: number; correct: number; percent: number | null }
 interface TopicView extends Topic {
   state: TopicState; theoryUnderstood: boolean; production: Metric; controlled: Metric; mixed: Metric;
   oral: number; due: boolean; ready: boolean; sessionId: string | null;
+  manualDone: boolean;
   errors: { tag: string; misses: number; weight: number }[];
 }
 interface Overview { topics: TopicView[] }
 
 function topicColour(topic: TopicView) {
-  if (topic.coverage === "practiced" || topic.production.total > 0 || topic.mixed.total > 0 || ["85_PERCENT_REACHED", "MAINTENANCE", "AUTOMATIC"].includes(topic.state)) {
+  if (topic.manualDone || topic.coverage === "practiced" || topic.production.total > 0 || topic.mixed.total > 0 || ["85_PERCENT_REACHED", "MAINTENANCE", "AUTOMATIC"].includes(topic.state)) {
     return { surface: "border-l-emerald-500 bg-emerald-50/80 hover:bg-emerald-100/80 dark:bg-emerald-950/30 dark:hover:bg-emerald-950/50", text: "text-emerald-900 dark:text-emerald-200" };
   }
   if (topic.state === "NOT_STARTED") {
@@ -35,7 +36,7 @@ export default function TopicsPage() {
   if (!data) return <main className="container max-w-3xl py-8">{error ? <><p>{error}</p><Button className="mt-3" onClick={load}>Retry</Button></> : <div className="h-60 animate-pulse rounded-xl bg-muted" />}</main>;
   const groups = ["Grammar", "Needs review", "Pronunciation & listening", "Communication", ...new Set(data.topics.filter((t) => t.kind === "grammar").map((t) => t.group))];
   const filtered = data.topics.filter((t) => {
-    const matches = group === "Grammar" ? t.kind === "grammar" : group === "Needs review" ? t.due || t.state === "REVISIT_REQUIRED" : t.group === group;
+    const matches = group === "Grammar" ? t.kind === "grammar" : group === "Needs review" ? !t.manualDone && (t.due || t.state === "REVISIT_REQUIRED") : t.group === group;
     return matches && `${t.title} ${t.notes} ${t.group}`.toLowerCase().includes(query.toLowerCase());
   });
   const grouped = [...new Set(filtered.map((t) => t.group))];
@@ -48,13 +49,13 @@ export default function TopicsPage() {
       <select aria-label="Topic family" className="h-10 rounded-md border bg-background px-3 text-sm" value={group} onChange={(e) => setGroup(e.target.value)}>{groups.map((g) => <option key={g}>{g}</option>)}</select>
     </div>
     <div aria-label="Topic colour key" className="mb-5 flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
-      <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />Practiced</span>
+      <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />Practiced / marked done</span>
       <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-amber-500" />Partly covered / in progress</span>
       <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-rose-500" />Not started</span>
     </div>
     {grouped.map((g) => <section key={g} className="mb-6"><h2 className="mb-2 text-sm font-semibold">{g}</h2><div className="divide-y overflow-hidden rounded-xl border">
       {filtered.filter((t) => t.group === g).map((t) => <Link key={t.id} href={`/topics/${t.id}`} className={`flex items-center justify-between gap-3 border-l-4 p-3 transition-colors ${topicColour(t).surface}`}>
-        <div className="min-w-0"><p className={`text-sm font-medium ${topicColour(t).text}`}>{t.title}</p><p className="mt-1 text-xs text-muted-foreground">{t.sessionId ? "In progress" : t.due ? "Review due" : STATE_LABELS[t.state]}{t.coverage === "practiced" && !t.production.total ? " · previously practiced" : ""}{t.coverage === "partial" && !t.controlled.total ? " · partly covered" : ""}{!t.ready ? " · prerequisites first" : ""}</p></div>
+        <div className="min-w-0"><p className={`text-sm font-medium ${topicColour(t).text}`}>{t.title}</p><p className="mt-1 text-xs text-muted-foreground">{t.manualDone ? <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400"><CheckCircle2 className="h-3 w-3" />Done</span> : <>{t.sessionId ? "In progress" : t.due ? "Review due" : STATE_LABELS[t.state]}{t.coverage === "practiced" && !t.production.total ? " · previously practiced" : ""}{t.coverage === "partial" && !t.controlled.total ? " · partly covered" : ""}{!t.ready ? " · prerequisites first" : ""}</>}</p></div>
         <span className="shrink-0 text-xs text-muted-foreground">{t.production.total ? `${t.production.percent}% · ${t.production.total} attempts` : <ArrowRight className="h-4 w-4" />}</span>
       </Link>)}
     </div></section>)}

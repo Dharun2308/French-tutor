@@ -1,0 +1,1 @@
+ALTER TABLE topic_progress ADD COLUMN manual_done INTEGER NOT NULL DEFAULT 0;

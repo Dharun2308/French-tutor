@@ -16,13 +16,27 @@ async function ensureProgress() {
   await db.insert(topicProgress).values(TOPICS.map((topic) => ({ topicId: topic.id, state: initialState(topic) }))).onConflictDoNothing();
 }
 
+function foundationReady(progress?: { state: TopicState; manualDone: boolean }) {
+  return Boolean(progress && (progress.manualDone || prerequisiteReady(progress.state)));
+}
+
+export async function setTopicCompletion(topicId: string, manualDone: boolean) {
+  if (!TOPIC_BY_ID.has(topicId)) throw new TopicNotFound("Topic not found.");
+  await ensureProgress();
+  await db.update(topicProgress).set({ manualDone }).where(eq(topicProgress.topicId, topicId));
+  const all = await db.select().from(topicProgress);
+  const progress = all.find(row => row.topicId === topicId)!;
+  const ready = progress.manualDone || progress.state !== "NOT_STARTED" || TOPIC_BY_ID.get(topicId)!.prerequisites.every(id => foundationReady(all.find(row => row.topicId === id)));
+  return { topicId, manualDone: progress.manualDone, ready };
+}
+
 export async function curriculumOverview() {
   await ensureProgress();
   const [progress, attempts, errors, sessions] = await Promise.all([
     db.select().from(topicProgress), db.select().from(topicAttempts).orderBy(desc(topicAttempts.at), desc(topicAttempts.id)),
     db.select().from(topicErrors), db.select().from(topicSessions).where(eq(topicSessions.active, true)).orderBy(desc(topicSessions.createdAt)),
   ]);
-  const states = new Map(progress.map((p) => [p.topicId, p.state]));
+  const states = new Map(progress.map((p) => [p.topicId, p]));
   const topics = TOPICS.map((topic) => {
     const p = progress.find((row) => row.topicId === topic.id)!;
     const rows = attempts.filter((a) => a.topicId === topic.id);
@@ -36,14 +50,14 @@ export async function curriculumOverview() {
       oral: rows.filter((a) => a.stage === "oral" && a.spoken).length,
       errors: topicErrorRows,
       due: Boolean((p.dueAt && p.dueAt <= new Date()) || topicErrorRows.some((e) => e.reviewAt && e.reviewAt <= new Date())),
-      ready: p.state !== "NOT_STARTED" || topic.prerequisites.every((id) => prerequisiteReady(states.get(id) ?? "NOT_STARTED")),
+      ready: p.manualDone || p.state !== "NOT_STARTED" || topic.prerequisites.every((id) => foundationReady(states.get(id))),
       sessionId: sessions.find((s) => s.topicId === topic.id)?.id ?? null,
     };
   });
-  const review = topics.filter((t) => t.due || t.state === "REVISIT_REQUIRED").sort((a, b) => b.priority - a.priority)[0];
-  const next = topics.filter((t) => t.kind === "grammar" && t.coverage === "new" && !prerequisiteReady(t.state) && t.ready)
+  const review = topics.filter((t) => !t.manualDone && (t.due || t.state === "REVISIT_REQUIRED")).sort((a, b) => b.priority - a.priority)[0];
+  const next = topics.filter((t) => !t.manualDone && t.kind === "grammar" && t.coverage === "new" && !prerequisiteReady(t.state) && t.ready)
     .sort((a, b) => Number(b.state !== "NOT_STARTED") - Number(a.state !== "NOT_STARTED") || b.priority - a.priority)[0];
-  return { topics, recommendedReview: review?.id ?? "article-negation", recommendedNew: next?.id ?? null,
+  return { topics, recommendedReview: review?.id ?? null, recommendedNew: next?.id ?? null,
     mixedSessionId: sessions.find((s) => s.topicId === "mixed")?.id ?? null };
 }
 
@@ -113,9 +127,9 @@ export async function startTopicSession(topicId: string, mode: SessionData["mode
       return publicSession(existing);
     }
     const [progress] = await db.select().from(topicProgress).where(eq(topicProgress.topicId, topicId));
-    if (topic?.prerequisites.length && progress?.state === "NOT_STARTED") {
+    if (topic?.prerequisites.length && progress?.state === "NOT_STARTED" && !progress.manualDone) {
       const all = await db.select().from(topicProgress);
-      const missing = topic.prerequisites.filter((id) => !prerequisiteReady(all.find((p) => p.topicId === id)?.state ?? "NOT_STARTED"));
+      const missing = topic.prerequisites.filter((id) => !foundationReady(all.find((p) => p.topicId === id)));
       if (missing.length) throw new Error(`First build accuracy in: ${missing.map((id) => TOPIC_BY_ID.get(id)?.title).join(", ")}.`);
     }
     const history = await db.select().from(topicSessions).where(eq(topicSessions.topicId, topicId)).orderBy(desc(topicSessions.createdAt)).limit(3);

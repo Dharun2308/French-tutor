@@ -4,7 +4,7 @@ import { equivalentTopicAnswers } from "@/lib/curriculum/answer-equivalence";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, BookOpen, Ear, Loader2 } from "lucide-react";
+import { ArrowLeft, BookOpen, CheckCircle2, Circle, Ear, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FrenchInput } from "@/components/french-input";
@@ -16,6 +16,7 @@ import { STATE_LABELS, type Topic, type TopicState, type Theory, type Stage, typ
 interface Metric { total: number; correct: number; percent: number | null }
 interface Detail extends Topic {
   state: TopicState; ready: boolean; theoryUnderstood: boolean; dueAt: string | null;
+  manualDone: boolean;
   controlled: Metric; production: Metric; mixed: Metric; oral: number; sessionId: string | null;
   errors: { tag: string; misses: number; weight: number }[];
 }
@@ -62,6 +63,8 @@ export default function TopicPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [marking, setMarking] = useState(false);
+  const [statusError, setStatusError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [conflict, setConflict] = useState(false);
   const [refreshOpen, setRefreshOpen] = useState(true);
@@ -87,7 +90,7 @@ export default function TopicPage() {
     } else { setSession((current) => current?.completed ? current : null); }
     setLoaded(true);
   };
-  useEffect(() => { setLoaded(false); setSession(null); setDetail(null); setError(null); load().catch((e) => setError(e.message));
+  useEffect(() => { setLoaded(false); setSession(null); setDetail(null); setError(null); setStatusError(null); load().catch((e) => setError(e.message));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
   useEffect(() => { setAnswer(""); setSpoken(false); started.current = Date.now(); }, [session?.question?.id]);
@@ -114,6 +117,18 @@ export default function TopicPage() {
     finally { locked.current = false; setBusy(false); }
   };
   const start = (sessionMode: SessionData["mode"] = "learn") => call("start", { topicId: id, mode: sessionMode });
+  const toggleDone = async () => {
+    if (!detail || locked.current) return;
+    locked.current = true; setBusy(true); setMarking(true); setStatusError(null);
+    try {
+      const response = await fetch("/api/topics", { method: "PATCH", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ topicId: id, manualDone: !detail.manualDone }) });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+      setDetail(current => current?.id === id ? { ...current, manualDone: result.manualDone, ready: result.ready } : current);
+    } catch (error) { setStatusError((error as Error).message); }
+    finally { locked.current = false; setBusy(false); setMarking(false); }
+  };
   const check = (reveal = false) => call(reveal ? "reveal" : "answer", { answer, spoken, elapsedMs: Math.max(0, Math.min(3_600_000, Date.now() - started.current)) });
   const title = id === "mixed" ? "Daily mix" : detail?.title ?? "Topic";
   const oralReady = detail && ["85_PERCENT_REACHED", "MAINTENANCE", "AUTOMATIC"].includes(detail.state);
@@ -122,6 +137,16 @@ export default function TopicPage() {
   return <main className="container max-w-2xl py-7">
     <Link href="/topics" className="mb-5 inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" />Topics</Link>
     <h1 className="mb-4 text-2xl font-semibold">{title}</h1>
+    {loaded && detail && <div className="mb-5 rounded-lg border p-3" aria-label="Topic completion">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <span role="status" className={`inline-flex items-center gap-2 text-sm font-medium ${detail.manualDone ? "text-emerald-700 dark:text-emerald-400" : "text-muted-foreground"}`}>
+          {detail.manualDone ? <CheckCircle2 className="h-4 w-4" /> : <Circle className="h-4 w-4" />}{detail.manualDone ? "Done" : "Unfinished"}
+        </span>
+        <Button variant="outline" size="sm" disabled={busy} onClick={toggleDone}>{marking && <Loader2 className="h-4 w-4 animate-spin" />}{detail.manualDone ? "Mark as unfinished" : "Mark as done"}</Button>
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">Mark done when you know the rule. Your practice scores stay as they are.</p>
+      {statusError && <p role="alert" className="mt-2 text-sm text-destructive">{statusError}</p>}
+    </div>}
     {errorBlock}
     {!loaded ? !error && <div className="h-60 animate-pulse rounded-xl bg-muted" /> : !session || session.completed ? <>
       {session?.result && <div className="mb-5 rounded-xl border border-primary/30 bg-primary/5 p-4 text-sm leading-relaxed">{session.result}</div>}
@@ -139,7 +164,7 @@ export default function TopicPage() {
           {detail.state !== "NOT_STARTED" && <Button variant="outline" disabled={busy} onClick={() => start("revisit")}>Check what I remember</Button>}
           {oralReady && <Button variant="outline" disabled={busy} onClick={() => start("oral")}>Practice speaking</Button>}
         </div>
-        {detail.dueAt && <p className="mt-3 text-xs text-muted-foreground">{new Date(detail.dueAt).getTime() <= Date.now() ? "Review due now" : `Next review: ${new Date(detail.dueAt).toLocaleDateString()}`}</p>}
+        {!detail.manualDone && detail.dueAt && <p className="mt-3 text-xs text-muted-foreground">{new Date(detail.dueAt).getTime() <= Date.now() ? "Review due now" : `Next review: ${new Date(detail.dueAt).toLocaleDateString()}`}</p>}
         <TopicTheory key={id} topicId={id} />
       </> : <Card><CardContent className="space-y-4 p-5"><p className="text-sm">Ten prompts mixing old rules, your current work, unpredictable translation and speaking. You decide which grammar fits.</p><Button disabled={busy} onClick={() => start("mixed")}>Start daily mix</Button></CardContent></Card>}
     </> : session.stage === "theory" && session.theory ? <Card><CardContent className="space-y-5 p-5">
@@ -171,7 +196,7 @@ export default function TopicPage() {
       </CardContent></Card>
       <Button variant="ghost" className="mt-3 text-xs" disabled={busy} onClick={() => call("leave")}>End this session</Button>
     </> : null}
-    {busy && <p role="status" className="mt-4 flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />{session?.feedback ? "Preparing the next question…" : "Working on your lesson…"}</p>}
+    {busy && <p role="status" className="mt-4 flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />{marking ? "Saving topic status…" : session?.feedback ? "Preparing the next question…" : "Working on your lesson…"}</p>}
     {session?.provider && <p className="mt-5 text-xs text-muted-foreground">Lesson: {session.provider === "codex" ? "Codex" : session.provider === "claude" ? "Claude" : session.provider === "openai" ? "OpenAI API" : session.provider}{session.feedback ? ` · Checked by ${session.feedback.provider}` : ""}</p>}
   </main>;
 }

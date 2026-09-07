@@ -1,5 +1,27 @@
 # French Tutor — handoff for the next agent (Codex)
 
+## Latest update — 2026-09-07: manual Done / Unfinished for topics
+
+- Added a persistent manual completion control to every topic, including active
+  practice screens. Marking a known rule done does not require finishing exercises
+  containing unfamiliar words/verbs. It preserves the typed answer and saved lesson.
+- Done appears on the Topics list, suppresses Needs review/recommendations, and
+  can satisfy prerequisites for later topics. Unfinished restores ordinary eligibility.
+  Measured scores, states, attempts, error history and sessions are not changed;
+  the marker does not award assessed mastery. Mixed practice behavior is unchanged.
+- Additive migration: topic_progress.manual_done, default false. Existing
+  scripts/migrate-topics.ts checks for the column before applying. Never db:push.
+- Disposable-DB tests passed for migration repeatability, every topic, invalid
+  requests, history preservation and prerequisite unlock/relock. TypeScript and
+  existing tests passed. Details: docs/topic-completion.md.
+- Production build passed and deployed after backing up SQLite to an ignored
+  `local.db.before-manual-done-*` file (0600). Migration comparison verified all
+  existing table data unchanged; only the new default-false completion field was added.
+- Live Topics API verified all 112 topics. Phone light/dark checks passed for active
+  session/overview controls, typed-answer preservation, list badge, reload, reversible
+  status and failed-save handling. Browser writes were simulated, so no topic was
+  marked done on the owner's behalf. Temporary verification browser is closed.
+
 ## Latest update — 2026-09-06: less repetitive Focus practice
 
 - New Focus plans give successful production/listening items a 24-hour cooldown;

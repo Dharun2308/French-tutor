@@ -14,6 +14,9 @@ export async function migrateTopics(url: string) {
     if (!columns.rows.some((r) => r.name === "needs_theory")) {
       statements.push(...readFileSync("scripts/migrate-2026-09-05-topics-review-state.sql", "utf8").split(";").filter((s) => s.trim()));
     }
+    if (!columns.rows.some((r) => r.name === "manual_done")) {
+      statements.push(readFileSync("scripts/migrate-2026-09-06-topic-completion.sql", "utf8").trim());
+    }
     if (statements.length) await client.batch(statements, "write");
   } finally { client.close(); }
 }
