@@ -1,5 +1,27 @@
 # French Tutor — handoff for the next agent (Codex)
 
+## Latest update — 2026-09-06: less repetitive Focus practice
+
+- New Focus plans give successful production/listening items a 24-hour cooldown;
+  later misses clear it. All buckets respect cooldown, with shorter sessions and
+  an All caught up screen when needed. FSRS schedules and scores are unchanged.
+- Up to three repeated correction/weekly/weak production targets get fresh A2
+  contexts via the configured provider chain. Live Codex/gpt-5.6-sol generation
+  verified using a disposable DB. Exact repeats and prefix-only grammar rewrites
+  are rejected; the generator sees the latest twenty variations for each target.
+- Contexts are generated on reaching the card, persisted in item_variations and
+  referenced in plan_json. Grading uses variationId, while reviews stay attached
+  to the original item. In-flight deduplication and atomic plan comparisons keep
+  resume/concurrent loading stable. Labelled original-card fallbacks survive reload.
+- Existing open plans remain stable. Start a fresh session abandons the old plan
+  without changing ratings and applies the new selection immediately. Generation
+  time pauses the ten-minute timer. No database migration or production test reviews.
+- Plan unit tests, disposable-DB integration, TypeScript and production build
+  passed. Details and limitations: `docs/focus-practice.md`.
+- Deployed phone light/dark checks passed for generation/timer, variation grading,
+  saved fallback, short sessions, completion and restart. Browser reviews were
+  simulated; the temporary browser is closed. No live learner ratings were written.
+
 ## Latest update — 2026-09-06: optional final periods in topic answers
 
 - Fixed the reported answer "Elle ne mange pas de soupe" being marked as a minor

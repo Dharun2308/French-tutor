@@ -8,16 +8,37 @@ export interface FocusPlanEntry {
   itemId: number;
   direction: "production" | "listening";
   source: "due" | "weak" | "weekly" | "listening" | "correction" | "backfill";
+  freshContext?: boolean;
+  variationId?: number;
+  variationUnavailable?: boolean;
 }
 
-/** Twelve unique cards; weekly phrases occupy the three targeted production slots. */
+export const FOCUS_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+
+/** Latest production/listening rating wins: a later miss clears an earlier success. */
+export function focusCooldownIds(reviews: { itemId: number; rating: number; direction: string; ratedAt: Date }[], now = new Date()): number[] {
+  const latest = new Map<number, { rating: number; ratedAt: Date }>();
+  for (const review of reviews) {
+    if (review.direction !== "production" && review.direction !== "listening") continue;
+    if (review.ratedAt.getTime() > now.getTime() || now.getTime() - review.ratedAt.getTime() >= FOCUS_COOLDOWN_MS) continue;
+    const previous = latest.get(review.itemId);
+    // At the same timestamp, a miss takes precedence over a success.
+    if (!previous || review.ratedAt > previous.ratedAt || (review.ratedAt.getTime() === previous.ratedAt.getTime() && review.rating < previous.rating)) latest.set(review.itemId, review);
+  }
+  return [...latest].filter(([, review]) => review.rating >= 2).map(([id]) => id);
+}
+
+/** Up to twelve unique eligible cards; never backfill from the success cooldown. */
 export function buildFocusPlan(
   items: FocusCandidate[],
   weakIds: number[],
   correctionIds: number[],
   now = new Date(),
-  weeklyIds: number[] = []
+  weeklyIds: number[] = [],
+  cooldownIds: number[] = []
 ): FocusPlanEntry[] {
+  const cooling = new Set(cooldownIds);
+  items = items.filter(item => !cooling.has(item.id));
   const allowed = new Set(items.map((i) => i.id));
   const used = new Set<number>();
   const buckets: FocusPlanEntry[][] = [];

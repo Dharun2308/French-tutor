@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildFocusPlan } from "../src/lib/items/focus-plan";
+import { buildFocusPlan, focusCooldownIds, FOCUS_COOLDOWN_MS } from "../src/lib/items/focus-plan";
 
 const now = new Date("2026-09-02T12:00:00Z");
 const items = Array.from({ length: 14 }, (_, i) => ({
@@ -8,6 +8,29 @@ const items = Array.from({ length: 14 }, (_, i) => ({
   dueAt: new Date(now.getTime() - (i + 1) * 1_000),
   priority: 5 - (i % 5),
 }));
+
+test("recent successes are excluded from every bucket, even when due or pinned weekly", () => {
+  const cooling = [1, 2, 3, 4, 5, 6, 7, 8];
+  const plan = buildFocusPlan(items, items.map(i => i.id), [1, 9], now, [2, 3, 10], cooling);
+  assert.equal(plan.length, 6, "shorten rather than force repeats");
+  assert.ok(plan.every(entry => !cooling.includes(entry.itemId)));
+  assert.deepEqual(buildFocusPlan(items, [1], [2], now, [3], items.map(i => i.id)), []);
+});
+
+test("a later miss clears cooldown, recognition does not suppress production, and cooldown expires", () => {
+  const at = (offset: number) => new Date(now.getTime() - offset);
+  const reviews = [
+    { itemId: 1, rating: 2, direction: "production", ratedAt: at(1000) },
+    { itemId: 1, rating: 0, direction: "listening", ratedAt: at(500) },
+    { itemId: 2, rating: 3, direction: "recognition", ratedAt: at(500) },
+    { itemId: 3, rating: 2, direction: "production", ratedAt: at(FOCUS_COOLDOWN_MS) },
+    { itemId: 4, rating: 3, direction: "listening", ratedAt: at(500) },
+    { itemId: 5, rating: 2, direction: "production", ratedAt: at(1000) },
+    { itemId: 5, rating: 1, direction: "production", ratedAt: at(1000) },
+  ];
+  assert.deepEqual(focusCooldownIds(reviews, now), [4]);
+  assert.deepEqual(focusCooldownIds([...reviews].reverse(), now), [4]);
+});
 
 test("focus plan uses the requested whole-card mix when evidence is available", () => {
   const plan = buildFocusPlan(items, [3, 4, 5, 6, 7, 8, 9], [1, 2], now);

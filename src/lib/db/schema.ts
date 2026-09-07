@@ -492,7 +492,7 @@ export const focusSessions = sqliteTable("focus_sessions", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   startedAt: integer("started_at", { mode: "timestamp_ms" }).notNull().default(sql`(unixepoch() * 1000)`),
   endedAt: integer("ended_at", { mode: "timestamp_ms" }),
-  plan: text("plan_json", { mode: "json" }).$type<Array<{ itemId: number; direction: "production" | "listening"; source: string }>>().notNull().default(sql`'[]'`),
+  plan: text("plan_json", { mode: "json" }).$type<Array<{ itemId: number; direction: "production" | "listening"; source: string; freshContext?: boolean; variationId?: number; variationUnavailable?: boolean }>>().notNull().default(sql`'[]'`),
   currentIndex: integer("current_index").notNull().default(0),
   status: text("status").notNull().default("active"),
 });
