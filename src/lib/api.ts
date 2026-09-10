@@ -29,7 +29,7 @@ export async function getSettings() {
       "phrase",
     ],
     timezone: "UTC",
-  });
+  }).onConflictDoNothing({ target: settings.id });
   const fresh = await db.select().from(settings).where(eq(settings.id, 1)).limit(1);
   return fresh[0];
 }

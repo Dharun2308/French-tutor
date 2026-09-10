@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   AlertCircle,
-  ArrowRight,
   Camera,
   CalendarDays,
   Clock3,
@@ -27,14 +26,15 @@ interface Stats {
 }
 
 const PRACTICE_LINKS = [
-  { href: "/practice/smart", title: "Smart session", detail: "Mixed review", icon: Zap },
   { href: "/practice/sentence", title: "Sentence builder", detail: "Produce full French", icon: MessageSquare },
   { href: "/practice/phrases", title: "Foundations", detail: "Everyday phrases", icon: Hash },
   { href: "/practice/flashcards", title: "Verb cards", detail: "Reveal and rate", icon: Sparkles },
 ] as const;
 
-const PERSONAL_LINKS = [
+const PRIMARY_LINKS = [
   { href: "/practice/focus", title: "10-minute focus", detail: "Weekly phrases, review & listening", icon: Clock3 },
+  { href: "/practice/smart", title: "Smart session", detail: "AI coaching that adapts to you", icon: Zap },
+  { href: "/topics", title: "Topics", detail: "Learn a rule, then put it to use", icon: Target },
   { href: "/practice/listening", title: "Listening", detail: "Hear it, then type it", icon: Ear },
   { href: "/conversation", title: "AI conversation", detail: "Quietly targets weak French", icon: MessageSquare },
   { href: "/practice/variations", title: "Fresh contexts", detail: "Same French, new situations", icon: Sparkles },
@@ -99,47 +99,22 @@ export default function DashboardPage() {
         <p className="mt-1 text-sm text-muted-foreground">Practice the French you want to use in conversation.</p>
       </header>
 
-      {hasLessonItems ? (
-        <Card className="mb-4 border-rose-500/40 bg-gradient-to-br from-rose-500/10 via-background to-background">
-          <CardHeader className="pb-3">
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-500/15">
-                <Target className="h-5 w-5 text-rose-600 dark:text-rose-400" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <CardTitle className="text-lg">This week&apos;s phrases</CardTitle>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-2 pt-0 sm:flex-row">
-            <Button asChild className="sm:flex-1">
-              <Link href="/practice/focus"><Clock3 className="h-4 w-4" />Start 10-minute focus</Link>
-            </Button>
-            <Button asChild variant="outline" className="sm:flex-1">
-              <Link href="/topics">Topics <ArrowRight className="h-4 w-4" /></Link>
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
+      {!hasLessonItems && (
         <Card className="mb-4 border-rose-500/40">
           <CardHeader>
             <CardTitle className="text-lg">Start with your lesson notes</CardTitle>
             <CardDescription>Photograph a page and approve the French worth remembering.</CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-2"><Button asChild><Link href="/import"><Camera className="h-4 w-4" />Import notes</Link></Button><Button asChild variant="outline"><Link href="/topics">Topics <ArrowRight className="h-4 w-4" /></Link></Button></CardContent>
+          <CardContent><Button asChild><Link href="/import"><Camera className="h-4 w-4" />Import notes</Link></Button></CardContent>
         </Card>
       )}
 
-      {hasLessonItems && <section className="mb-7">
+      <section className="mb-7">
         <h2 className="mb-3 text-lg font-semibold">Practice now</h2>
         <div className="grid grid-cols-2 gap-2">
-          {PERSONAL_LINKS.map(({ href, title, detail, icon: Icon }) => <Link key={href} href={href} className="group rounded-lg border bg-card p-3 transition-colors hover:border-primary/50"><Icon className="mb-2 h-5 w-5 text-rose-600"/><div className="text-sm font-medium">{title}</div><div className="text-[11px] text-muted-foreground">{detail}</div></Link>)}
+          {PRIMARY_LINKS.map(({ href, title, detail, icon: Icon }) => <Link key={href} href={href} className="group rounded-lg border bg-card p-3 transition-colors hover:border-primary/50"><Icon className="mb-2 h-5 w-5 text-rose-600"/><div className="text-sm font-medium">{title}</div><div className="text-[11px] text-muted-foreground">{detail}</div></Link>)}
         </div>
-        <div className="mt-2 grid grid-cols-2 gap-2">
-          <Button asChild variant="outline"><Link href="/progress"><BarChart3 className="h-4 w-4"/>Learning picture</Link></Button>
-          <Button asChild variant="outline"><Link href="/weekly"><CalendarDays className="h-4 w-4"/>Weekly review</Link></Button>
-        </div>
-      </section>}
+      </section>
 
       <section className="mb-7">
         <div className="mb-3 flex items-end justify-between">
@@ -148,7 +123,7 @@ export default function DashboardPage() {
             <p className="text-xs text-muted-foreground">Short drills when you want them.</p>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
           {PRACTICE_LINKS.map(({ href, title, detail, icon: Icon }) => (
             <Link key={href} href={href} className="group rounded-lg border bg-card p-3 transition-colors hover:border-primary/50 hover:bg-accent/30">
               <Icon className="mb-2 h-4 w-4 text-muted-foreground group-hover:text-foreground" />
@@ -156,6 +131,10 @@ export default function DashboardPage() {
               <div className="text-[11px] text-muted-foreground">{detail}</div>
             </Link>
           ))}
+        </div>
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <Button asChild variant="outline"><Link href="/progress"><BarChart3 className="h-4 w-4"/>Learning picture</Link></Button>
+          <Button asChild variant="outline"><Link href="/weekly"><CalendarDays className="h-4 w-4"/>Weekly review</Link></Button>
         </div>
       </section>
 

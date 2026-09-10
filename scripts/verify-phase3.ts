@@ -7,8 +7,9 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { NextRequest } from "next/server";
 import { eq } from "drizzle-orm";
+import { getSettings } from "../src/lib/api";
 import { db } from "../src/lib/db/client";
-import { errorPatterns, importBatches, itemReviews, learningItems, tutorUsageEvents } from "../src/lib/db/schema";
+import { errorPatterns, importBatches, itemReviews, learningItems, settings, tutorUsageEvents } from "../src/lib/db/schema";
 import { changeActiveItem, getActiveItems } from "../src/lib/items/active";
 import { rankWeakItems } from "../src/lib/items/weak";
 import { POST as saveTutorUsage } from "../src/app/api/tutor/usage/route";
@@ -27,8 +28,10 @@ if (!uploadsDir.startsWith("/tmp/")) {
 }
 
 async function main() {
+const sourceItems = await db.select().from(learningItems);
 const ranking = await rankWeakItems();
-assert.equal(ranking.length, 14);
+assert.equal(ranking.length, sourceItems.filter(item => !item.suspended).length);
+assert.ok(ranking.length > 10, "Fixture needs more than ten eligible items to test replacement.");
 
 let active = await getActiveItems();
 assert.equal(active.items.length, 10);
@@ -84,6 +87,9 @@ assert.equal(
   1
 );
 
+const [reviewItem] = await db.select().from(learningItems).where(eq(learningItems.id, tutorItem.id));
+const patternKey = `article:${reviewItem.grammarTopic.trim().toLocaleLowerCase() || "general"}`;
+const [priorPattern] = await db.select().from(errorPatterns).where(eq(errorPatterns.patternKey, patternKey));
 const reviewBody = {
   requestId: "00000000-0000-4000-8000-000000000013",
   itemId: tutorItem.id,
@@ -144,8 +150,8 @@ assert.equal(savedReviews.find((review) => review.requestId === reviewBody.reque
 const patternRows = await db
   .select()
   .from(errorPatterns)
-  .where(eq(errorPatterns.errorType, "article"));
-assert.equal(patternRows[0]?.totalCount, 2);
+  .where(eq(errorPatterns.patternKey, patternKey));
+assert.equal(patternRows[0]?.totalCount, (priorPattern?.totalCount ?? 0) + 2);
 
 const patternsResponse = await getErrorPatterns();
 const patternsBody = await patternsResponse.json();
@@ -196,6 +202,12 @@ const discardResponse = await patchImport(new NextRequest("http://localhost/api/
 }));
 assert.equal(discardResponse.status, 200);
 await assert.rejects(fs.access(discardDir));
+
+// Concurrent first visits must all receive the same initialized settings.
+await db.delete(settings);
+const initialSettings = await Promise.all(Array.from({ length: 8 }, () => getSettings()));
+assert.ok(initialSettings.every(row => row.id === 1));
+assert.equal((await db.select().from(settings)).length, 1);
 
 console.log(
   JSON.stringify({

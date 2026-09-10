@@ -1,8 +1,7 @@
-import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import path from "node:path";
-import { Readable } from "node:stream";
 import { audioRange } from "@/lib/audio-range";
+import { fileByteStream } from "@/lib/file-byte-stream";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,8 +24,8 @@ async function serve(request: Request, context: Context, head = false) {
   headers.set("Content-Length", String(end - start + 1));
   if (range) headers.set("Content-Range", `bytes ${start}-${end}/${info.size}`);
   if (head) return new Response(null, { headers });
-  const stream = createReadStream(file, { start, end });
-  return new Response(Readable.toWeb(stream) as ReadableStream<Uint8Array>, { status: range ? 206 : 200, headers });
+  const stream = await fileByteStream(file, start, end);
+  return new Response(stream, { status: range ? 206 : 200, headers });
 }
 export const GET = (request: Request, context: Context) => serve(request, context);
 export const HEAD = (request: Request, context: Context) => serve(request, context, true);

@@ -1,0 +1,17 @@
+[Unit]
+Description=French Tutor — SRS French practice (Next.js, loopback :8095)
+Documentation=file:/home/multi_mind/French-tutor/README.md
+After=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+WorkingDirectory=%h/French-tutor
+# -H 127.0.0.1 is deliberate: the app has no auth, Tailscale serve is the only way in.
+ExecStart=/home/multi_mind/.local/bin/node %h/French-tutor/node_modules/next/dist/bin/next start -p 8095 -H 127.0.0.1
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=default.target

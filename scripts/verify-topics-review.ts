@@ -172,7 +172,7 @@ async function main() {
   const outageMix = (await db.select().from(topicSessions).where(eq(topicSessions.id, s.id)))[0];
   s = await next(await answer(s, "outage", outage));
   s = await finish(s);
-  const outageMixAttempts = await db.select().from(topicAttempts).where(eq(topicAttempts.sessionId, s.id));
+  const outageMixAttempts = await db.select().from(topicAttempts).where(eq(topicAttempts.sessionId, s.id)).orderBy(topicAttempts.id);
   assert.equal(outageMixAttempts.filter((a) => !a.remediation).length, 11);
   assert.equal(outageMixAttempts.at(-1)!.topicId, outageMix.data.questions[0].topicId);
 

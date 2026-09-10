@@ -1,4 +1,5 @@
 "use client";
+import { useReviewSave } from "@/hooks/use-review-save";
 import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, XCircle, AlertCircle, Lightbulb } from "lucide-react";
 import { PracticeShell } from "@/components/practice-shell";
@@ -94,11 +95,12 @@ async function fetchNext(count = 15): Promise<{
 }
 
 async function submitReview(phraseId: number, rating: Rating) {
-  await fetch("/api/phrases/review", {
+  const res = await fetch("/api/phrases/review", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ phraseId, rating }),
   });
+  if (!res.ok) throw new Error(`Review failed: ${res.status}`);
 }
 
 export default function PhrasesPage() {
@@ -106,6 +108,7 @@ export default function PhrasesPage() {
   const [cards, setCards] = useState<PhraseCard[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [index, setIndex] = useState(0);
+  const { saveReview, saving, saveError } = useReviewSave();
   // Reveal mode state
   const [revealed, setRevealed] = useState(false);
   // Type mode state
@@ -131,6 +134,7 @@ export default function PhrasesPage() {
   const card = cards?.[index];
 
   const switchMode = (m: AnswerMode) => {
+    if (saving) return;
     setMode(m);
     localStorage.setItem(MODE_STORAGE_KEY, m);
     setRevealed(false);
@@ -182,11 +186,7 @@ export default function PhrasesPage() {
   // ── Reveal mode: self-rate ──
   const rate = async (rating: Rating) => {
     if (!card) return;
-    try {
-      await submitReview(card.id, rating);
-    } catch (e) {
-      console.error(e);
-    }
+    if (!await saveReview(() => submitReview(card.id, rating))) return;
     if (rating === 0) surfaceMnemonic(card); // fire-and-forget for next time
     await advance();
   };
@@ -199,28 +199,20 @@ export default function PhrasesPage() {
       card.french,
       card.repetitions
     );
+    if (!await saveReview(() => submitReview(card.id, rating))) return;
     setFeedback(fb);
     setPhase("graded");
     if (card.mnemonic) setMnemonic(card.mnemonic);
     else if (rating === 0) surfaceMnemonic(card);
-    try {
-      await submitReview(card.id, rating);
-    } catch (e) {
-      console.error(e);
-    }
   };
 
   // "I don't know" in type mode: reveal + rate Again.
   const giveUp = async () => {
     if (!card || phase !== "answering") return;
+    if (!await saveReview(() => submitReview(card.id, 0))) return;
     setFeedback("wrong");
     setPhase("graded");
     surfaceMnemonic(card);
-    try {
-      await submitReview(card.id, 0);
-    } catch (e) {
-      console.error(e);
-    }
   };
 
   useHotkeys(
@@ -300,6 +292,7 @@ export default function PhrasesPage() {
         </Button>
       </div>
 
+      {saveError && <p role="alert" className="text-sm text-destructive">{saveError}</p>}
       <Card>
         <CardContent className="space-y-6 p-8 text-center">
           <div className="flex items-center justify-center gap-2">
@@ -357,7 +350,7 @@ export default function PhrasesPage() {
                   Reveal (Space)
                 </Button>
               ) : (
-                <RateButtons onRate={rate} />
+                <RateButtons onRate={rate} disabled={saving} />
               )}
             </>
           ) : (
@@ -370,6 +363,7 @@ export default function PhrasesPage() {
                   <div className="space-y-3">
                     <Input
                       ref={inputRef}
+                      disabled={saving}
                       value={answer}
                       onChange={(e) => setAnswer(e.target.value)}
                       onKeyDown={(e) => {
@@ -391,10 +385,10 @@ export default function PhrasesPage() {
                       onChange={setAnswer}
                     />
                     <div className="flex gap-2">
-                      <Button className="flex-1" size="lg" onClick={submit}>
+                      <Button className="flex-1" size="lg" disabled={saving} onClick={submit}>
                         Check (Enter)
                       </Button>
-                      <Button variant="outline" size="lg" onClick={giveUp}>
+                      <Button variant="outline" size="lg" disabled={saving} onClick={giveUp}>
                         I don&apos;t know
                       </Button>
                     </div>

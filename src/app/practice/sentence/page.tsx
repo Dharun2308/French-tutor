@@ -1,4 +1,5 @@
 "use client";
+import { useReviewSave } from "@/hooks/use-review-save";
 import { useEffect, useRef, useState } from "react";
 import { Sparkles, Loader2, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import { PracticeShell } from "@/components/practice-shell";
@@ -53,6 +54,7 @@ export default function SentenceBuilderPage() {
     "formal" | "neutral" | "informal"
   >("neutral");
   const [index, setIndex] = useState(0);
+  const { saveReview, saving, saveError } = useReviewSave();
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Bootstrap: grab a small batch of cards to know what verbs to work with.
@@ -108,7 +110,7 @@ export default function SentenceBuilderPage() {
   }
 
   async function grade_() {
-    if (!card || !exercise || answer.trim() === "" || grading) return;
+    if (!card || !exercise || answer.trim() === "" || grading || saving) return;
     setGrading(true);
     setGrade(null);
     try {
@@ -146,13 +148,9 @@ export default function SentenceBuilderPage() {
   // "I don't know" — reveal the answers without grading, and record an Again
   // review so the SRS brings this card back soon (revealing = you didn't recall it).
   async function reveal() {
-    if (!card || grade || revealed) return;
+    if (!card || grade || revealed || grading) return;
+    if (!await saveReview(() => submitReview(card.cardId, 0))) return;
     setRevealed(true);
-    try {
-      await submitReview(card.cardId, 0);
-    } catch (e) {
-      console.error(e);
-    }
   }
 
   function nextCard() {
@@ -223,6 +221,7 @@ export default function SentenceBuilderPage() {
       current={index + 1}
       total={cards.length}
     >
+      {saveError && <p role="alert" className="text-sm text-destructive">{saveError}</p>}
       <Card>
         <CardContent className="space-y-6 p-6">
           {loadingExercise && (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Clock3, Ear, Loader2, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -54,7 +54,7 @@ export default function FocusPage() {
   }, [session?.sessionId, index, needsContext, prepareRetry]);
   useEffect(() => { fetch("/api/focus-session", { cache: "no-store" }).then(async (r) => { const d = await r.json(); if (!r.ok) throw new Error(d.error); return d; }).then((d) => { setSession(d); setIndex(Math.min(d.currentIndex, Math.max(0, d.items.length - 1))); }).catch((e) => setError(String(e))); }, []);
   useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(timer); }, []);
-  const seconds = useMemo(() => Math.max(0, 600 - Math.floor(((preparationStarted.current ?? now) - timerStarted.current) / 1000)), [now, needsContext]);
+  const seconds = Math.max(0, 600 - Math.floor(((preparationStarted.current ?? now) - timerStarted.current) / 1000));
   const check = async () => { if (busy || needsContext || !item || item.unavailable || !answer.trim()) return; const attempt = answer.trim(); setSubmittedAnswer(attempt); setError(null); setBusy(true); try { const r = await fetch("/api/ai/grade-item", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ itemId: item.itemId, attempt, variationId: item.variationId, direction: item.direction }) }); const d = await r.json(); if (!r.ok) throw new Error(d.error); setGrade(d); } catch (e) { setError(e instanceof Error ? e.message : String(e)); setGrade({ verdict: "UNGRADED", errorType: "other", corrected: item.targetFr, reason: "Compare and rate yourself.", suggestedRating: null, gradedBy: null }); } finally { setBusy(false); } };
   const reveal = () => { if (!item || needsContext || item.unavailable) return; setSubmittedAnswer(answer.trim()); setGrade({ verdict: "WRONG", corrected: item.targetFr, reason: "Review the answer, then rate it.", suggestedRating: 0, gradedBy: "local" }); };
   const rate = async (rating: Rating) => { if (!session || !session.sessionId || !item || !grade || saving.current) return; saving.current = true; setError(null); setBusy(true); requestId.current ??= createReviewRequestId(); try {

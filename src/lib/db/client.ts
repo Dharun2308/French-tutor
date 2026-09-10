@@ -14,7 +14,6 @@ function requireEnv(name: string): string {
 
 // Cache across hot reloads in dev to avoid reconnect storms.
 declare global {
-  // eslint-disable-next-line no-var
   var __dbClient: ReturnType<typeof createClient> | undefined;
 }
 

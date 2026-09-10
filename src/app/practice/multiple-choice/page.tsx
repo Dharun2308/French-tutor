@@ -1,4 +1,5 @@
 "use client";
+import { useReviewSave } from "@/hooks/use-review-save";
 import { useEffect, useState } from "react";
 import { PracticeShell } from "@/components/practice-shell";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,6 +18,7 @@ export default function MultipleChoicePage() {
   const [cards, setCards] = useState<PracticeCard[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [index, setIndex] = useState(0);
+  const { saveReview, saving, saveError } = useReviewSave();
   const [selected, setSelected] = useState<string | null>(null);
 
   useEffect(() => {
@@ -33,14 +35,10 @@ export default function MultipleChoicePage() {
   const card = cards?.[index];
 
   const pick = async (opt: string) => {
-    if (!card || selected) return;
-    setSelected(opt);
+    if (!card || selected || !opt) return;
     const correct = opt === card.form;
-    try {
-      await submitReview(card.cardId, correct ? 2 : 0);
-    } catch (e) {
-      console.error(e);
-    }
+    if (!await saveReview(() => submitReview(card.cardId, correct ? 2 : 0))) return;
+    setSelected(opt);
   };
 
   const next = () => {
@@ -107,6 +105,7 @@ export default function MultipleChoicePage() {
       current={index + 1}
       total={cards.length}
     >
+      {saveError && <p role="alert" className="text-sm text-destructive">{saveError}</p>}
       <Card>
         <CardContent className="space-y-6 p-6">
           <div className="flex items-center justify-between gap-2 text-xs uppercase tracking-wider text-muted-foreground">
@@ -138,7 +137,7 @@ export default function MultipleChoicePage() {
                       "border-destructive/50 bg-destructive/10 text-destructive"
                   )}
                   onClick={() => pick(opt)}
-                  disabled={!!selected}
+                  disabled={!!selected || saving}
                 >
                   <span className="mr-3 font-mono text-xs text-muted-foreground">
                     [{i + 1}]

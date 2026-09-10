@@ -44,7 +44,7 @@ export default function NotesPage() {
     document.addEventListener("click", navigate, true);
     return () => { window.removeEventListener("beforeunload", leave); document.removeEventListener("click", navigate, true); };
   }, [dirty]);
-  useEffect(() => { if (draft) editor.current?.focus(); }, [draft?.start, draft?.docId]);
+  useEffect(() => { editor.current?.focus(); }, [draft?.start, draft?.docId, draft?.tabId]);
 
   async function load(id: string, keepDraft = false) {
     if (!keepDraft && dirty && !window.confirm("Discard your unsaved note and switch documents?")) return;

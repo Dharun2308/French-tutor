@@ -11,7 +11,7 @@ A personal, adaptive French verb conjugation tutor. SRS-backed drills plus an AI
 ## Features
 
 - **Fill-in-the-blank drills** with typo-tolerant grading (accents matter for tense, typos don't).
-- **SRS flashcards** using a SuperMemo-2 style algorithm. Rate 0-4 with your keyboard.
+- **SRS flashcards** using a SuperMemo-2 style algorithm. Rate 0–3 with the 1–4 keys.
 - **Multiple choice** with server-picked distractors drawn from other verbs in the same tense/person.
 - **AI sentence builder** — the signature feature. Translate a short English prompt to French, then see three register variants (formal, neutral, informal) with a short explanation of what changed.
 - **AI grading** that maps natural-language feedback back to an SRS rating (typo = Hard, wrong tense = Again, etc.).
@@ -20,6 +20,42 @@ A personal, adaptive French verb conjugation tutor. SRS-backed drills plus an AI
 - **Dashboard** with due counts, retention %, daily progress, weakest verbs.
 - Accent helper bar (é è ê à ç ù û î ï ô œ) with Alt-key shortcuts.
 - Dark mode.
+
+## Current local app and operations
+
+The app now also includes imported lesson items with FSRS scheduling, Focus/Smart
+practice, listening, fresh sentence contexts, conversation practice, weekly reviews,
+112 grammar topics, 40 Language Transfer audio lessons, and a Google Docs Notes editor.
+Structured AI uses the enabled Codex → Claude → OpenAI provider chain. Browser speech
+is free; OpenAI speech is opt-in. The older verb and Foundations cards still use SM-2.
+
+The running installation is `/home/multi_mind/French-tutor`, served on
+`127.0.0.1:8095` by `french-tutor.service`. Access from other devices uses the private
+Tailscale proxy. The app has no application login; keep its listener on loopback.
+Vercel instructions below describe the original app; the current local CLI providers,
+Google Docs bridge, SQLite database and audio storage need this persistent host.
+
+Validation: `npm test`, `npm run lint`, `npx tsc --noEmit`, and `npm run build`.
+Build in an isolated copy while production is running: overwriting its `.next`
+directory can break existing pages. Integration scripts mutate data and must use
+explicit disposable `/tmp` databases; see [Topics testing](docs/topics-testing.md).
+The September 2026 dependency overrides keep PostCSS and esbuild on patched versions;
+recheck them with `npm audit` when upgrading Next.js or Drizzle tooling.
+
+Back up SQLite before schema changes. **Do not run `db:push` or seed against the
+existing production database as an audit or repair step.** Use the additive migrations
+for the feature being installed. Keep `local.db`, uploads, audio, TTS/theory caches,
+Google Docs sync state, and private environment/auth files out of Git.
+
+- Service: `systemctl --user status french-tutor.service`
+- Logs: `journalctl --user -u french-tutor.service -n 50`
+- Restart: `systemctl --user restart french-tutor.service`
+- [Google Docs sync](docs/google-docs-sync.md), [Notes editor](docs/google-docs-editor.md)
+- [Focus practice](docs/focus-practice.md), [Language Transfer](docs/language-transfer.md)
+- [Adaptive Smart sessions and migration](docs/smart-sessions.md)
+- [Audit and validation, September 9](docs/audit-2026-09-09.md)
+
+The setup instructions below are for a **new database**, not the existing installation.
 
 ## Quick start
 
@@ -110,7 +146,7 @@ curl -X POST https://your-app.vercel.app/api/seed \
 
 | Rating | Name  | Effect                                              |
 | :----: | :---- | :-------------------------------------------------- |
-|   0    | Again | Reset, 1-day interval, ease -= 0.2 (floor 1.3)      |
+|   0    | Again | Reset, 10-minute relearning step, ease -= 0.2 (floor 1.3) |
 |   1    | Hard  | interval × 1.2, ease -= 0.15                        |
 |   2    | Good  | interval × ease                                     |
 |   3    | Easy  | interval × ease × 1.3, ease += 0.15                 |

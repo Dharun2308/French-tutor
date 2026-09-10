@@ -784,7 +784,7 @@ function ItemCard({
         {exactPhrase && !exactItem && (
           <p className="mt-2 text-xs text-muted-foreground">
             Also in Foundations as “{exactPhrase.french}” — keep it if the
-            tutor's context adds something.
+            tutor’s context adds something.
           </p>
         )}
         {loose.length > 0 && !exactItem && (

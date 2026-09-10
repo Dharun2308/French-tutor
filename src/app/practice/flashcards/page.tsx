@@ -1,4 +1,5 @@
 "use client";
+import { useReviewSave } from "@/hooks/use-review-save";
 import { useEffect, useState } from "react";
 import { PracticeShell } from "@/components/practice-shell";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,6 +19,7 @@ export default function FlashcardsPage() {
   const [cards, setCards] = useState<PracticeCard[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [index, setIndex] = useState(0);
+  const { saveReview, saving, saveError } = useReviewSave();
   const [revealed, setRevealed] = useState(false);
 
   useEffect(() => {
@@ -34,12 +36,8 @@ export default function FlashcardsPage() {
   const card = cards?.[index];
 
   const rate = async (rating: Rating) => {
-    if (!card) return;
-    try {
-      await submitReview(card.cardId, rating);
-    } catch (e) {
-      console.error(e);
-    }
+    if (!card || !revealed) return;
+    if (!await saveReview(() => submitReview(card.cardId, rating))) return;
     if (!cards) return;
     if (index + 1 >= cards.length) {
       const { cards: more } = await fetchNextCards("flashcards", 15);
@@ -104,6 +102,7 @@ export default function FlashcardsPage() {
       current={index + 1}
       total={cards.length}
     >
+      {saveError && <p role="alert" className="text-sm text-destructive">{saveError}</p>}
       <Card>
         <CardContent className="space-y-6 p-8 text-center">
           <div className="flex items-center justify-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
@@ -145,7 +144,7 @@ export default function FlashcardsPage() {
                   size="icon"
                 />
               </div>
-              <RateButtons onRate={rate} />
+              <RateButtons onRate={rate} disabled={saving} />
             </div>
           )}
         </CardContent>

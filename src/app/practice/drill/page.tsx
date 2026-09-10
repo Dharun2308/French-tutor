@@ -1,4 +1,5 @@
 "use client";
+import { useReviewSave } from "@/hooks/use-review-save";
 import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, XCircle, AlertCircle, Lightbulb } from "lucide-react";
 import Link from "next/link";
@@ -64,11 +65,12 @@ async function fetchPhraseDrillCards(
 }
 
 async function submitPhraseReview(phraseId: number, rating: Rating) {
-  await fetch("/api/phrases/review", {
+  const res = await fetch("/api/phrases/review", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ phraseId, rating }),
   });
+  if (!res.ok) throw new Error(`Review failed: ${res.status}`);
 }
 
 export default function DrillPage() {
@@ -79,6 +81,7 @@ export default function DrillPage() {
   const [phraseCards, setPhraseCards] = useState<PhraseCard[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [index, setIndex] = useState(0);
+  const { saveReview, saving, saveError } = useReviewSave();
   const [answer, setAnswer] = useState("");
   const [phase, setPhase] = useState<Phase>("answering");
   const [feedback, setFeedback] = useState<
@@ -153,6 +156,7 @@ export default function DrillPage() {
         verbCard.form,
         verbCard.repetitions
       );
+      if (!await saveReview(() => submitReview(verbCard.cardId, rating))) return;
       setFeedback(fb);
       setPhase("graded");
       if (rating >= 2) setCorrectCount((c) => c + 1);
@@ -164,17 +168,13 @@ export default function DrillPage() {
           verbCard.wrongCount
         );
       }
-      try {
-        await submitReview(verbCard.cardId, rating);
-      } catch (e) {
-        console.error(e);
-      }
     } else if (mode === "phrases" && phraseCard) {
       const { rating, feedback: fb } = gradeDrill(
         answer,
         phraseCard.french,
         phraseCard.repetitions
       );
+      if (!await saveReview(() => submitPhraseReview(phraseCard.id, rating))) return;
       setFeedback(fb);
       setPhase("graded");
       if (rating >= 2) setCorrectCount((c) => c + 1);
@@ -185,11 +185,6 @@ export default function DrillPage() {
           phraseCard.mnemonic,
           phraseCard.wrongCount
         );
-      }
-      try {
-        await submitPhraseReview(phraseCard.id, rating);
-      } catch (e) {
-        console.error(e);
       }
     }
   };
@@ -280,7 +275,8 @@ export default function DrillPage() {
         <div className="mt-4 flex justify-center">
           <Button
             variant="outline"
-            onClick={() => setMode(mode === "verbs" ? "phrases" : "verbs")}
+            disabled={saving}
+          onClick={() => setMode(mode === "verbs" ? "phrases" : "verbs")}
           >
             Switch to {mode === "verbs" ? "Phrases" : "Verbs"}
           </Button>
@@ -301,6 +297,7 @@ export default function DrillPage() {
         <Button
           size="sm"
           variant={mode === "verbs" ? "default" : "outline"}
+          disabled={saving}
           onClick={() => setMode("verbs")}
         >
           Verbs
@@ -308,12 +305,14 @@ export default function DrillPage() {
         <Button
           size="sm"
           variant={mode === "phrases" ? "default" : "outline"}
+          disabled={saving}
           onClick={() => setMode("phrases")}
         >
           Phrases
         </Button>
       </div>
 
+      {saveError && <p role="alert" className="text-sm text-destructive">{saveError}</p>}
       <Card>
         <CardContent className="space-y-6 p-6">
           {/* ── Verb drill prompt ── */}
@@ -339,6 +338,7 @@ export default function DrillPage() {
                 </span>
                 <AnswerField
                   ref={inputRef}
+                  disabled={saving}
                   answer={answer}
                   setAnswer={setAnswer}
                   phase={phase}
@@ -364,6 +364,7 @@ export default function DrillPage() {
               <div className="flex items-baseline gap-2 text-2xl font-serif">
                 <AnswerField
                   ref={inputRef}
+                  disabled={saving}
                   answer={answer}
                   setAnswer={setAnswer}
                   phase={phase}
@@ -381,7 +382,7 @@ export default function DrillPage() {
                 value={answer}
                 onChange={setAnswer}
               />
-              <Button onClick={submit} className="w-full" size="lg">
+              <Button disabled={saving} onClick={submit} className="w-full" size="lg">
                 Check (Enter)
               </Button>
             </>
@@ -433,6 +434,7 @@ export default function DrillPage() {
 import React from "react";
 
 interface AnswerFieldProps {
+  disabled?: boolean;
   answer: string;
   setAnswer: (v: string) => void;
   phase: Phase;
@@ -441,7 +443,7 @@ interface AnswerFieldProps {
 }
 
 const AnswerField = React.forwardRef<HTMLInputElement, AnswerFieldProps>(
-  ({ answer, setAnswer, phase, feedback, submit }, ref) => {
+  ({ answer, setAnswer, phase, feedback, submit, disabled }, ref) => {
     if (phase === "graded") {
       return (
         <span
@@ -462,6 +464,7 @@ const AnswerField = React.forwardRef<HTMLInputElement, AnswerFieldProps>(
       <span className="flex-1 border-b border-dashed border-muted-foreground/40 pb-1">
         <Input
           ref={ref}
+          disabled={disabled}
           value={answer}
           onChange={(e) => setAnswer(e.target.value)}
           onKeyDown={(e) => {

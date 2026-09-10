@@ -1,5 +1,52 @@
 # French Tutor — handoff for the next agent (Codex)
 
+## Latest update — 2026-09-09: dashboard and adaptive Smart sessions
+
+- Owner subsequently restored Codex reasoning effort to **medium**. The explicit
+  `CODEX_REASONING_EFFORT="medium"` override is in the private `.env.local`; the
+  service was restarted and checked. Model remains `gpt-5.6-sol`.
+- Deployed at 18:08 MDT. Practice now is exactly three rows: Focus / Smart,
+  Topics / Listening, AI conversation / Fresh contexts. Removed the weekly banner
+  and duplicate buttons; More practice keeps Sentence builder, Foundations and
+  Verb cards, followed by the two progress/review links.
+- Smart sessions now select weak/due personal items, Foundations and diverse verbs;
+  generate source-specific sentences through the existing enabled provider chain;
+  grade meaning/grammar, explain mistakes and insert up to three transfer follow-ups.
+  Follow-ups do not inflate SRS/review counts. Typed drafts, prompts, feedback and
+  progress survive reload. Original-card and explicit manual-rating fallbacks work
+  without AI. Manual ratings support keys 1–4.
+- Added only `smart_sessions` and its one-active-session index via
+  `scripts/migrate-2026-09-09-smart.sql`. Shared the existing personal review
+  transaction logic in `src/lib/items/review.ts`; other item-review behavior stays
+  covered by `verify-phase3.ts`. All 22 original tables exactly matched the initial
+  backup after activation; no production practice reviews were submitted.
+- Validation: 71 tests, lint, TypeScript, production build, Smart integration/race
+  tests, existing review/evidence integration, real Codex and Claude generation/
+  grading, phone/desktop light/dark layout, failed-save/draft/feedback recovery,
+  manual hotkeys, follow-up counters and completion. Live dashboard/API verified.
+- Details: `docs/smart-sessions.md`. Backup/runtime rollback:
+  `~/.cache/french-tutor-smart-20260909/before/`. Stage `.next` on the same filesystem
+  before atomic rename; `/tmp` is a different mount. Initial cross-mount activation
+  automatically restored the old runtime; copying into the cache staging area
+  resolved it. Temporary app and verification Chromium were stopped.
+
+## Latest update — 2026-09-09: broad audit and repairs
+
+- See `docs/audit-2026-09-09.md` for findings, evidence, caveats, and recovery.
+- Deployed validated fixes at 17:34 MDT: patched dependencies (npm audit zero),
+  cross-site API write protection, longer bounded Topics question-generation timeouts,
+  acknowledged saves/in-flight locking for legacy practice, cancellation-safe audio,
+  concurrent settings initialization, unattended lint and corrected integration fixtures.
+- All 18 unit files, lint, build, database integrations and phone light/dark browser
+  checks passed. Three real AI providers and curriculum generation/grading passed.
+  All 40 MP3s verified; 140 interrupted HTTP/browser streams passed without the
+  previously reproduced uncaught controller exception. All 33 live health probes passed.
+- No production schema migration or test learning reviews. All 22 tables matched the
+  pre-activation backup. Existing live activity during the audit was preserved.
+  Google Docs were only read; this week's sync succeeded. No cron scripts changed.
+- Runtime/database backups: `~/.cache/french-tutor-audit-20260909/before/`.
+- Preserve the pre-existing untracked `docs/claude-fable-review-2026-09-03.md`.
+
 ## Latest update — 2026-09-07: manual Done / Unfinished for topics
 
 - Added a persistent manual completion control to every topic, including active

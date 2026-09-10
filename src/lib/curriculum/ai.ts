@@ -34,7 +34,8 @@ export async function generateQuestions(plan: { topicId: string; stage: Exclude<
       seen.add(prompt);
     });
   });
-  const result = await runStructured({ purpose: "curriculum", system: `${LEARNER_CONTEXT}
+  // A full question batch takes longer than theory or a single answer check.
+  const result = await runStructured({ purpose: "curriculum", timeoutMs: plan.length > 5 ? 90_000 : 60_000, system: `${LEARNER_CONTEXT}
 Create precisely the requested questions, in order, as JSON. Each prompt is ONE exercise. Never reveal the answer or include a solved version in the prompt or hint.
 All instructions, hints and rule explanations MUST be in English. French is only for the exercise source sentences, quoted phrases, audio and model answers. Do not write instructions such as Réécrivez or Remplacez. Oral prompts may quote a French conversation question after an English instruction.
 Controlled: easy transformation, blank or short translation testing one new rule. Production: require the ENTIRE French sentence from English or a contextual task; no sentence scaffolding or announcing the tense/answer. Mixed: unpredictable full sentences with context sufficient to choose the grammar. Oral: ask a natural short French question, suitable for a quick spoken reply, with a possible model response, not the only acceptable response.
