@@ -1,5 +1,33 @@
 # French Tutor — handoff for the next agent (Codex)
 
+## Latest update — 2026-09-15: adaptive Foundations
+
+- Owner asked for harder Foundations, a mix of lesson notes and broader French,
+  Codex/Claude generation and persistent Again/Hard/Good/Easy selection. The new
+  `/practice/phrases` flow uses up to twelve full-sentence questions, normally six
+  from each origin. Repeated difficulty leads; saved ratings control due dates
+  and whether the exact missed sentence returns or a fresh context is generated.
+- Grading/reveal now always precedes explicit self-rating. Feedback and drafts
+  survive reload; rating, source schedule and advancement commit atomically.
+  Replayed/lost-response saves count once. Up to three same-round recall attempts
+  are saved separately and cannot inflate independent mastery. Lesson items keep
+  FSRS; everyday expressions use shorter Again/Hard recovery and longer Easy gaps.
+- Additive migration: `scripts/migrate-2026-09-15-foundations.sql` adds only
+  `foundations_sessions`, `foundations_reviews` and indexes. Details and validation:
+  `docs/foundations.md`. Existing legacy APIs remain available to other modes.
+- Tests passed: 76 unit tests, lint, TypeScript, isolated production build,
+  Foundations transaction/selection/race integration, Smart regression and browser
+  phone/desktop light/dark checks, including a lost reply after rating commit.
+  Real Codex generation/alternative-answer/error grading passed at medium. Claude
+  hit its subscription session limit, so its real-provider check remains incomplete.
+  An initial source-word substitution prompted explicit short-expression validation.
+- Deployed at 19:35 MDT. All 23 pre-existing tables matched byte-content
+  fingerprints before/after migration and activation, including the active Smart
+  round. New Foundations tables were empty; no live learning reviews were tested.
+  Six live read-only health checks and SQLite integrity/foreign-key checks passed.
+  Previous runtime and database: `~/.cache/french-tutor-foundations-20260915/before/`.
+  Provider settings, Codex medium effort, Google Docs and cron are unchanged.
+
 ## Latest update — 2026-09-09: dashboard and adaptive Smart sessions
 
 - Owner subsequently restored Codex reasoning effort to **medium**. The explicit

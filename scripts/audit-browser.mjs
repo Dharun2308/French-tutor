@@ -25,19 +25,19 @@ return real(url,opts);};})();`;
 try {
  await cdp('Page.enable');await cdp('Runtime.enable');await cdp('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
  const hook=await cdp('Page.addScriptToEvaluateOnNewDocument',{source:fixture});
- for(const mode of ['flashcards','multiple-choice','drill','phrases','sentence']){
+ // Foundations now has durable AI sessions; exercise it with verify-foundations-browser.mjs.
+ for(const mode of ['flashcards','multiple-choice','drill','sentence']){
   await navigate('/practice/'+mode);await waitFor('document.body.innerText.includes("1 / 2") || document.body.innerText.includes("1/2")');
   if(mode==='flashcards'){await click('Reveal (Space)');await evaluate("document.dispatchEvent(new KeyboardEvent('keydown',{key:'3',bubbles:true}));document.dispatchEvent(new KeyboardEvent('keydown',{key:'3',bubbles:true}));");}
   if(mode==='multiple-choice')await click('parle');
   if(mode==='drill'){await type('parle');await click('Check');}
-  if(mode==='phrases'){await click('Reveal (Space)');await evaluate("document.dispatchEvent(new KeyboardEvent('keydown',{key:'3',bubbles:true}));document.dispatchEvent(new KeyboardEvent('keydown',{key:'3',bubbles:true}));");}
   if(mode==='sentence')await click("Show answer");
   await waitFor('Boolean(document.querySelector("[role=alert]"))');
   assert.equal(await evaluate('window.auditSaves'),1,mode);
   assert.ok(await evaluate('document.body.innerText.includes("1 / 2") || document.body.innerText.includes("1/2")'),mode+' advanced on failed save');
   if(mode==='drill')assert.equal(await evaluate('document.querySelector("input").value'),'parle');
   await evaluate('window.auditFail=false');
-  if(mode==='flashcards'||mode==='phrases')await click('Good');
+  if(mode==='flashcards')await click('Good');
   if(mode==='multiple-choice')await click('parle');
   if(mode==='drill')await click('Check');
   if(mode==='sentence')await click("Show answer");

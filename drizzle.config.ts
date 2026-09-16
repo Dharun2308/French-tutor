@@ -13,7 +13,7 @@ if (!url) {
 }
 
 export default {
-  schema: ["./src/lib/db/schema.ts", "./src/lib/curriculum/schema.ts", "./src/lib/smart/schema.ts"],
+  schema: ["./src/lib/db/schema.ts", "./src/lib/curriculum/schema.ts", "./src/lib/smart/schema.ts", "./src/lib/foundations/schema.ts"],
   out: "./drizzle",
   dialect: "turso",
   dbCredentials: {

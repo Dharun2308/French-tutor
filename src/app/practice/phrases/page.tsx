@@ -1,500 +1,182 @@
 "use client";
-import { useReviewSave } from "@/hooks/use-review-save";
-import { useEffect, useRef, useState } from "react";
-import { CheckCircle2, XCircle, AlertCircle, Lightbulb } from "lucide-react";
+
+import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { CheckCircle2, Loader2, RotateCcw } from "lucide-react";
 import { PracticeShell } from "@/components/practice-shell";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { EmptyState } from "@/components/empty-state";
+import { AccentBar } from "@/components/accent-bar";
+import { FrenchInput } from "@/components/french-input";
 import { RateButtons } from "@/components/rate-buttons";
 import { SpeakButton } from "@/components/speak-button";
-import { AccentBar } from "@/components/accent-bar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { useHotkeys } from "@/hooks/use-hotkeys";
-import {
-  gradeDrill,
-  requestMnemonic,
-  LEECH_WRONG_THRESHOLD,
-} from "@/lib/client-practice";
-import { cn } from "@/lib/utils";
-import {
-  PHRASE_CATEGORY_LABELS,
-  type PhraseCategory,
-  type Rating,
-} from "@/types";
+import { RATINGS, RATING_LABELS, type Rating } from "@/types";
+import type { FoundationsView } from "@/lib/foundations/types";
+import type { FoundationsAction } from "@/lib/foundations/session";
 
-interface PhraseCard {
-  id: number;
-  category: PhraseCategory;
-  french: string;
-  english: string;
-  notes: string | null;
-  level: string;
-  repetitions: number;
-  wrongCount: number;
-  mnemonic: string | null;
+const feedbackLabel = { CORRECT: "Correct", MINOR_ERROR: "Almost — a small writing fix", WRONG: "Let's work on this", UNGRADED: "Check your recall" };
+const challengeLabel = { supported: "One skill at a time", standard: "Full sentence practice", stretch: "A little more detail" };
+const draftKey = (sessionId: string, questionId: string) => `foundations-draft:${sessionId}:${questionId}`;
+
+async function request(action?: FoundationsAction): Promise<FoundationsView | null> {
+  const response = await fetch("/api/foundations-session", action ? {
+    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(action),
+  } : { cache: "no-store" });
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error || "Couldn't load Foundations.");
+  return result.session;
 }
 
-const CATEGORY_COLOR: Record<PhraseCategory, string> = {
-  article: "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20",
-  number: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
-  alphabet: "bg-pink-500/10 text-pink-600 dark:text-pink-400 border-pink-500/20",
-  question: "bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20",
-  greeting: "bg-amber-500/10 text-amber-600 dark:text-amber-500 border-amber-500/20",
-  phrase: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
-  country: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
-  city: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20",
-  time: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20",
-  food: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20",
-  fruit_vegetable: "bg-lime-500/10 text-lime-600 dark:text-lime-400 border-lime-500/20",
-  meat: "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20",
-  quantity: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20",
-  nationality: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20",
-  demonstrative: "bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20",
-  vocabulary: "bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20",
-  expression: "bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400 border-fuchsia-500/20",
-  activity: "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20",
-  shopping: "bg-pink-500/10 text-pink-600 dark:text-pink-400 border-pink-500/20",
-  colour: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20",
-  clothing: "bg-amber-500/10 text-amber-600 dark:text-amber-500 border-amber-500/20",
-  weather: "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20",
-  sentence: "bg-primary/10 text-primary border-primary/20",
-  fill_article: "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20",
-  fill_preposition: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
-  fill_question: "bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20",
-  fill_phrase: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
-  fill_number: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
-  fill_time: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20",
-  fill_vocabulary: "bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20",
-};
-
-type AnswerMode = "reveal" | "type";
-const MODE_STORAGE_KEY = "phrases-answer-mode";
-
-async function fetchNext(count = 15): Promise<{
-  phrases: PhraseCard[];
-  error?: string;
-}> {
-  try {
-    const res = await fetch(`/api/phrases/next?count=${count}`, {
-      cache: "no-store",
-    });
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      return { phrases: [], error: body.error ?? `HTTP ${res.status}` };
-    }
-    const data = await res.json();
-    return { phrases: data.phrases };
-  } catch (err) {
-    return {
-      phrases: [],
-      error: err instanceof Error ? err.message : String(err),
-    };
-  }
-}
-
-async function submitReview(phraseId: number, rating: Rating) {
-  const res = await fetch("/api/phrases/review", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ phraseId, rating }),
-  });
-  if (!res.ok) throw new Error(`Review failed: ${res.status}`);
-}
-
-export default function PhrasesPage() {
-  const [mode, setMode] = useState<AnswerMode>("reveal");
-  const [cards, setCards] = useState<PhraseCard[] | null>(null);
+export default function FoundationsPage() {
+  const [session, setSession] = useState<FoundationsView | null>(null);
+  const [input, setInput] = useState("");
+  const [busy, setBusy] = useState<string | null>("load");
   const [error, setError] = useState<string | null>(null);
-  const [index, setIndex] = useState(0);
-  const { saveReview, saving, saveError } = useReviewSave();
-  // Reveal mode state
-  const [revealed, setRevealed] = useState(false);
-  // Type mode state
-  const [answer, setAnswer] = useState("");
-  const [phase, setPhase] = useState<"answering" | "graded">("answering");
-  const [feedback, setFeedback] = useState<
-    "exact" | "typo" | "accent-typo" | "wrong" | null
-  >(null);
-  // Mnemonic shown for the current card (existing or freshly generated).
-  const [mnemonic, setMnemonic] = useState<string | null>(null);
+  const [receipt, setReceipt] = useState("");
+  const pending = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const startedAt = useRef(Date.now());
+  const question = session?.question;
+  const feedback = question?.feedback;
 
-  useEffect(() => {
-    const saved = localStorage.getItem(MODE_STORAGE_KEY);
-    if (saved === "type") setMode("type");
-    (async () => {
-      const { phrases: fetched, error: err } = await fetchNext(15);
-      if (err) setError(err);
-      else setCards(fetched);
-    })();
+  const load = useCallback(async () => {
+    if (pending.current) return;
+    pending.current = true; setBusy("load"); setError(null);
+    try {
+      const saved = await request();
+      setSession(saved ?? await request({ action: "start", mix: "blend" }));
+    } catch (err) { setError(err instanceof Error ? err.message : "Couldn't load this round."); }
+    finally { pending.current = false; setBusy(null); }
+  }, []);
+  useEffect(() => { void load(); }, [load]);
+
+  const perform = useCallback(async (action: FoundationsAction) => {
+    if (pending.current) return;
+    pending.current = true; setBusy(action.action); setError(null);
+    try {
+      const saved = await request(action);
+      setSession(saved);
+      if (action.action === "rate") setReceipt("Rating saved. Your recall history will guide future practice.");
+      else if (action.action !== "prepare") setReceipt("");
+      if ("questionId" in action && (saved?.question?.feedback || saved?.question?.id !== action.questionId)) {
+        try { localStorage.removeItem(draftKey(action.sessionId, action.questionId)); } catch { /* Storage may be disabled. */ }
+      }
+    } catch (err) { setError(err instanceof Error ? err.message : "Couldn't save. Please retry."); }
+    finally { pending.current = false; setBusy(null); }
   }, []);
 
-  const card = cards?.[index];
+  useEffect(() => {
+    if (session?.status === "active" && question && !question.prompt && !error && !busy) {
+      void perform({ action: "prepare", sessionId: session.id, questionId: question.id });
+    }
+  }, [session, question, error, busy, perform]);
+  useEffect(() => {
+    let draft = "";
+    if (session?.id && question?.id) {
+      try { draft = localStorage.getItem(draftKey(session.id, question.id)) ?? ""; } catch { /* Storage may be disabled. */ }
+    }
+    setInput(draft);
+  }, [session?.id, question?.id]);
+  useEffect(() => { startedAt.current = Date.now(); }, [question?.id, question?.prompt]);
+  useEffect(() => {
+    if (question?.prompt && !question.feedback && !busy) inputRef.current?.focus();
+  }, [question?.id, question?.prompt, question?.feedback, busy]);
 
-  const switchMode = (m: AnswerMode) => {
-    if (saving) return;
-    setMode(m);
-    localStorage.setItem(MODE_STORAGE_KEY, m);
-    setRevealed(false);
-    setAnswer("");
-    setPhase("answering");
-    setFeedback(null);
-    setMnemonic(null);
-    if (m === "type") {
-      requestAnimationFrame(() => inputRef.current?.focus());
+  const changeInput = (value: string) => {
+    setInput(value);
+    if (session && question) {
+      try { localStorage.setItem(draftKey(session.id, question.id), value); } catch { /* The answer still stays in memory. */ }
     }
   };
-
-  // On a wrong answer, surface a mnemonic: use the stored one, or generate
-  // one once the card has become a leech.
-  const surfaceMnemonic = (c: PhraseCard) => {
-    if (c.mnemonic) {
-      setMnemonic(c.mnemonic);
-      return;
-    }
-    if (c.wrongCount + 1 >= LEECH_WRONG_THRESHOLD) {
-      requestMnemonic("phrase", c.id).then((m) => {
-        if (m) {
-          setMnemonic(m);
-          c.mnemonic = m; // so the same in-session card shows it instantly
-        }
-      });
-    }
+  const act = (action: "skip" | "prepare" | "reveal") => {
+    if (session && question) void perform({ action, sessionId: session.id, questionId: question.id });
   };
-
-  const advance = async () => {
-    if (!cards) return;
-    if (index + 1 >= cards.length) {
-      const { phrases: more } = await fetchNext(15);
-      setCards(more);
-      setIndex(0);
-    } else {
-      setIndex((i) => i + 1);
-    }
-    setRevealed(false);
-    setAnswer("");
-    setPhase("answering");
-    setFeedback(null);
-    setMnemonic(null);
-    if (mode === "type") {
-      requestAnimationFrame(() => inputRef.current?.focus());
-    }
+  const rate = (rating: Rating) => {
+    if (session && question && feedback?.rating === null) void perform({ action: "rate", sessionId: session.id, questionId: question.id, rating });
   };
-
-  // ── Reveal mode: self-rate ──
-  const rate = async (rating: Rating) => {
-    if (!card) return;
-    if (!await saveReview(() => submitReview(card.id, rating))) return;
-    if (rating === 0) surfaceMnemonic(card); // fire-and-forget for next time
-    await advance();
-  };
-
-  // ── Type mode: grade the typed answer ──
-  const submit = async () => {
-    if (!card || phase !== "answering" || answer.trim() === "") return;
-    const { rating, feedback: fb } = gradeDrill(
-      answer,
-      card.french,
-      card.repetitions
-    );
-    if (!await saveReview(() => submitReview(card.id, rating))) return;
-    setFeedback(fb);
-    setPhase("graded");
-    if (card.mnemonic) setMnemonic(card.mnemonic);
-    else if (rating === 0) surfaceMnemonic(card);
-  };
-
-  // "I don't know" in type mode: reveal + rate Again.
-  const giveUp = async () => {
-    if (!card || phase !== "answering") return;
-    if (!await saveReview(() => submitReview(card.id, 0))) return;
-    setFeedback("wrong");
-    setPhase("graded");
-    surfaceMnemonic(card);
-  };
-
-  useHotkeys(
-    mode === "reveal"
-      ? {
-          " ": () => !revealed && setRevealed(true),
-          Enter: () => !revealed && setRevealed(true),
-          "1": () => revealed && rate(0),
-          "2": () => revealed && rate(1),
-          "3": () => revealed && rate(2),
-          "4": () => revealed && rate(3),
-        }
-      : {
-          Enter: () => phase === "graded" && advance(),
-        }
-  );
-
-  if (error) {
-    return (
-      <div className="container max-w-2xl py-10">
-        <EmptyState
-          title="Can't load phrases"
-          description={error}
-          actionLabel="Go to Settings"
-          actionHref="/settings"
-        />
-      </div>
-    );
-  }
-  if (!cards) {
-    return (
-      <div className="container max-w-2xl py-10">
-        <div className="h-40 animate-pulse rounded-xl bg-muted" />
-      </div>
-    );
-  }
-  if (cards.length === 0) {
-    return (
-      <div className="container max-w-2xl py-10">
-        <EmptyState
-          title="Nothing due 🎉"
-          description="All your foundation cards are resting. Try again later, or expand your active categories in Settings."
-          actionLabel="Back to dashboard"
-          actionHref="/"
-        />
-      </div>
-    );
-  }
-  if (!card) return null;
+  useHotkeys(Object.fromEntries(RATINGS.map(rating => [String(rating + 1), () => rate(rating)])), !!feedback && feedback.rating === null && !busy);
 
   return (
-    <PracticeShell
-      title="Foundations"
-      subtitle={
-        mode === "reveal"
-          ? "Translate the English to French. (Space = reveal · 1–4 = rate)"
-          : "Type the French, then Enter."
-      }
-      current={index + 1}
-      total={cards.length}
-    >
-      {/* Answer-mode toggle */}
-      <div className="mb-4 flex gap-2">
-        <Button
-          size="sm"
-          variant={mode === "reveal" ? "default" : "outline"}
-          onClick={() => switchMode("reveal")}
-        >
-          Reveal & rate
-        </Button>
-        <Button
-          size="sm"
-          variant={mode === "type" ? "default" : "outline"}
-          onClick={() => switchMode("type")}
-        >
-          Type the answer
-        </Button>
-      </div>
-
-      {saveError && <p role="alert" className="text-sm text-destructive">{saveError}</p>}
-      <Card>
-        <CardContent className="space-y-6 p-8 text-center">
-          <div className="flex items-center justify-center gap-2">
-            <Badge
-              variant="outline"
-              className={`border ${CATEGORY_COLOR[card.category]}`}
-            >
-              {PHRASE_CATEGORY_LABELS[card.category]}
-            </Badge>
-          </div>
+    <PracticeShell title="Foundations" subtitle="Build stronger sentences from your notes and everyday French. Your ratings guide what comes back."
+      current={session?.completed ?? 0} total={session?.total ?? 0}>
+      {error && <div role="alert" className="mb-4 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm">
+        <p>{error}</p>
+        <Button variant="outline" size="sm" className="mt-2" disabled={!!busy} onClick={() => void load()}>Reload saved round</Button>
+        {question && !question.prompt && <Button variant="outline" size="sm" className="ml-2 mt-2" disabled={!!busy} onClick={() => act("prepare")}>Retry exercise</Button>}
+      </div>}
+      {receipt && <p role="status" className="mb-3 text-xs text-muted-foreground">{receipt}</p>}
+      {!session && busy && <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Finding your next practice…</p>}
+      {session && (session.status !== "active" || !question) ? (
+        <Card><CardContent className="space-y-5 pt-6">
+          <CheckCircle2 className="h-8 w-8 text-rose-600" />
           <div>
-            <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
-              English
-            </div>
-            <p className="text-xl">{card.english}</p>
+            <h2 className="text-xl font-semibold">{session.status === "abandoned" ? "This round has ended" : session.total ? "Round complete" : "You're caught up"}</h2>
+            <p className="mt-2 text-sm text-muted-foreground">{session.total ? "Your ratings are saved. Difficult sentences return sooner; comfortable ones get more space and fresh contexts." : "No expressions are due right now. Try Topics, add lesson notes, or check your practice filters."}</p>
           </div>
-
-          {mode === "reveal" ? (
-            <>
-              <div className="border-t pt-6">
-                <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
-                  French
-                </div>
-                {revealed ? (
-                  <div className="animate-fade-in space-y-3">
-                    <div className="flex items-center justify-center gap-2">
-                      <p className="text-3xl font-serif text-primary">
-                        {card.french}
-                      </p>
-                      <SpeakButton
-                        text={card.french}
-                        size="icon"
-                        variant="outline"
-                      />
-                    </div>
-                    {card.notes && (
-                      <p className="text-sm italic text-muted-foreground">
-                        {card.notes}
-                      </p>
-                    )}
-                    {card.mnemonic && (
-                      <MnemonicNote text={card.mnemonic} />
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-3xl text-muted-foreground/40">…</p>
-                )}
+          {session.total > 0 && <>
+            <dl className="grid grid-cols-4 gap-2 text-center">{RATINGS.map(rating => <div key={rating} className="rounded-lg bg-muted/50 py-3"><dt className="text-xs text-muted-foreground">{RATING_LABELS[rating]}</dt><dd className="text-xl font-semibold">{session.ratings[rating]}</dd></div>)}</dl>
+            <p className="text-xs text-muted-foreground">First attempts above. {session.followUps} extra recall {session.followUps === 1 ? "attempt" : "attempts"}{session.skipped ? ` · ${session.skipped} skipped` : ""}.</p>
+          </>}
+          {session.recap.length > 0 && <div className="space-y-3">
+            <h3 className="text-sm font-semibold">Keep these sentences close</h3>
+            {session.recap.map((item, index) => <div key={index} className="rounded-lg bg-muted/50 p-3">
+              <p className="text-xs text-muted-foreground">{RATING_LABELS[item.rating]} · {item.english}</p>
+              <div className="mt-1 flex items-center gap-2"><p lang="fr" className="min-w-0 flex-1 font-medium">{item.french}</p><SpeakButton text={item.french} /></div>
+              <p className="mt-1 text-sm text-muted-foreground">{item.explanation}</p>
+            </div>)}
+          </div>}
+          <div className="flex flex-wrap gap-2">
+            <Button disabled={!!busy} onClick={() => void perform({ action: "start", restart: true, mix: "blend" })}>{busy === "start" ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}New round</Button>
+            <Button asChild variant="outline"><Link href="/topics">Topics</Link></Button>
+            <Button asChild variant="ghost"><Link href="/">Dashboard</Link></Button>
+          </div>
+        </CardContent></Card>
+      ) : session && question ? <>
+        <details className="mb-4 rounded-lg border px-4 py-3 text-sm">
+          <summary className="cursor-pointer font-medium">How this adapts to you</summary>
+          <p className="mt-2 text-muted-foreground">Rounds mix due expressions from your saved lesson notes and broader everyday French. Repeated Again and Hard ratings take priority. As recall improves, you get longer gaps and new situations with a little more detail.</p>
+          <p className="mt-2 text-muted-foreground">Difficult sentences also return after a short gap in this round, with up to three extra attempts across the round. Those are saved separately from your first recall.</p>
+          <p className="mt-2 text-muted-foreground">{question.memory.again + question.memory.hard + question.memory.good + question.memory.easy > 0
+            ? `Recent ratings before this round: ${question.memory.again} Again · ${question.memory.hard} Hard · ${question.memory.good} Good · ${question.memory.easy} Easy.`
+            : "Your next rating will help decide when this expression returns."}</p>
+        </details>
+        <Card><CardContent className="space-y-4 pt-6">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+            <span>{question.origin} · {question.label}</span><span>{question.followUp ? "Recall again" : challengeLabel[question.challenge]}</span>
+          </div>
+          <p className="text-xs text-muted-foreground">{question.reason}</p>
+          {!question.prompt ? <div role="status" className="flex items-center gap-2 py-6 text-sm"><Loader2 className="h-4 w-4 animate-spin" />Preparing a fresh sentence…</div> : <>
+            <h2 className="text-lg font-medium leading-relaxed">{question.prompt}</h2>
+            {question.fallback && <p className="rounded-md bg-muted/60 p-2 text-xs text-muted-foreground">AI couldn&apos;t create a fresh sentence. Practice the original expression for this question.</p>}
+            {!feedback ? <form onSubmit={event => {
+              event.preventDefault();
+              if (input.trim()) void perform({ action: "answer", sessionId: session.id, questionId: question.id, answer: input.trim(), elapsedMs: Math.min(3_600_000, Math.max(0, Date.now() - startedAt.current)) });
+            }} className="space-y-3">
+              <label htmlFor="foundations-answer" className="block text-sm font-medium">Your French</label>
+              <FrenchInput id="foundations-answer" ref={inputRef} value={input} onChange={event => changeInput(event.target.value)} maxLength={500} disabled={!!busy} placeholder="Write the sentence in French…" className="h-12 text-base" />
+              <fieldset disabled={!!busy}><AccentBar inputRef={inputRef} value={input} onChange={changeInput} /></fieldset>
+              <Button type="submit" className="w-full" disabled={!!busy || !input.trim()}>{busy === "answer" ? <><Loader2 className="h-4 w-4 animate-spin" />Checking your French…</> : "Check answer"}</Button>
+              <Button type="button" variant="outline" className="w-full" disabled={!!busy} onClick={() => act("reveal")}>Reveal answer</Button>
+              {busy === "answer" && <p role="status" className="text-xs text-muted-foreground">Checking meaning and grammar. Your rating comes next.</p>}
+            </form> : <div aria-live="polite" className="space-y-4">
+              <div className={`rounded-lg border p-4 ${feedback.grade.verdict === "CORRECT" ? "border-green-500/30 bg-green-500/5" : "bg-muted/40"}`}>
+                <h3 className="font-semibold">{feedbackLabel[feedback.grade.verdict]}</h3>
+                {!feedback.revealed && <p className="mt-2 break-words text-sm text-muted-foreground">Your answer: <span lang="fr">{feedback.answer}</span></p>}
+                <div className="mt-2 flex items-center gap-2"><p lang="fr" className="min-w-0 flex-1 text-lg font-medium">{feedback.grade.corrected}</p><SpeakButton text={feedback.grade.corrected} /></div>
+                <p className="mt-2 text-sm">{feedback.grade.explanation}</p>
+                {feedback.grade.corrected !== feedback.modelAnswer && <details className="mt-3 text-sm"><summary className="cursor-pointer text-muted-foreground">Another model answer</summary><p lang="fr" className="mt-1">{feedback.modelAnswer}</p></details>}
               </div>
-              {!revealed ? (
-                <Button
-                  size="lg"
-                  className="w-full"
-                  onClick={() => setRevealed(true)}
-                >
-                  Reveal (Space)
-                </Button>
-              ) : (
-                <RateButtons onRate={rate} disabled={saving} />
-              )}
-            </>
-          ) : (
-            <>
-              <div className="border-t pt-6 text-left">
-                <div className="mb-2 text-center text-xs uppercase tracking-wider text-muted-foreground">
-                  French
-                </div>
-                {phase === "answering" ? (
-                  <div className="space-y-3">
-                    <Input
-                      ref={inputRef}
-                      disabled={saving}
-                      value={answer}
-                      onChange={(e) => setAnswer(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          submit();
-                        }
-                      }}
-                      placeholder="Tape en français…"
-                      autoFocus
-                      autoComplete="off"
-                      autoCorrect="off"
-                      spellCheck={false}
-                      className="h-12 text-center text-xl font-serif"
-                    />
-                    <AccentBar
-                      inputRef={inputRef}
-                      value={answer}
-                      onChange={setAnswer}
-                    />
-                    <div className="flex gap-2">
-                      <Button className="flex-1" size="lg" disabled={saving} onClick={submit}>
-                        Check (Enter)
-                      </Button>
-                      <Button variant="outline" size="lg" disabled={saving} onClick={giveUp}>
-                        I don&apos;t know
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <TypedResult
-                      feedback={feedback}
-                      answer={answer}
-                      correct={card.french}
-                      notes={card.notes}
-                      mnemonic={mnemonic}
-                    />
-                    <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                      <span>Hear it:</span>
-                      <SpeakButton
-                        text={card.french}
-                        variant="outline"
-                        size="icon"
-                      />
-                    </div>
-                    <Button className="w-full" size="lg" onClick={advance}>
-                      Next (Enter)
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+              <p className="text-sm font-medium">How well did you recall it before seeing the answer?</p>
+              <RateButtons disabled={!!busy} onRate={rate} />
+              <p className="text-xs text-muted-foreground">Again: couldn&apos;t recall · Hard: needed help · Good: recalled with effort · Easy: effortless.</p>
+              {busy === "rate" && <p role="status" className="text-xs text-muted-foreground">Saving your rating…</p>}
+            </div>}
+          </>}
+        </CardContent></Card>
+        <Button variant="ghost" size="sm" className="mt-3" disabled={!!busy} onClick={() => act("skip")}>Skip without a review</Button>
+        <p className="mt-4 text-center text-xs text-muted-foreground">Your round saves as you go. Return here to resume.</p>
+      </> : null}
     </PracticeShell>
-  );
-}
-
-function MnemonicNote({ text }: { text: string }) {
-  return (
-    <div className="mx-auto flex max-w-md items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-left text-sm">
-      <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-      <span>{text}</span>
-    </div>
-  );
-}
-
-function TypedResult({
-  feedback,
-  answer,
-  correct,
-  notes,
-  mnemonic,
-}: {
-  feedback: "exact" | "typo" | "accent-typo" | "wrong" | null;
-  answer: string;
-  correct: string;
-  notes: string | null;
-  mnemonic: string | null;
-}) {
-  const positive = feedback === "exact" || feedback === "typo";
-  const tone = positive
-    ? "border-green-500/30 bg-green-500/10"
-    : feedback === "accent-typo"
-      ? "border-amber-500/30 bg-amber-500/10"
-      : "border-destructive/30 bg-destructive/10";
-  const Icon = positive
-    ? CheckCircle2
-    : feedback === "accent-typo"
-      ? AlertCircle
-      : XCircle;
-  const iconTone = positive
-    ? "text-green-600"
-    : feedback === "accent-typo"
-      ? "text-amber-500"
-      : "text-destructive";
-  return (
-    <div className="space-y-2">
-      <div className={cn("flex flex-col gap-1 rounded-lg border p-3 text-sm", tone)}>
-        <div className="flex items-start gap-2">
-          <Icon className={cn("mt-0.5 h-4 w-4 shrink-0", iconTone)} />
-          <div>
-            {feedback === "exact" && <span>Exactly right! </span>}
-            {feedback === "typo" && <span>Correct — small typo. </span>}
-            {feedback === "accent-typo" && (
-              <span>Close — watch the accents. </span>
-            )}
-            {feedback === "wrong" && answer.trim() !== "" && (
-              <span>
-                Not quite — you wrote{" "}
-                <span className="font-serif">{answer}</span>.{" "}
-              </span>
-            )}
-            <span>
-              The answer is{" "}
-              <span className="font-serif text-base font-semibold">
-                {correct}
-              </span>
-              .
-            </span>
-          </div>
-        </div>
-        {notes && (
-          <div className="ml-6 text-xs italic text-muted-foreground">
-            {notes}
-          </div>
-        )}
-      </div>
-      {mnemonic && <MnemonicNote text={mnemonic} />}
-    </div>
   );
 }

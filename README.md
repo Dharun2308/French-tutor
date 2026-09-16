@@ -27,7 +27,9 @@ The app now also includes imported lesson items with FSRS scheduling, Focus/Smar
 practice, listening, fresh sentence contexts, conversation practice, weekly reviews,
 112 grammar topics, 40 Language Transfer audio lessons, and a Google Docs Notes editor.
 Structured AI uses the enabled Codex → Claude → OpenAI provider chain. Browser speech
-is free; OpenAI speech is opt-in. The older verb and Foundations cards still use SM-2.
+is free; OpenAI speech is opt-in. Foundations now mixes lesson notes and everyday
+French in adaptive sentence practice, with explicit saved ratings. Its lesson items
+use FSRS; everyday expressions use SM-2 with shorter recovery steps after difficulty.
 
 The running installation is `/home/multi_mind/French-tutor`, served on
 `127.0.0.1:8095` by `french-tutor.service`. Access from other devices uses the private
@@ -53,6 +55,7 @@ Google Docs sync state, and private environment/auth files out of Git.
 - [Google Docs sync](docs/google-docs-sync.md), [Notes editor](docs/google-docs-editor.md)
 - [Focus practice](docs/focus-practice.md), [Language Transfer](docs/language-transfer.md)
 - [Adaptive Smart sessions and migration](docs/smart-sessions.md)
+- [Adaptive Foundations and migration](docs/foundations.md)
 - [Audit and validation, September 9](docs/audit-2026-09-09.md)
 
 The setup instructions below are for a **new database**, not the existing installation.
