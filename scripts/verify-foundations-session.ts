@@ -19,9 +19,9 @@ async function main() {
   await db.update(settings).set({ activeTenses: ["present"], activeLevels: ["A1"], activePhraseCategories: ["phrase"], extractProviders: { codex: false, claude: false, openai: false } });
   await db.update(learningItems).set({ suspended: true });
   await db.update(phrases).set({ suspended: true });
-  const [item] = await db.insert(learningItems).values({ french: "du pain", english: "some bread", type: "vocabulary", cefrLevel: "A1", exampleFr: "J’achète du pain pour mes amis avant de préparer le repas.", exampleEn: "I buy bread for my friends before preparing the meal.", normKey: randomUUID(), dueAt: new Date(0) }).returning();
+  const [item] = await db.insert(learningItems).values({ french: "du pain", english: "some bread", type: "vocabulary", cefrLevel: "A2", exampleFr: "J’achète du pain pour mes amis avant de préparer le repas.", exampleEn: "I buy bread for my friends before preparing the meal.", normKey: randomUUID(), dueAt: new Date(0) }).returning();
   const [advanced] = await db.insert(learningItems).values({ french: "renvoyer", english: "send back", type: "vocabulary", cefrLevel: "B1", failureCount: 20, reviewCount: 20, priority: 5, normKey: randomUUID(), dueAt: new Date(0) }).returning();
-  const [phrase] = await db.insert(phrases).values({ french: "un café", english: "a coffee", category: "phrase", level: "A1", frequencyRank: 1, nextReviewAt: new Date(0), wrongCount: 3, repetitions: 0 }).returning();
+  const [phrase] = await db.insert(phrases).values({ french: "un café", english: "a coffee", category: "phrase", level: "A2", frequencyRank: 1, nextReviewAt: new Date(0), wrongCount: 3, repetitions: 0 }).returning();
   const [filtered] = await db.insert(phrases).values({ french: "un thé", english: "a tea", category: "food", level: "A2", frequencyRank: 1, nextReviewAt: new Date(0) }).returning();
   const plan = await foundationsCandidates();
   assert.equal(plan.sources.length, 2);
@@ -30,6 +30,8 @@ async function main() {
   const personal = plan.sources.find(s => s.kind === "personal")!, everyday = plan.sources.find(s => s.kind === "phrase")!;
   assert.equal(personal.target, "du pain", "Foundations uses the basic word group rather than the longer tutor example");
   assert.equal(personal.prompt, "some bread");
+  assert.equal(personal.level, "A2");
+  assert.equal(everyday.level, "A2", "Foundations has its own A1–A2 range, independent of verb practice levels");
   assert.equal(plan.sources[0].key, everyday.key, "Legacy Again cards are reviewed struggles even with zero repetitions");
   assert.equal(everyday.challenge, "supported");
   await db.insert(itemReviews).values({ itemId: item.id, rating: 2, direction: "production", ratedAt: new Date() });
@@ -194,7 +196,7 @@ async function main() {
   assert.deepEqual(await readPhrase(), preservedPhrase);
   await assert.rejects(foundationsAction({ action: "rate", sessionId: old.id, questionId: old.data.queue[0].id, rating: 2 }), /easier/);
   console.log("Passed: mixed/filtered selection, old misses, cooldown, concurrent starts/preparation/answers/ratings, explicit four-rating memory, both source schedules, exact-sentence retries, fresh contexts after success, reload, independent follow-ups, offline recovery, edited/suspended sources, atomic rollback and cross-worker conflicts.");
-  console.log("Passed: B1 exclusion, basic note expressions, replacing obsolete rounds and discarding advanced retry text without changing saved ratings or schedules.");
+  console.log("Passed: A2 selection and reviews for both origins, B1 exclusion, basic note expressions, replacing obsolete rounds and discarding advanced retry text without changing saved ratings or schedules.");
 }
 
 main().catch(error => { console.error(error); process.exitCode = 1; });

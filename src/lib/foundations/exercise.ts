@@ -19,7 +19,7 @@ export function foundationsExerciseSchema(source: FoundationsSource, history: Ar
     rubric: z.string().trim().min(4).max(700),
   }).superRefine((value, context) => {
     const prompt = phraseKey(value.prompt), target = phraseKey(value.target);
-    if (!isFoundationsSource(source)) context.addIssue({ code: "custom", message: "Only short A1 source expressions belong in Foundations." });
+    if (!isFoundationsSource(source)) context.addIssue({ code: "custom", message: "Only short A1 or A2 source expressions belong in Foundations." });
     if (wordCount(value.target) > FOUNDATIONS_MAX_WORDS) context.addIssue({ code: "custom", message: "Use at most eight French words for beginner recall." });
     if (!/^Translate:\s*\S/i.test(value.prompt) || wordCount(value.prompt) > 20) context.addIssue({ code: "custom", message: "Use Translate: followed by a short English phrase, without a story." });
     if (history.some(old => phraseKey(old.prompt) === prompt && phraseKey(old.target) === target)) {

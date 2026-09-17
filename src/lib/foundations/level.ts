@@ -3,8 +3,11 @@ import type { LearningItem } from "@/lib/db/schema";
 // Version 1 allowed advanced lesson sources and A2 sentence generation.
 // Old rounds/retries must not bypass the beginner limits after this change.
 export const FOUNDATIONS_VERSION = 2;
+export const FOUNDATIONS_LEVELS = ["A1", "A2"] as const;
 export const FOUNDATIONS_MAX_WORDS = 8;
 export const wordCount = (text: string) => text.trim().split(/\s+/).filter(Boolean).length;
+
+export const isFoundationsLevel = (level: string) => FOUNDATIONS_LEVELS.some(allowed => allowed === level.trim().toUpperCase());
 
 /** Foundations recalls the basic expression; longer tutor examples belong to other modes. */
 export function foundationsCard(item: Pick<LearningItem, "french" | "english">) {
@@ -12,7 +15,7 @@ export function foundationsCard(item: Pick<LearningItem, "french" | "english">) 
 }
 
 export function isFoundationsSource(source: { level: string; target: string; prompt: string }): boolean {
-  return source.level.trim().toUpperCase() === "A1"
+  return isFoundationsLevel(source.level)
     && wordCount(source.target) > 0 && wordCount(source.target) <= FOUNDATIONS_MAX_WORDS
     && wordCount(source.prompt) > 0 && wordCount(source.prompt) <= 24;
 }

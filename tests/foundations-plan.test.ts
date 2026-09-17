@@ -75,7 +75,9 @@ test("Beginner eligibility beats weakness scores and uses the basic note express
   const basic = source("personal", 1);
   const advanced = { ...source("personal", 26, 99999), level: "B1", target: "renvoyer", prompt: "to send back", challenge: "supported" as const };
   const intermediate = { ...source("phrase", 2, 99999), level: "A2" };
-  assert.deepEqual(selectFoundations([advanced, intermediate, basic], "blend", 12, now).map(s => s.key), [basic.key]);
+  assert.deepEqual(new Set(selectFoundations([advanced, intermediate, basic], "blend", 12, now).map(s => s.key)), new Set([basic.key, intermediate.key]));
+  assert.equal(isFoundationsSource({ ...basic, level: "A2" }), true);
+  for (const level of ["B1", "B2", "C1", "C2"]) assert.equal(isFoundationsSource({ ...basic, level }), false);
   assert.equal(isFoundationsSource({ ...basic, target: "Un deux trois quatre cinq six sept huit neuf" }), false);
   const note = { french: "du pain", english: "some bread", exampleFr: "Une longue histoire avec plusieurs actions dans le passé.", exampleEn: "A long past-tense story." };
   assert.deepEqual(foundationsCard(note), { promptEn: "some bread", targetFr: "du pain" });
@@ -99,6 +101,7 @@ test("Generated Foundations accept basic words and small variations, rejecting l
   assert.equal(wordSchema.safeParse({ ...valid, sourceKey: word.key, target: "Je bois de l’eau avec mon repas." }).success, true);
   assert.equal(wordSchema.safeParse({ ...valid, sourceKey: word.key, target: "J’ajoute de l’huile dans la salade." }).success, false, "A related grammar rule cannot replace the actual word being learned");
   assert.equal(wordSchema.safeParse({ ...valid, sourceKey: word.key, prompt: "Translate: Some water.", target: "De l’eau." }).success, true);
+  assert.equal(foundationsExerciseSchema({ ...word, level: "A2" }, []).safeParse({ ...valid, sourceKey: word.key, prompt: "Translate: Some water.", target: "De l’eau." }).success, true);
   const article = { ...word, target: "le" };
   assert.equal(foundationsExerciseSchema(article, []).safeParse({ ...valid, sourceKey: article.key, prompt: "Translate: The (masculine).", target: "le" }).success, true);
 });

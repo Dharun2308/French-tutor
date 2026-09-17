@@ -7,14 +7,14 @@ import { rankWeakItems } from "@/lib/items/weak";
 import { PHRASE_CATEGORY_LABELS, type PhraseCategory, type Rating } from "@/types";
 import { foundationsReviews, foundationsSessions } from "./schema";
 import { challengeFor, recallMemory, selectFoundations } from "./plan";
-import { FOUNDATIONS_VERSION, foundationsCard } from "./level";
+import { FOUNDATIONS_LEVELS, FOUNDATIONS_VERSION, foundationsCard } from "./level";
 import type { FoundationsMix, FoundationsSource } from "./types";
 
 export async function foundationsCandidates(mix: FoundationsMix = "blend", now = new Date()) {
   const settings = await getSettings();
   const cutoff = new Date(now.getTime() - 180 * 86_400_000);
   const [personal, ranked, noteReviews, previous, base] = await Promise.all([
-    db.select().from(learningItems).where(and(eq(learningItems.suspended, false), eq(learningItems.cefrLevel, "A1"))),
+    db.select().from(learningItems).where(and(eq(learningItems.suspended, false), inArray(learningItems.cefrLevel, [...FOUNDATIONS_LEVELS]))),
     rankWeakItems(now),
     db.select().from(itemReviews).where(and(eq(itemReviews.direction, "production"), gte(itemReviews.ratedAt, cutoff)))
       .orderBy(desc(itemReviews.ratedAt), desc(itemReviews.id)).limit(10_000),
@@ -22,8 +22,8 @@ export async function foundationsCandidates(mix: FoundationsMix = "blend", now =
       .from(foundationsReviews).innerJoin(foundationsSessions, eq(foundationsReviews.sessionId, foundationsSessions.id))
       .where(eq(foundationsReviews.independent, true))
       .orderBy(desc(foundationsReviews.ratedAt), desc(foundationsReviews.id)).limit(10_000),
-    settings.activePhraseCategories.length && settings.activeLevels.length
-      ? db.select().from(phrases).where(and(eq(phrases.suspended, false), eq(phrases.level, "A1"), inArray(phrases.category, settings.activePhraseCategories), inArray(phrases.level, settings.activeLevels)))
+    settings.activePhraseCategories.length
+      ? db.select().from(phrases).where(and(eq(phrases.suspended, false), inArray(phrases.level, [...FOUNDATIONS_LEVELS]), inArray(phrases.category, settings.activePhraseCategories)))
       : [],
   ]);
   const weak = new Map(ranked.map(item => [item.id, item]));

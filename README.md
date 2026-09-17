@@ -28,7 +28,7 @@ practice, listening, fresh sentence contexts, conversation practice, weekly revi
 112 grammar topics, 40 Language Transfer audio lessons, and a Google Docs Notes editor.
 Structured AI uses the enabled Codex → Claude → OpenAI provider chain. Browser speech
 is free; OpenAI speech is opt-in. Foundations now mixes lesson notes and everyday
-French in easy A1 word and phrase practice, with explicit saved ratings. Its lesson items
+French in short A1–A2 word and phrase practice, with explicit saved ratings. Its lesson items
 use FSRS; everyday expressions use SM-2 with shorter recovery steps after difficulty.
 
 The running installation is `/home/multi_mind/French-tutor`, served on

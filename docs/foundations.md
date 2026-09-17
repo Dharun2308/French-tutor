@@ -1,13 +1,14 @@
 # Beginner Foundations
 
-Foundations at `/practice/phrases` practices easy A1 words and short phrases using
-both approved lesson items and the broader French phrase library. A2/B1 items are
+Foundations at `/practice/phrases` practices A1 and A2 words and short phrases using
+both approved lesson items and the broader French phrase library. B1 and above are
 excluded even when they have many misses. Lesson sources use the basic expression,
 not their longer example sentence. Sources are limited to eight French words.
 The default round reserves
 roughly half its places for each origin when enough eligible expressions exist;
 the other origin fills shortages. Suspended sources, future-due reviews, inactive
-phrase categories/levels, and alphabet drills are excluded. Recent successful
+phrase categories, and alphabet drills are excluded. Foundations has its own
+A1–A2 range, independent of the level filters for verb practice. Recent successful
 lesson production gets the existing 24-hour cooldown. Raw/unapproved imports and
 Google Docs content are not silently added to practice.
 
@@ -21,7 +22,8 @@ remain in the database. The UI shows the source and reason for each question.
 ## Phrases and feedback
 
 The configured Codex → Claude → OpenAI chain generates each fresh exercise.
-Questions stay at A1 with present-tense, familiar everyday language. Supported
+Questions stay at A1–A2 with familiar everyday language. New contexts use the
+present; a short source expression can retain an already-taught construction. Supported
 questions are usually 1–4 words, standard 2–6, and even stretch stays at 3–8 words
 with at most one familiar detail. The validator caps targets at eight words and
 requires a short `Translate:` prompt (at most twenty words). No elaborate stories,
@@ -145,3 +147,11 @@ no production practice reviews or data migrations were performed. Six live healt
 checks and SQLite integrity/foreign-key checks passed. The old round changes only
 when the learner returns and the client requests its beginner replacement.
 Backup/runtime: `~/.cache/french-tutor-foundations-easy-20260916/before/`.
+
+The owner subsequently allowed both A1 and A2. The 20:26 MDT update broadens source
+selection and the generator to that range while retaining the eight-word limit,
+brief prompts, core note expressions and B1+ exclusion. Existing version 2 rounds
+remain valid. All 77 tests, lint, TypeScript/build, actual A2 rating transactions
+for both source types and real Codex A2 generation passed. All 25 production tables
+matched the backup after six read-only health checks; no migration was required.
+Backup/runtime: `~/.cache/french-tutor-foundations-a1-a2-20260916/before/`.

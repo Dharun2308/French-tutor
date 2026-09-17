@@ -1,5 +1,20 @@
 # French Tutor — handoff for the next agent (Codex)
 
+## Latest clarification — 2026-09-16: Foundations allows A1 and A2
+
+- Owner allows both A1 and A2. Foundations uses that range for notes and everyday
+  phrases, independently of verb-practice level filters; B1+ stays excluded.
+  Keep short core expressions, brief prompts, the eight-word ceiling and saved
+  rating behavior. Do not restore long scenarios or force every card into A2.
+- Existing version 2 rounds and reviews remain valid. New selections include both
+  levels; old version 1 rounds still upgrade through the previously tested flow.
+- Passed: 77 unit tests, lint, TypeScript/build, full Foundations integration using
+  A2 note and everyday sources (including actual rating writes), and a real Codex
+  A2 generation using the learner-data copy. It retained the short source phrase.
+- Deployed at 20:26 MDT. All 25 tables matched the pre-activation snapshot and six
+  live health checks passed. No migration or production practice reviews.
+  Backup/runtime: `~/.cache/french-tutor-foundations-a1-a2-20260916/before/`.
+
 ## Latest update — 2026-09-16: keep Foundations easy
 
 - Owner clarified that Foundations is supposed to be easy after seeing a shoe

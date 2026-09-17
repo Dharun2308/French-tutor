@@ -8,7 +8,7 @@ import { ensureSeeded } from "@/lib/seed/ensure-seeded";
 import { foundationsAI, type FoundationsAI } from "./ai";
 import { foundationsCandidates } from "./candidates";
 import { foundationsExerciseSchema } from "./exercise";
-import { FOUNDATIONS_VERSION, foundationsCard, isFoundationsSource } from "./level";
+import { FOUNDATIONS_VERSION, foundationsCard, isFoundationsLevel, isFoundationsSource } from "./level";
 import { foundationsSchedule, reinforce } from "./plan";
 import { foundationsReviews, foundationsSessions } from "./schema";
 import type { FoundationsData, FoundationsQuestion, FoundationsSource, FoundationsView } from "./types";
@@ -70,12 +70,12 @@ async function available(source: FoundationsSource, tx: ReviewTransaction | type
   if (!isFoundationsSource(source)) return false;
   if (source.kind === "personal") {
     const [item] = await tx.select().from(learningItems).where(eq(learningItems.id, source.id));
-    return !!item && !item.suspended && item.cefrLevel === "A1" && foundationsCard(item).targetFr === source.target && foundationsCard(item).promptEn === source.prompt;
+    return !!item && !item.suspended && isFoundationsLevel(item.cefrLevel) && foundationsCard(item).targetFr === source.target && foundationsCard(item).promptEn === source.prompt;
   }
   const [phrase] = await tx.select().from(phrases).where(eq(phrases.id, source.id));
   const [config] = await tx.select().from(settings).where(eq(settings.id, 1));
   const prompt = phrase?.category.startsWith("fill_") ? `Fill the blank: ${phrase.english}` : `Write in French: ${phrase?.english}`;
-  return !!phrase && !phrase.suspended && phrase.level === "A1" && phrase.french === source.target && prompt === source.prompt && !!config?.activePhraseCategories.includes(phrase.category) && config.activeLevels.includes(phrase.level);
+  return !!phrase && !phrase.suspended && isFoundationsLevel(phrase.level) && phrase.french === source.target && prompt === source.prompt && !!config?.activePhraseCategories.includes(phrase.category);
 }
 
 async function saveRating(tx: ReviewTransaction, source: FoundationsSource, question: FoundationsQuestion, sessionId: string) {

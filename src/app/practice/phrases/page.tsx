@@ -16,7 +16,7 @@ import type { FoundationsView } from "@/lib/foundations/types";
 import type { FoundationsAction } from "@/lib/foundations/session";
 
 const feedbackLabel = { CORRECT: "Correct", MINOR_ERROR: "Almost — a small writing fix", WRONG: "Let's work on this", UNGRADED: "Check your recall" };
-const challengeLabel = { supported: "Basic recall", standard: "A1 basics", stretch: "A1 basics" };
+const challengeLabel = { supported: "Basic recall", standard: "A1–A2 basics", stretch: "A1–A2 basics" };
 const draftKey = (sessionId: string, questionId: string) => `foundations-draft:${sessionId}:${questionId}`;
 
 async function request(action?: FoundationsAction): Promise<FoundationsView | null> {
@@ -135,7 +135,7 @@ export default function FoundationsPage() {
       ) : session && question ? <>
         <details className="mb-4 rounded-lg border px-4 py-3 text-sm">
           <summary className="cursor-pointer font-medium">How this adapts to you</summary>
-          <p className="mt-2 text-muted-foreground">Rounds mix basic A1 expressions from your saved lesson notes and everyday French. Again and Hard ratings bring back phrases that need practice. Good and Easy give them longer gaps and small variations, while keeping the French simple.</p>
+          <p className="mt-2 text-muted-foreground">Rounds mix short A1 and A2 expressions from your saved lesson notes and everyday French. Again and Hard ratings bring back phrases that need practice. Good and Easy give them longer gaps and small variations, while keeping the French simple.</p>
           <p className="mt-2 text-muted-foreground">Phrases that need practice also return after a short gap in this round, with up to three extra attempts across the round. Those are saved separately from your first recall.</p>
           <p className="mt-2 text-muted-foreground">{question.memory.again + question.memory.hard + question.memory.good + question.memory.easy > 0
             ? `Recent ratings before this round: ${question.memory.again} Again · ${question.memory.hard} Hard · ${question.memory.good} Good · ${question.memory.easy} Easy.`
