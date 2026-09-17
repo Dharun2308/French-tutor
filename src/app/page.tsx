@@ -27,7 +27,7 @@ interface Stats {
 
 const PRACTICE_LINKS = [
   { href: "/practice/sentence", title: "Sentence builder", detail: "Produce full French", icon: MessageSquare },
-  { href: "/practice/phrases", title: "Foundations", detail: "Adaptive sentence practice", icon: Hash },
+  { href: "/practice/phrases", title: "Foundations", detail: "Easy words and phrases", icon: Hash },
   { href: "/practice/flashcards", title: "Verb cards", detail: "Reveal and rate", icon: Sparkles },
 ] as const;
 

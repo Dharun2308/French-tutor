@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { challengeFor, foundationsSchedule, recallMemory, reinforce, selectFoundations } from "../src/lib/foundations/plan";
 import { foundationsExerciseSchema } from "../src/lib/foundations/exercise";
+import { foundationsCard, isFoundationsSource } from "../src/lib/foundations/level";
 import type { FoundationsData, FoundationsSource } from "../src/lib/foundations/types";
 import type { Rating } from "../src/types";
 
@@ -70,19 +71,34 @@ test("Relearning preserves the missed sentence, waits two questions and stays bo
   assert.equal(reinforce(data, "q0", "unrated"), false);
 });
 
-test("Generated Foundations reject isolated words, stale sentences, leaked answers and cosmetic rewrites", () => {
+test("Beginner eligibility beats weakness scores and uses the basic note expression", () => {
+  const basic = source("personal", 1);
+  const advanced = { ...source("personal", 26, 99999), level: "B1", target: "renvoyer", prompt: "to send back", challenge: "supported" as const };
+  const intermediate = { ...source("phrase", 2, 99999), level: "A2" };
+  assert.deepEqual(selectFoundations([advanced, intermediate, basic], "blend", 12, now).map(s => s.key), [basic.key]);
+  assert.equal(isFoundationsSource({ ...basic, target: "Un deux trois quatre cinq six sept huit neuf" }), false);
+  const note = { french: "du pain", english: "some bread", exampleFr: "Une longue histoire avec plusieurs actions dans le passé.", exampleEn: "A long past-tense story." };
+  assert.deepEqual(foundationsCard(note), { promptEn: "some bread", targetFr: "du pain" });
+});
+
+test("Generated Foundations accept basic words and small variations, rejecting long scenarios and leaked answers", () => {
   const original = { ...source("phrase", 1), prompt: "I buy bread every morning.", target: "J’achète du pain chaque matin." };
-  const schema = foundationsExerciseSchema(original, [{ prompt: "I eat bread at home.", target: "Je mange du pain à la maison." }]);
-  const valid = { sourceKey: original.key, prompt: "I buy some bread for my sister.", target: "J’achète du pain pour ma sœur.", rubric: "Use the partitive article." };
+  const schema = foundationsExerciseSchema(original, [{ prompt: "Translate: I eat bread at home.", target: "Je mange du pain à la maison." }]);
+  const valid = { sourceKey: original.key, prompt: "Translate: I buy some bread.", target: "J’achète du pain.", rubric: "Use the partitive article." };
   assert.equal(schema.safeParse(valid).success, true);
   for (const invalid of [
-    { ...valid, sourceKey: "phrase:999" }, { ...valid, target: "le pain" },
-    { ...valid, prompt: `Translate ${valid.target}` },
-    { ...valid, target: "JE MANGE DU PAIN À LA MAISON!" },
-    { ...valid, target: "Aujourd’hui, j’achète du pain chaque matin." },
+    { ...valid, sourceKey: "phrase:999" },
+    { ...valid, prompt: `Translate: ${valid.target}` },
+    { ...valid, prompt: "Translate: I eat bread at home.", target: "JE MANGE DU PAIN À LA MAISON!" },
+    { ...valid, target: "J’achète du pain pour ma sœur puis nous préparons le déjeuner." },
+    { ...valid, prompt: "You and your partner bought shoes online. Say that you can send these shoes back by mail.", target: "Nous pouvons renvoyer ces chaussures par la poste." },
   ]) assert.equal(schema.safeParse(invalid).success, false);
+  assert.equal(schema.safeParse({ ...valid, target: "Aujourd’hui, j’achète du pain chaque matin." }).success, true, "Small beginner variations are allowed");
   const word = { ...source("personal", 2), target: "de l’eau" };
   const wordSchema = foundationsExerciseSchema(word, []);
   assert.equal(wordSchema.safeParse({ ...valid, sourceKey: word.key, target: "Je bois de l’eau avec mon repas." }).success, true);
   assert.equal(wordSchema.safeParse({ ...valid, sourceKey: word.key, target: "J’ajoute de l’huile dans la salade." }).success, false, "A related grammar rule cannot replace the actual word being learned");
+  assert.equal(wordSchema.safeParse({ ...valid, sourceKey: word.key, prompt: "Translate: Some water.", target: "De l’eau." }).success, true);
+  const article = { ...word, target: "le" };
+  assert.equal(foundationsExerciseSchema(article, []).safeParse({ ...valid, sourceKey: article.key, prompt: "Translate: The (masculine).", target: "le" }).success, true);
 });

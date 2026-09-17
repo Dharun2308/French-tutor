@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
 
-const output = "/tmp/french-tutor-foundations-20260915";
+const output = process.env.FOUNDATIONS_BROWSER_OUTPUT || "/tmp/french-tutor-foundations-easy-20260916";
 await mkdir(output, { recursive: true, mode: 0o700 });
 const tab = await (await fetch("http://127.0.0.1:9236/json/new?about:blank", { method: "PUT" })).json();
 const ws = new WebSocket(tab.webSocketDebuggerUrl);
@@ -47,9 +47,24 @@ try {
   await cdp("Page.enable"); await cdp("Runtime.enable");
   await cdp("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
   await cdp("Page.navigate", { url: "http://127.0.0.1:8097/practice/phrases" });
-  await type("Je achète du pain pour ma sœur.");
+  if (process.env.FOUNDATIONS_UPGRADE_ONLY === "1") {
+    await waitFor(`Boolean(document.querySelector('#foundations-answer:not(:disabled)'))`);
+    assert.ok(await evaluate(`document.body.innerText.includes('Easy words and short phrases')`));
+    assert.ok(!await evaluate(`document.body.innerText.includes('bought shoes online')`));
+    const upgraded = await state();
+    assert.equal(upgraded.status, "active");
+    assert.ok(upgraded.question.fallback, "Disabled fixture providers use a short original expression");
+    assert.ok(upgraded.question.prompt.split(/\s+/).length <= 24);
+    await cdp("Page.reload");
+    await waitFor(`Boolean(document.querySelector('#foundations-answer:not(:disabled)'))`);
+    assert.equal((await state()).id, upgraded.id, "The upgraded round resumes without starting over again");
+    assert.deepEqual(errors, []);
+    await screenshot("foundations-upgraded-phone");
+    console.log("PASS actual old-round replacement and reload into beginner practice.");
+  } else {
+  await type("De pain chaud.");
   await cdp("Page.reload");
-  await waitFor(`document.querySelector('#foundations-answer')?.value === 'Je achète du pain pour ma sœur.'`);
+  await waitFor(`document.querySelector('#foundations-answer')?.value === 'De pain chaud.'`);
   await evaluate(`(() => {
     const real = window.fetch.bind(window); window.failAnswer = true; window.lostRating = false; window.ratingRequests = 0;
     window.fetch = async (url, opts) => {
@@ -65,12 +80,12 @@ try {
     };
   })()`);
   await click("Check answer"); await waitFor(`Boolean(document.querySelector('[role=alert]'))`);
-  assert.equal(await evaluate(`document.querySelector('#foundations-answer').value`), "Je achète du pain pour ma sœur.");
+  assert.equal(await evaluate(`document.querySelector('#foundations-answer').value`), "De pain chaud.");
   assert.equal((await state()).completed, 0);
   await evaluate("window.failAnswer = false"); await click("Check answer");
   await waitFor(`document.body.innerText.includes('How well did you recall')`);
   assert.equal((await state()).question.feedback.rating, null);
-  await cdp("Page.reload"); await waitFor(`document.body.innerText.includes('Your answer: Je achète')`);
+  await cdp("Page.reload"); await waitFor(`document.body.innerText.includes('Your answer: De pain chaud.')`);
   for (const width of [390, 1280]) {
     await cdp("Emulation.setDeviceMetricsOverride", { width, height: width === 390 ? 844 : 900, deviceScaleFactor: 1, mobile: width === 390 });
     for (const theme of ["light", "dark"]) {
@@ -103,15 +118,15 @@ try {
   console.log("PASS draft and feedback reload, four manual ratings, phone/desktop light/dark, failed answers, double keys and committed-rating retry.");
 
   await type("du café"); await click("Check answer"); await waitFor(`document.body.innerText.includes('How well did you recall')`);
-  await click("Hard"); await waitFor(`document.body.innerText.includes('as a man') && Boolean(document.querySelector('#foundations-answer:not(:disabled)'))`);
-  await type("Je suis prêt à partir avec mes amis."); await click("Check answer"); await waitFor(`document.body.innerText.includes('How well did you recall')`);
+  await click("Hard"); await waitFor(`document.body.innerText.includes('A man.') && Boolean(document.querySelector('#foundations-answer:not(:disabled)'))`);
+  await type("Je suis prêt."); await click("Check answer"); await waitFor(`document.body.innerText.includes('How well did you recall')`);
   assert.equal((await state()).question.feedback.grade.verdict, "CORRECT");
   await click("Good"); await waitFor(`document.body.innerText.includes('Recall again') && Boolean(document.querySelector('#foundations-answer:not(:disabled)'))`);
-  assert.equal((await state()).question.prompt, "Write in French: I buy some bread for my sister.");
-  await type("J’achète du pain pour ma sœur."); await click("Check answer"); await waitFor(`document.body.innerText.includes('How well did you recall')`);
+  assert.equal((await state()).question.prompt, "Translate: Some warm bread.");
+  await type("Du pain chaud."); await click("Check answer"); await waitFor(`document.body.innerText.includes('How well did you recall')`);
   await click("Good"); await waitFor(`document.body.innerText.includes('Write in French: a coffee') && Boolean(document.querySelector('#foundations-answer:not(:disabled)'))`);
   await click("Reveal answer"); await waitFor(`document.body.innerText.includes('How well did you recall')`); await click("Good");
-  await waitFor(`document.body.innerText.includes('We have a car') && Boolean(document.querySelector('#foundations-answer:not(:disabled)'))`);
+  await waitFor(`document.body.innerText.includes('A red car') && Boolean(document.querySelector('#foundations-answer:not(:disabled)'))`);
   await click("Reveal answer"); await waitFor(`document.body.innerText.includes('How well did you recall')`); await click("Easy");
   await waitFor(`document.body.innerText.includes('Round complete')`);
   const completed = await state();
@@ -122,4 +137,5 @@ try {
   assert.ok(await evaluate("document.documentElement.scrollWidth <= innerWidth")); await screenshot("foundations-complete-phone");
   assert.deepEqual(errors, []);
   console.log("PASS fallback, real local grading, exact missed-sentence recall, independent rating totals, saved completion, no uncaught browser errors.");
+  }
 } finally { ws.close(); await fetch(`http://127.0.0.1:9236/json/close/${tab.id}`); }

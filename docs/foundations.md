@@ -1,7 +1,10 @@
-# Adaptive Foundations
+# Beginner Foundations
 
-Foundations at `/practice/phrases` practices complete sentences using both approved
-lesson items and the broader French phrase library. The default round reserves
+Foundations at `/practice/phrases` practices easy A1 words and short phrases using
+both approved lesson items and the broader French phrase library. A2/B1 items are
+excluded even when they have many misses. Lesson sources use the basic expression,
+not their longer example sentence. Sources are limited to eight French words.
+The default round reserves
 roughly half its places for each origin when enough eligible expressions exist;
 the other origin fills shortages. Suspended sources, future-due reviews, inactive
 phrase categories/levels, and alphabet drills are excluded. Recent successful
@@ -15,18 +18,20 @@ still guide selection: an Again reset to zero repetitions is not a new card.
 Current practice uses recent rating evidence; all explicit Foundations ratings
 remain in the database. The UI shows the source and reason for each question.
 
-## Sentences and feedback
+## Phrases and feedback
 
 The configured Codex → Claude → OpenAI chain generates each fresh exercise.
-Standard questions use practical A2-style sentences of about 6–18 words while
-respecting the active tenses. Repeated difficulty reduces each exercise to one
-skill; repeated Easy ratings add a detail or clause. Short source words and
+Questions stay at A1 with present-tense, familiar everyday language. Supported
+questions are usually 1–4 words, standard 2–6, and even stretch stays at 3–8 words
+with at most one familiar detail. The validator caps targets at eight words and
+requires a short `Translate:` prompt (at most twenty words). No elaborate stories,
+extra clauses, advanced tenses or new rules are requested for novelty. Single
+words, short greetings and small variations are allowed. Short source words and
 expressions must appear in the target itself, so a related grammar example cannot
-silently replace the word being learned. Validation rejects isolated words,
-previous sentences, leaked full answers and cosmetic rewrites of longer sources.
-Semantic quality of longer transformations still depends on the tutor model.
+silently replace the word being learned. Validation rejects repeated prompt/answer
+pairs and leaked full answers. Vocabulary choice still depends on the tutor model.
 
-The learner types a French sentence, sees feedback, then always chooses Again,
+The learner types French, sees feedback, then always chooses Again,
 Hard, Good or Easy (keys 1–4). Exact answers use local comparison; other answers
 use the existing meaning/grammar grader, which accepts valid alternatives and
 distinguishes writing slips from real grammar errors. Reveal supports self-review.
@@ -70,6 +75,12 @@ activating the new build. It only adds `foundations_sessions`, `foundations_revi
 and their indexes. It is repeatable and is included in the new-database Drizzle
 configuration. Do not run `db:push` against production.
 
+The September 16 difficulty correction needs no schema migration. New sessions
+have data version 2. Reloading an active version 1 round requests a new beginner
+round and retires the old round; all its ratings remain saved. Version 1 exercises
+are excluded from cached retries and generation history so old advanced text cannot
+return through a retry. Their ratings still contribute to recall memory.
+
 Sessions persist selection, prompts, feedback, follow-ups and position. Drafts
 use localStorage per question. AI work is serialized within a process; database
 revisions reject stale workers. Rating evidence, FSRS/SM-2 changes and advancement
@@ -108,3 +119,29 @@ content fingerprints through migration and activation, including the active
 Smart round. Both new tables were empty after health checks. Six live read-only
 routes and SQLite integrity/foreign-key checks passed. Runtime/database backup:
 `~/.cache/french-tutor-foundations-20260915/before/`.
+
+## Beginner correction, September 16, 2026
+
+The reported shoe-return exercise came from an imported B1 word (`renvoyer`).
+Version 1 selected advanced notes by weakness and requested A2-style sentences.
+Version 2 enforces the beginner source and generation limits described above.
+
+All 77 unit tests, lint, TypeScript, the production build, and Foundations
+transaction/upgrade integration passed. Real Codex and Claude checks produced
+`De l’eau.` and `Je bois de l’eau.` and passed alternative-answer/error grading.
+The actual saved round was upgraded in a disposable browser/database: all reviews,
+source schedules and the Smart session matched the snapshot afterward, and the
+new round contained six A1 note expressions and six A1 everyday expressions.
+The regular phone/desktop light/dark browser checks also passed for all four
+ratings, reload, failed saves, lost responses after commit, follow-ups and completion.
+
+To repeat the upgrade browser check, use a disposable copy containing an old
+version 1 round, disable its AI providers, start its app on :8097 and Chromium on
+:9236, and run `FOUNDATIONS_UPGRADE_ONLY=1 node scripts/verify-foundations-browser.mjs`.
+The normal fixture and browser scripts test current version 2 rounds separately.
+
+Deployed at 20:18 MDT. All 25 table contents matched the pre-activation backup;
+no production practice reviews or data migrations were performed. Six live health
+checks and SQLite integrity/foreign-key checks passed. The old round changes only
+when the learner returns and the client requests its beginner replacement.
+Backup/runtime: `~/.cache/french-tutor-foundations-easy-20260916/before/`.

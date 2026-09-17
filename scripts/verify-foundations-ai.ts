@@ -10,6 +10,7 @@ async function main() {
   const { settings } = await import("../src/lib/db/schema");
   const { foundationsAI } = await import("../src/lib/foundations/ai");
   const { recallMemory } = await import("../src/lib/foundations/plan");
+  const { wordCount } = await import("../src/lib/foundations/level");
   const history: { prompt: string; target: string }[] = [];
   for (const provider of ["codex", "claude"] as const) {
     await db.update(settings).set({ extractProviders: { codex: provider === "codex", claude: provider === "claude", openai: false } });
@@ -22,7 +23,9 @@ async function main() {
     };
     const exercise = await foundationsAI.generate(source, history, ["present"], source.evidence);
     assert.equal(exercise.provider, provider);
-    assert.ok(exercise.target.split(/\s+/).length >= 4);
+    assert.ok(wordCount(exercise.target) <= 8);
+    assert.match(exercise.prompt, /^Translate:/i);
+    assert.ok(wordCount(exercise.prompt) <= 20);
     assert.match(exercise.target, /(?:de\s+l[’']eau|d[’']eau)/i);
     history.push(exercise);
     console.log(provider, "generation:", JSON.stringify(exercise));

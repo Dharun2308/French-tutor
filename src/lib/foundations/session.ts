@@ -3,12 +3,12 @@ import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db/client";
 import { learningItems, phrases, settings } from "@/lib/db/schema";
-import { cardFor } from "@/lib/items/card";
 import { recordItemReview, type ReviewTransaction } from "@/lib/items/review";
 import { ensureSeeded } from "@/lib/seed/ensure-seeded";
 import { foundationsAI, type FoundationsAI } from "./ai";
 import { foundationsCandidates } from "./candidates";
 import { foundationsExerciseSchema } from "./exercise";
+import { FOUNDATIONS_VERSION, foundationsCard, isFoundationsSource } from "./level";
 import { foundationsSchedule, reinforce } from "./plan";
 import { foundationsReviews, foundationsSessions } from "./schema";
 import type { FoundationsData, FoundationsQuestion, FoundationsSource, FoundationsView } from "./types";
@@ -60,19 +60,22 @@ export function foundationsView(session: Session): FoundationsView {
 
 export async function getFoundationsSession(): Promise<FoundationsView | null> {
   const [active] = await db.select().from(foundationsSessions).where(eq(foundationsSessions.status, "active")).limit(1);
+  // The normal client start request replaces an obsolete round without discarding its reviews.
+  if (active && active.data.version !== FOUNDATIONS_VERSION) return null;
   const [completed] = active ? [] : await db.select().from(foundationsSessions).where(eq(foundationsSessions.status, "completed")).orderBy(desc(foundationsSessions.createdAt)).limit(1);
   return active || completed ? foundationsView(active ?? completed) : null;
 }
 
 async function available(source: FoundationsSource, tx: ReviewTransaction | typeof db = db): Promise<boolean> {
+  if (!isFoundationsSource(source)) return false;
   if (source.kind === "personal") {
     const [item] = await tx.select().from(learningItems).where(eq(learningItems.id, source.id));
-    return !!item && !item.suspended && cardFor(item).targetFr === source.target && cardFor(item).promptEn === source.prompt;
+    return !!item && !item.suspended && item.cefrLevel === "A1" && foundationsCard(item).targetFr === source.target && foundationsCard(item).promptEn === source.prompt;
   }
   const [phrase] = await tx.select().from(phrases).where(eq(phrases.id, source.id));
   const [config] = await tx.select().from(settings).where(eq(settings.id, 1));
   const prompt = phrase?.category.startsWith("fill_") ? `Fill the blank: ${phrase.english}` : `Write in French: ${phrase?.english}`;
-  return !!phrase && !phrase.suspended && phrase.french === source.target && prompt === source.prompt && !!config?.activePhraseCategories.includes(phrase.category) && config.activeLevels.includes(phrase.level);
+  return !!phrase && !phrase.suspended && phrase.level === "A1" && phrase.french === source.target && prompt === source.prompt && !!config?.activePhraseCategories.includes(phrase.category) && config.activeLevels.includes(phrase.level);
 }
 
 async function saveRating(tx: ReviewTransaction, source: FoundationsSource, question: FoundationsQuestion, sessionId: string) {
@@ -119,12 +122,12 @@ async function persist(session: Session, data: FoundationsData, review?: Foundat
 
 async function start(action: Extract<FoundationsAction, { action: "start" }>): Promise<FoundationsView> {
   const [active] = await db.select().from(foundationsSessions).where(eq(foundationsSessions.status, "active")).limit(1);
-  if (active && !action.restart) return foundationsView(active);
+  if (active && active.data.version === FOUNDATIONS_VERSION && !action.restart) return foundationsView(active);
   await ensureSeeded();
   const plan = await foundationsCandidates(action.mix);
-  const data: FoundationsData = { version: 1, mix: action.mix, ...plan, index: 0, queue: plan.sources.map(source => ({ id: randomUUID(), sourceKey: source.key, followUp: false, exercise: source.retryExercise })) };
+  const data: FoundationsData = { version: FOUNDATIONS_VERSION, mix: action.mix, ...plan, index: 0, queue: plan.sources.map(source => ({ id: randomUUID(), sourceKey: source.key, followUp: false, exercise: source.retryExercise })) };
   const session = await db.transaction(async tx => {
-    if (action.restart && active) await tx.update(foundationsSessions).set({ status: "abandoned" }).where(and(eq(foundationsSessions.id, active.id), eq(foundationsSessions.revision, active.revision)));
+    if (active) await tx.update(foundationsSessions).set({ status: "abandoned" }).where(and(eq(foundationsSessions.id, active.id), eq(foundationsSessions.revision, active.revision)));
     const [created] = await tx.insert(foundationsSessions).values({ id: randomUUID(), status: data.queue.length ? "active" : "completed", data }).onConflictDoNothing().returning();
     if (created) return created;
     const [existing] = await tx.select().from(foundationsSessions).where(eq(foundationsSessions.status, "active"));
@@ -139,6 +142,7 @@ export async function foundationsAction(action: FoundationsAction, ai: Foundatio
     if (action.action === "start") return start(action);
     const [session] = await db.select().from(foundationsSessions).where(eq(foundationsSessions.id, action.sessionId));
     if (!session) throw new FoundationsConflict("Round not found. Reload to start a new one.");
+    if (session.data.version !== FOUNDATIONS_VERSION) throw new FoundationsConflict("Foundations now uses easier phrases. Reload to start an easier round; your saved ratings are kept.");
     const data = structuredClone(session.data);
     const index = data.queue.findIndex(q => q.id === action.questionId);
     if (index < 0 || index > data.index) throw new FoundationsConflict("This question is no longer current. Reload to resume.");

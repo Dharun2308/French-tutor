@@ -15,16 +15,21 @@ import type { Rating } from "../src/types";
 
 async function main() {
   assert.match(process.env.TURSO_DATABASE_URL ?? "", /^file:\/tmp\//);
+  await db.delete(foundationsReviews);
   await db.update(settings).set({ activeTenses: ["present"], activeLevels: ["A1"], activePhraseCategories: ["phrase"], extractProviders: { codex: false, claude: false, openai: false } });
   await db.update(learningItems).set({ suspended: true });
   await db.update(phrases).set({ suspended: true });
-  const [item] = await db.insert(learningItems).values({ french: "du pain", english: "some bread", type: "vocab", normKey: randomUUID(), dueAt: new Date(0) }).returning();
+  const [item] = await db.insert(learningItems).values({ french: "du pain", english: "some bread", type: "vocabulary", cefrLevel: "A1", exampleFr: "J’achète du pain pour mes amis avant de préparer le repas.", exampleEn: "I buy bread for my friends before preparing the meal.", normKey: randomUUID(), dueAt: new Date(0) }).returning();
+  const [advanced] = await db.insert(learningItems).values({ french: "renvoyer", english: "send back", type: "vocabulary", cefrLevel: "B1", failureCount: 20, reviewCount: 20, priority: 5, normKey: randomUUID(), dueAt: new Date(0) }).returning();
   const [phrase] = await db.insert(phrases).values({ french: "un café", english: "a coffee", category: "phrase", level: "A1", frequencyRank: 1, nextReviewAt: new Date(0), wrongCount: 3, repetitions: 0 }).returning();
   const [filtered] = await db.insert(phrases).values({ french: "un thé", english: "a tea", category: "food", level: "A2", frequencyRank: 1, nextReviewAt: new Date(0) }).returning();
   const plan = await foundationsCandidates();
   assert.equal(plan.sources.length, 2);
   assert.ok(!plan.sources.some(s => s.id === filtered.id && s.kind === "phrase"));
+  assert.ok(!plan.sources.some(s => s.key === `personal:${advanced.id}`), "The reported B1 vocabulary must stay out even with many misses");
   const personal = plan.sources.find(s => s.kind === "personal")!, everyday = plan.sources.find(s => s.kind === "phrase")!;
+  assert.equal(personal.target, "du pain", "Foundations uses the basic word group rather than the longer tutor example");
+  assert.equal(personal.prompt, "some bread");
   assert.equal(plan.sources[0].key, everyday.key, "Legacy Again cards are reviewed struggles even with zero repetitions");
   assert.equal(everyday.challenge, "supported");
   await db.insert(itemReviews).values({ itemId: item.id, rating: 2, direction: "production", ratedAt: new Date() });
@@ -41,12 +46,12 @@ async function main() {
   const reviewCount = async () => (await db.select().from(foundationsReviews)).length;
   const create = async (sources: FoundationsSource[]) => {
     await db.update(foundationsSessions).set({ status: "abandoned" }).where(eq(foundationsSessions.status, "active"));
-    const data: FoundationsData = { version: 1, mix: "blend", activeTenses: ["present"], sources, history: [], index: 0, queue: sources.map(s => ({ id: randomUUID(), sourceKey: s.key, followUp: false })) };
+    const data: FoundationsData = { version: 2, mix: "blend", activeTenses: ["present"], sources, history: [], index: 0, queue: sources.map(s => ({ id: randomUUID(), sourceKey: s.key, followUp: false })) };
     return (await db.insert(foundationsSessions).values({ id: randomUUID(), status: "active", data }).returning())[0];
   };
   let generated = 0, graded = 0;
   const ai: FoundationsAI = {
-    generate: async source => ({ prompt: `Write the complete sentence for exercise ${++generated}.`, target: `Je prépare ${source.target} pour mon ami numéro ${generated}.`, rubric: "Partitive article in a sentence.", provider: "fixture", fallback: false }),
+    generate: async source => ({ prompt: `Translate: I prepare it. (Exercise ${++generated}.)`, target: `Je prépare ${source.target}.`, rubric: "Partitive article in a short sentence.", provider: "fixture", fallback: false }),
     grade: async (_source, exercise, answer) => {
       graded++;
       return { verdict: answer === exercise.target ? "CORRECT" : "WRONG", corrected: exercise.target, explanation: "Use the requested grammar.", errorType: answer === exercise.target ? "none" : "article", provider: "fixture" };
@@ -60,6 +65,7 @@ async function main() {
   const identity = { sessionId: session.id, questionId: firstId };
   const preparations = await Promise.all(Array.from({ length: 4 }, () => foundationsAction({ action: "prepare", ...identity }, ai)));
   assert.equal(generated, 1);
+  assert.equal(preparations[0].question?.fallback, false);
   assert.ok(preparations.every(v => v.question?.prompt === preparations[0].question?.prompt));
   const beforeGrade = await readItem();
   const ungraded = await Promise.all(Array.from({ length: 4 }, () => foundationsAction({ action: "answer", ...identity, answer: "wrong", elapsedMs: 100 }, ai)));
@@ -165,7 +171,30 @@ async function main() {
   assert.equal(invalid.status, 400);
   const independent = await db.select().from(foundationsReviews).where(and(eq(foundationsReviews.sourceKey, personal.key), eq(foundationsReviews.independent, true)));
   assert.equal(independent.length, 2);
+
+  // Earlier complex rounds and saved exercises cannot bypass the new beginner limits.
+  const old = await create([everyday]);
+  old.data.version = 1;
+  const oldExercise = { prompt: "You and your partner bought shoes online. Say that you can send these shoes back by mail.", target: "Nous pouvons renvoyer ces chaussures par la poste.", rubric: "A previous advanced question.", provider: "fixture", fallback: false };
+  old.data.queue[0].exercise = oldExercise;
+  await db.update(foundationsSessions).set({ data: old.data }).where(eq(foundationsSessions.id, old.id));
+  await db.insert(foundationsReviews).values({ sessionId: old.id, questionId: old.data.queue[0].id, sourceKey: everyday.key, rating: 0, independent: true, exercise: oldExercise, answer: "", grade: { verdict: "UNGRADED", corrected: oldExercise.target, explanation: "Old feedback", errorType: "none", provider: "self" }, ratedAt: new Date() });
+  await db.update(phrases).set({ nextReviewAt: new Date(0) }).where(eq(phrases.id, phrase.id));
+  const preservedReviews = await db.select().from(foundationsReviews);
+  const preservedItem = await readItem(), preservedPhrase = await readPhrase();
+  assert.equal(await getFoundationsSession(), null, "Reload should request an easier round instead of resuming the advanced one");
+  const replacement = await foundationsAction({ action: "start", mix: "blend" });
+  assert.notEqual(replacement.id, old.id);
+  assert.equal((await read(old.id)).status, "abandoned");
+  assert.equal((await read(replacement.id)).data.version, 2);
+  assert.equal(replacement.question?.prompt, null, "An advanced cached exercise must be regenerated");
+  assert.equal(replacement.question?.memory.lastRating, 0, "Its actual rating is still remembered");
+  assert.deepEqual(await db.select().from(foundationsReviews), preservedReviews);
+  assert.deepEqual(await readItem(), preservedItem);
+  assert.deepEqual(await readPhrase(), preservedPhrase);
+  await assert.rejects(foundationsAction({ action: "rate", sessionId: old.id, questionId: old.data.queue[0].id, rating: 2 }), /easier/);
   console.log("Passed: mixed/filtered selection, old misses, cooldown, concurrent starts/preparation/answers/ratings, explicit four-rating memory, both source schedules, exact-sentence retries, fresh contexts after success, reload, independent follow-ups, offline recovery, edited/suspended sources, atomic rollback and cross-worker conflicts.");
+  console.log("Passed: B1 exclusion, basic note expressions, replacing obsolete rounds and discarding advanced retry text without changing saved ratings or schedules.");
 }
 
 main().catch(error => { console.error(error); process.exitCode = 1; });

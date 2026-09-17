@@ -1,5 +1,30 @@
 # French Tutor — handoff for the next agent (Codex)
 
+## Latest update — 2026-09-16: keep Foundations easy
+
+- Owner clarified that Foundations is supposed to be easy after seeing a shoe
+  return/mail scenario. The selected source was B1 `renvoyer`; the earlier weakness
+  selection admitted advanced notes and generation was deliberately A2. Foundations
+  now stays at A1 with basic words and short phrases, even after repeated misses.
+- Both source types require A1 and at most eight French words. Lesson sources use
+  their core French/English rather than longer tutor examples. New prompts use
+  `Translate:` with a short English phrase; generated answers are capped at eight
+  words, normally fewer, and use familiar present-tense language. Single words and
+  small variations are allowed. Ratings and scheduling behavior are preserved.
+- New rounds use data version 2. Reloading an active version 1 round starts an
+  easier round, retiring the old plan without removing its ratings. Old generated
+  texts cannot return through cached retries or generation history. No schema
+  migration or change to other modes, provider settings or Codex medium effort.
+- Passed: 77 unit tests, lint, TypeScript/build, Foundations transaction/upgrade
+  integration, both real Codex and Claude generation/grading, actual saved-round
+  upgrade in a disposable phone browser and all existing Foundations browser flows.
+  The learner-data copy yields six A1 note expressions and six A1 everyday sources,
+  with source lengths of at most three words; the reported B1 source is excluded.
+- Deployed at 20:18 MDT. All 25 table contents matched the pre-activation snapshot;
+  six live read-only checks, integrity and foreign-key checks passed. Previous
+  runtime/database: `~/.cache/french-tutor-foundations-easy-20260916/before/`.
+  See `docs/foundations.md` for current behavior and verification.
+
 ## Latest update — 2026-09-15: adaptive Foundations
 
 - Owner asked for harder Foundations, a mix of lesson notes and broader French,

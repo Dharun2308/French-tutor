@@ -1,5 +1,6 @@
 import type { Rating } from "@/types";
 import { applyRating, type SrsState } from "@/lib/srs";
+import { isFoundationsSource } from "./level";
 import type { Challenge, FoundationsData, FoundationsMix, FoundationsSource, RecallMemory } from "./types";
 
 export function recallMemory(reviews: { rating: Rating; ratedAt: Date }[]): RecallMemory {
@@ -22,7 +23,7 @@ export function challengeFor(memory: RecallMemory, historicalMisses: number): Ch
 
 /** Struggles lead, due reviews follow, and a limited fresh pool keeps practice varied. */
 export function selectFoundations(candidates: FoundationsSource[], mix: FoundationsMix, target = 12, now = new Date()) {
-  const pool = candidates.filter(c => Date.parse(c.dueAt) <= now.getTime() && (mix === "blend" || (mix === "notes" ? c.kind === "personal" : c.kind === "phrase")))
+  const pool = candidates.filter(c => isFoundationsSource(c) && Date.parse(c.dueAt) <= now.getTime() && (mix === "blend" || (mix === "notes" ? c.kind === "personal" : c.kind === "phrase")))
     .sort((a, b) => b.score - a.score || a.key.localeCompare(b.key));
   const selected: FoundationsSource[] = [];
   const used = new Set<string>();
@@ -40,7 +41,7 @@ export function selectFoundations(candidates: FoundationsSource[], mix: Foundati
     selected.push(source); used.add(source.key); textUsed.add(text); return true;
   };
   // An Again card still has review evidence even though SM-2 resets repetitions to zero.
-  for (const source of pool.filter(c => c.memory.recentStruggles > 0 || c.memory.lastRating === 0 || c.memory.lastRating === 1 || c.reason.startsWith("Repeated"))) {
+  for (const source of pool.filter(c => c.memory.recentStruggles > 0 || c.memory.lastRating === 0 || c.memory.lastRating === 1 || c.challenge === "supported")) {
     if (selected.length >= Math.ceil(target / 2)) break;
     add(source);
   }

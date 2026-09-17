@@ -1,4 +1,4 @@
-// Disposable migrated DB only. Prepares deterministic full sentences plus one provider fallback.
+// Disposable migrated DB only. Prepares deterministic beginner phrases plus one provider fallback.
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
@@ -14,8 +14,8 @@ async function main() {
   await db.update(learningItems).set({ suspended: true });
   await db.update(phrases).set({ suspended: true });
   const notes = await db.insert(learningItems).values([
-    { french: "du pain", english: "some bread", type: "vocab" as const, normKey: randomUUID(), dueAt: new Date(0) },
-    { french: "Je suis prêt.", english: "I am ready.", type: "phrase" as const, normKey: randomUUID(), dueAt: new Date(0) },
+    { french: "du pain", english: "some bread", type: "vocabulary", cefrLevel: "A1", normKey: randomUUID(), dueAt: new Date(0) },
+    { french: "Je suis prêt.", english: "I am ready.", type: "phrase", cefrLevel: "A1", normKey: randomUUID(), dueAt: new Date(0) },
   ]).returning();
   const everyday = await db.insert(phrases).values([
     { french: "un café", english: "a coffee", category: "phrase", level: "A1", frequencyRank: 1, nextReviewAt: new Date(0) },
@@ -26,13 +26,13 @@ async function main() {
   const sources = keys.map(key => plan.sources.find(s => s.key === key)!);
   assert.ok(sources.every(Boolean));
   const exercises = [
-    { prompt: "Write in French: I buy some bread for my sister.", target: "J’achète du pain pour ma sœur." },
+    { prompt: "Translate: Some warm bread.", target: "Du pain chaud." },
     undefined,
-    { prompt: "Write in French, as a man: I am ready to leave with my friends.", target: "Je suis prêt à partir avec mes amis." },
-    { prompt: "Write in French: We have a car for the trip.", target: "Nous avons une voiture pour le voyage." },
+    { prompt: "Translate: I am ready. (A man.)", target: "Je suis prêt." },
+    { prompt: "Translate: A red car.", target: "Une voiture rouge." },
   ];
   await db.update(foundationsSessions).set({ status: "abandoned" }).where(eq(foundationsSessions.status, "active"));
-  const data: FoundationsData = { version: 1, mix: "blend", sources, history: [], activeTenses: ["present"], index: 0,
+  const data: FoundationsData = { version: 2, mix: "blend", sources, history: [], activeTenses: ["present"], index: 0,
     queue: sources.map((source, index) => ({ id: randomUUID(), sourceKey: source.key, followUp: false, exercise: exercises[index] ? { ...exercises[index]!, rubric: "Use natural everyday French.", provider: "fixture", fallback: false } : undefined })) };
   await db.insert(foundationsSessions).values({ id: randomUUID(), status: "active", data });
   console.log("Foundations browser fixture ready: four independent questions, providers disabled.");

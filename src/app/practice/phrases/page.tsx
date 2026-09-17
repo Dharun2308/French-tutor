@@ -16,7 +16,7 @@ import type { FoundationsView } from "@/lib/foundations/types";
 import type { FoundationsAction } from "@/lib/foundations/session";
 
 const feedbackLabel = { CORRECT: "Correct", MINOR_ERROR: "Almost — a small writing fix", WRONG: "Let's work on this", UNGRADED: "Check your recall" };
-const challengeLabel = { supported: "One skill at a time", standard: "Full sentence practice", stretch: "A little more detail" };
+const challengeLabel = { supported: "Basic recall", standard: "A1 basics", stretch: "A1 basics" };
 const draftKey = (sessionId: string, questionId: string) => `foundations-draft:${sessionId}:${questionId}`;
 
 async function request(action?: FoundationsAction): Promise<FoundationsView | null> {
@@ -98,7 +98,7 @@ export default function FoundationsPage() {
   useHotkeys(Object.fromEntries(RATINGS.map(rating => [String(rating + 1), () => rate(rating)])), !!feedback && feedback.rating === null && !busy);
 
   return (
-    <PracticeShell title="Foundations" subtitle="Build stronger sentences from your notes and everyday French. Your ratings guide what comes back."
+    <PracticeShell title="Foundations" subtitle="Easy words and short phrases from your notes and everyday French. Your ratings guide what comes back."
       current={session?.completed ?? 0} total={session?.total ?? 0}>
       {error && <div role="alert" className="mb-4 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm">
         <p>{error}</p>
@@ -112,14 +112,14 @@ export default function FoundationsPage() {
           <CheckCircle2 className="h-8 w-8 text-rose-600" />
           <div>
             <h2 className="text-xl font-semibold">{session.status === "abandoned" ? "This round has ended" : session.total ? "Round complete" : "You're caught up"}</h2>
-            <p className="mt-2 text-sm text-muted-foreground">{session.total ? "Your ratings are saved. Difficult sentences return sooner; comfortable ones get more space and fresh contexts." : "No expressions are due right now. Try Topics, add lesson notes, or check your practice filters."}</p>
+            <p className="mt-2 text-sm text-muted-foreground">{session.total ? "Your ratings are saved. Phrases that need practice return sooner; comfortable ones get more space." : "No basic expressions are due right now. Try Topics, add lesson notes, or check your practice filters."}</p>
           </div>
           {session.total > 0 && <>
             <dl className="grid grid-cols-4 gap-2 text-center">{RATINGS.map(rating => <div key={rating} className="rounded-lg bg-muted/50 py-3"><dt className="text-xs text-muted-foreground">{RATING_LABELS[rating]}</dt><dd className="text-xl font-semibold">{session.ratings[rating]}</dd></div>)}</dl>
             <p className="text-xs text-muted-foreground">First attempts above. {session.followUps} extra recall {session.followUps === 1 ? "attempt" : "attempts"}{session.skipped ? ` · ${session.skipped} skipped` : ""}.</p>
           </>}
           {session.recap.length > 0 && <div className="space-y-3">
-            <h3 className="text-sm font-semibold">Keep these sentences close</h3>
+            <h3 className="text-sm font-semibold">Keep these phrases close</h3>
             {session.recap.map((item, index) => <div key={index} className="rounded-lg bg-muted/50 p-3">
               <p className="text-xs text-muted-foreground">{RATING_LABELS[item.rating]} · {item.english}</p>
               <div className="mt-1 flex items-center gap-2"><p lang="fr" className="min-w-0 flex-1 font-medium">{item.french}</p><SpeakButton text={item.french} /></div>
@@ -135,8 +135,8 @@ export default function FoundationsPage() {
       ) : session && question ? <>
         <details className="mb-4 rounded-lg border px-4 py-3 text-sm">
           <summary className="cursor-pointer font-medium">How this adapts to you</summary>
-          <p className="mt-2 text-muted-foreground">Rounds mix due expressions from your saved lesson notes and broader everyday French. Repeated Again and Hard ratings take priority. As recall improves, you get longer gaps and new situations with a little more detail.</p>
-          <p className="mt-2 text-muted-foreground">Difficult sentences also return after a short gap in this round, with up to three extra attempts across the round. Those are saved separately from your first recall.</p>
+          <p className="mt-2 text-muted-foreground">Rounds mix basic A1 expressions from your saved lesson notes and everyday French. Again and Hard ratings bring back phrases that need practice. Good and Easy give them longer gaps and small variations, while keeping the French simple.</p>
+          <p className="mt-2 text-muted-foreground">Phrases that need practice also return after a short gap in this round, with up to three extra attempts across the round. Those are saved separately from your first recall.</p>
           <p className="mt-2 text-muted-foreground">{question.memory.again + question.memory.hard + question.memory.good + question.memory.easy > 0
             ? `Recent ratings before this round: ${question.memory.again} Again · ${question.memory.hard} Hard · ${question.memory.good} Good · ${question.memory.easy} Easy.`
             : "Your next rating will help decide when this expression returns."}</p>
@@ -146,15 +146,15 @@ export default function FoundationsPage() {
             <span>{question.origin} · {question.label}</span><span>{question.followUp ? "Recall again" : challengeLabel[question.challenge]}</span>
           </div>
           <p className="text-xs text-muted-foreground">{question.reason}</p>
-          {!question.prompt ? <div role="status" className="flex items-center gap-2 py-6 text-sm"><Loader2 className="h-4 w-4 animate-spin" />Preparing a fresh sentence…</div> : <>
+          {!question.prompt ? <div role="status" className="flex items-center gap-2 py-6 text-sm"><Loader2 className="h-4 w-4 animate-spin" />Preparing a short phrase…</div> : <>
             <h2 className="text-lg font-medium leading-relaxed">{question.prompt}</h2>
-            {question.fallback && <p className="rounded-md bg-muted/60 p-2 text-xs text-muted-foreground">AI couldn&apos;t create a fresh sentence. Practice the original expression for this question.</p>}
+            {question.fallback && <p className="rounded-md bg-muted/60 p-2 text-xs text-muted-foreground">Practice the original expression for this question while fresh practice is unavailable.</p>}
             {!feedback ? <form onSubmit={event => {
               event.preventDefault();
               if (input.trim()) void perform({ action: "answer", sessionId: session.id, questionId: question.id, answer: input.trim(), elapsedMs: Math.min(3_600_000, Math.max(0, Date.now() - startedAt.current)) });
             }} className="space-y-3">
               <label htmlFor="foundations-answer" className="block text-sm font-medium">Your French</label>
-              <FrenchInput id="foundations-answer" ref={inputRef} value={input} onChange={event => changeInput(event.target.value)} maxLength={500} disabled={!!busy} placeholder="Write the sentence in French…" className="h-12 text-base" />
+              <FrenchInput id="foundations-answer" ref={inputRef} value={input} onChange={event => changeInput(event.target.value)} maxLength={500} disabled={!!busy} placeholder="Type your French…" className="h-12 text-base" />
               <fieldset disabled={!!busy}><AccentBar inputRef={inputRef} value={input} onChange={changeInput} /></fieldset>
               <Button type="submit" className="w-full" disabled={!!busy || !input.trim()}>{busy === "answer" ? <><Loader2 className="h-4 w-4 animate-spin" />Checking your French…</> : "Check answer"}</Button>
               <Button type="button" variant="outline" className="w-full" disabled={!!busy} onClick={() => act("reveal")}>Reveal answer</Button>
