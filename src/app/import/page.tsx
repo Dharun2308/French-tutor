@@ -182,11 +182,6 @@ export default function ImportPage() {
         <h1 className="text-2xl font-semibold tracking-tight">
           Import Lesson Notes
         </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Photograph your notebook after a lesson. The tutor proposes 5–15
-          items; you approve them on the next screen. Nothing is saved until
-          you do.
-        </p>
       </div>
 
       <GoogleDocsImportStatus />
@@ -197,8 +192,7 @@ export default function ImportPage() {
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Notebook photos</CardTitle>
           <CardDescription className="text-xs">
-            Up to {MAX_IMAGES} pages. Good light, page flat, one lesson at a
-            time.
+            Up to {MAX_IMAGES} pages.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -282,10 +276,6 @@ export default function ImportPage() {
       <Card className="mb-4">
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Or paste notes</CardTitle>
-          <CardDescription className="text-xs">
-            Typed notes, a chat log from the tutor, anything. Optional if you
-            added photos.
-          </CardDescription>
         </CardHeader>
         <CardContent>
           <Textarea

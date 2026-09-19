@@ -60,6 +60,5 @@ export default function TopicsPage() {
       </Link>)}
     </div></section>)}
     {!filtered.length && <p className="py-6 text-sm text-muted-foreground">No topics match this search.</p>}
-    <details className="rounded-xl border p-4 text-sm"><summary className="cursor-pointer font-medium">How progress works</summary><div className="mt-3 space-y-2 text-muted-foreground"><p>Your ChatGPT history records what you’ve covered, without inventing accuracy scores. Previously practiced topics skip the beginner explanation unless you request it.</p><p>New topics: short theory → guided questions → 20 independent sentences. At 85%, move into spaced review. At 70–84%, target weak subrules; below 70%, briefly refresh the concept.</p><p>Hints and reveal don’t count as independent successes. Minor writing slips are corrected separately from conceptual errors. Speaking aloud is self-reported practice, not a pronunciation assessment or proof of automatic conversation.</p></div></details>
   </main>;
 }

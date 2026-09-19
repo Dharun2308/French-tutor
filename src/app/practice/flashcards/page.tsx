@@ -98,7 +98,6 @@ export default function FlashcardsPage() {
   return (
     <PracticeShell
       title="Flashcards"
-      subtitle="Recall the form, then rate yourself honestly. (Space to reveal · 1-4 to rate)"
       current={index + 1}
       total={cards.length}
     >

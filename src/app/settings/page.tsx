@@ -194,10 +194,6 @@ export default function SettingsPage() {
     <div className="container max-w-2xl py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
-        <p className="mt-1 text-muted-foreground">
-          Keep the app comfortable. Your lesson notes and review history handle
-          most learning choices automatically.
-        </p>
       </div>
 
       <div className="space-y-6">
@@ -206,7 +202,6 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between gap-4 pb-4">
               <div>
                 <p className="font-medium">Reference library</p>
-                <p className="text-sm text-muted-foreground">Browse verbs and conjugations.</p>
               </div>
               <Button asChild variant="outline" size="sm">
                 <Link href="/library">
@@ -218,7 +213,6 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between gap-4 pt-4">
               <div>
                 <p className="font-medium">Appearance</p>
-                <p className="text-sm text-muted-foreground">Choose light or dark.</p>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <Button
@@ -249,10 +243,6 @@ export default function SettingsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Learning</CardTitle>
-            <CardDescription>
-              Imported lesson items, Listening, Weak French, and Focus adapt
-              from your actual practice automatically.
-            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
             <div className="space-y-2">
@@ -276,7 +266,6 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between gap-4 border-t pt-4">
               <div>
                 <Label htmlFor="daily-target">Daily review target</Label>
-                <p className="text-xs text-muted-foreground">Used by dashboard progress.</p>
               </div>
               <div className="flex items-center gap-2">
                 <Input
@@ -302,16 +291,12 @@ export default function SettingsPage() {
           <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-5 [&::-webkit-details-marker]:hidden">
             <div>
               <p className="font-semibold">Extra practice controls</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Fine-tune the older verb, phrase, and sentence modes.
-              </p>
             </div>
             <ChevronDown className="h-5 w-5 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
           </summary>
           <div className="space-y-6 border-t p-5">
             <div className="space-y-2">
-              <Label>Active tenses</Label>
-              <p className="text-xs text-muted-foreground">Only affects verb practice.</p>
+              <Label>Verb practice tenses</Label>
             <div className="flex flex-wrap gap-2">
               {TENSES.map((t) => {
                 const active = settings.activeTenses.includes(t);
@@ -331,7 +316,6 @@ export default function SettingsPage() {
 
             <div className="space-y-2">
               <Label>Foundation categories</Label>
-              <p className="text-xs text-muted-foreground">Only affects foundation flashcards and drills.</p>
             <div className="flex flex-wrap gap-2">
               {PHRASE_CATEGORIES.map((c) => {
                 const active = settings.activePhraseCategories.includes(c);
@@ -399,10 +383,6 @@ export default function SettingsPage() {
               <Volume2 className="h-5 w-5" />
               Pronunciation
             </CardTitle>
-            <CardDescription>
-              Choose which voice engine powers the speaker buttons across the
-              app.
-            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-wrap gap-2">
@@ -506,7 +486,6 @@ export default function SettingsPage() {
           <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-5 [&::-webkit-details-marker]:hidden">
             <div>
               <p className="font-semibold">Technical</p>
-              <p className="mt-1 text-sm text-muted-foreground">Timezone used for daily and weekly boundaries.</p>
             </div>
             <ChevronDown className="h-5 w-5 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
           </summary>

@@ -288,7 +288,6 @@ export default function DrillPage() {
   return (
     <PracticeShell
       title="Fill-in-the-blank"
-      subtitle="Type the correct answer and press Enter."
       current={index + 1}
       total={totalCards}
     >
@@ -422,7 +421,7 @@ export default function DrillPage() {
       </Card>
       <div className="mt-6 text-center text-sm text-muted-foreground">
         <Link href="/practice/sentence" className="underline">
-          Want to build full sentences instead?
+          Sentence builder
         </Link>
       </div>
     </PracticeShell>

@@ -55,9 +55,6 @@ export default function LibraryPage() {
     <div className="container max-w-5xl py-8">
       <div className="mb-6">
         <h1 className="text-3xl font-semibold tracking-tight">Library</h1>
-        <p className="mt-1 text-muted-foreground">
-          Browse every verb and its conjugations.
-        </p>
       </div>
 
       <div className="mb-6 flex flex-wrap gap-2">

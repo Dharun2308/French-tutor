@@ -94,13 +94,13 @@ export default function ListeningPage() {
 
   if (!items) return <main className="container max-w-xl py-10"><div className="h-52 animate-pulse rounded-xl bg-muted" /></main>;
   if (items.length === 0) return <main className="container max-w-xl py-10"><p>No lesson items yet.</p><Button asChild className="mt-4"><Link href="/import">Import notes</Link></Button></main>;
-  if (phase === "done") return <main className="container max-w-xl py-10"><Card><CardContent className="py-10 text-center"><Ear className="mx-auto mb-3 h-9 w-9"/><h1 className="text-2xl font-semibold">Listening complete</h1><p className="mt-2 text-muted-foreground">Your listening evidence and review schedule are saved.</p><Button asChild className="mt-5"><Link href="/">Back home</Link></Button></CardContent></Card></main>;
+  if (phase === "done") return <main className="container max-w-xl py-10"><Card><CardContent className="py-10 text-center"><Ear className="mx-auto mb-3 h-9 w-9"/><h1 className="text-2xl font-semibold">Listening complete</h1><Button asChild className="mt-5"><Link href="/">Back home</Link></Button></CardContent></Card></main>;
   if (!item) return null;
 
   return (
     <main className="container max-w-xl py-6">
       <Link href="/" className="mb-5 inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4"/>Home</Link>
-      <div className="mb-4 flex items-center justify-between"><div><h1 className="text-2xl font-semibold">Listening</h1><p className="text-sm text-muted-foreground">Sound first. Type what you hear.</p></div><span className="text-sm text-muted-foreground">{index + 1}/{items.length}</span></div>
+      <div className="mb-4 flex items-center justify-between"><div><h1 className="text-2xl font-semibold">Listening</h1></div><span className="text-sm text-muted-foreground">{index + 1}/{items.length}</span></div>
       <Card>
         <CardHeader><CardTitle className="text-center text-base font-medium text-muted-foreground">The transcript is hidden</CardTitle></CardHeader>
         <CardContent className="space-y-5">

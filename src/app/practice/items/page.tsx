@@ -309,7 +309,6 @@ export default function ItemsReviewPage() {
   return (
     <PracticeShell
       title="Lesson items"
-      subtitle="English → French. Type it, check, then rate how it felt."
       current={index + 1}
       total={items.length}
     >

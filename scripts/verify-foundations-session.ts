@@ -8,6 +8,7 @@ import { itemReviews, learningItems, phrases, settings } from "../src/lib/db/sch
 import { foundationsCandidates } from "../src/lib/foundations/candidates";
 import { FoundationsConflict, foundationsAction, getFoundationsSession } from "../src/lib/foundations/session";
 import { foundationsReviews, foundationsSessions } from "../src/lib/foundations/schema";
+import { FOUNDATIONS_VERSION } from "../src/lib/foundations/level";
 import type { FoundationsAI } from "../src/lib/foundations/ai";
 import type { FoundationsData, FoundationsSource } from "../src/lib/foundations/types";
 import { POST } from "../src/app/api/foundations-session/route";
@@ -23,6 +24,8 @@ async function main() {
   const [advanced] = await db.insert(learningItems).values({ french: "renvoyer", english: "send back", type: "vocabulary", cefrLevel: "B1", failureCount: 20, reviewCount: 20, priority: 5, normKey: randomUUID(), dueAt: new Date(0) }).returning();
   const [phrase] = await db.insert(phrases).values({ french: "un café", english: "a coffee", category: "phrase", level: "A2", frequencyRank: 1, nextReviewAt: new Date(0), wrongCount: 3, repetitions: 0 }).returning();
   const [filtered] = await db.insert(phrases).values({ french: "un thé", english: "a tea", category: "food", level: "A2", frequencyRank: 1, nextReviewAt: new Date(0) }).returning();
+  await db.insert(learningItems).values({ french: "Je n’en ai jamais eu", english: "I have never had any", type: "phrase", cefrLevel: "A2", failureCount: 50, reviewCount: 50, priority: 5, normKey: randomUUID(), dueAt: new Date(0) });
+  await db.insert(phrases).values({ french: "Oui, j’en ai 3.", english: "Yes, I have three of them", category: "phrase", level: "A2", frequencyRank: 1, nextReviewAt: new Date(0), wrongCount: 50 });
   const plan = await foundationsCandidates();
   assert.equal(plan.sources.length, 2);
   assert.ok(!plan.sources.some(s => s.id === filtered.id && s.kind === "phrase"));
@@ -48,7 +51,7 @@ async function main() {
   const reviewCount = async () => (await db.select().from(foundationsReviews)).length;
   const create = async (sources: FoundationsSource[]) => {
     await db.update(foundationsSessions).set({ status: "abandoned" }).where(eq(foundationsSessions.status, "active"));
-    const data: FoundationsData = { version: 2, mix: "blend", activeTenses: ["present"], sources, history: [], index: 0, queue: sources.map(s => ({ id: randomUUID(), sourceKey: s.key, followUp: false })) };
+    const data: FoundationsData = { version: FOUNDATIONS_VERSION, mix: "blend", activeTenses: ["present"], sources, history: [], index: 0, queue: sources.map(s => ({ id: randomUUID(), sourceKey: s.key, followUp: false })) };
     return (await db.insert(foundationsSessions).values({ id: randomUUID(), status: "active", data }).returning())[0];
   };
   let generated = 0, graded = 0;
@@ -140,6 +143,16 @@ async function main() {
   await foundationsAction({ action: "rate", sessionId: fallback.id, questionId: fallbackId, rating: 1 });
   assert.equal((await readItem()).failureCount, beforeOffline.failureCount + 1);
 
+  // Even a successful provider response cannot inject advanced grammar into an easy source.
+  for (const provider of ["claude", "codex"]) {
+    const complex = await create([everyday]);
+    const prepared = await foundationsAction({ action: "prepare", sessionId: complex.id, questionId: complex.data.queue[0].id }, {
+      ...ai, generate: async () => ({ prompt: "Translate: A coffee I like.", target: "Un café que j’aime.", rubric: "Relative clause.", provider, fallback: false }),
+    });
+    assert.equal(prepared.question?.fallback, true);
+    assert.equal((await read(complex.id)).data.queue[0].exercise?.target, everyday.target);
+  }
+
   // A source edited after feedback refuses the review and rolls back all rating/session writes.
   const edited = await create([personal]), editedId = edited.data.queue[0].id;
   await foundationsAction({ action: "prepare", sessionId: edited.id, questionId: editedId }, ai);
@@ -176,8 +189,8 @@ async function main() {
 
   // Earlier complex rounds and saved exercises cannot bypass the new beginner limits.
   const old = await create([everyday]);
-  old.data.version = 1;
-  const oldExercise = { prompt: "You and your partner bought shoes online. Say that you can send these shoes back by mail.", target: "Nous pouvons renvoyer ces chaussures par la poste.", rubric: "A previous advanced question.", provider: "fixture", fallback: false };
+  old.data.version = 2;
+  const oldExercise = { prompt: "Translate: Yes, I have three of them.", target: "Oui, j’en ai 3.", rubric: "Quantity pronoun en.", provider: "claude", fallback: false };
   old.data.queue[0].exercise = oldExercise;
   await db.update(foundationsSessions).set({ data: old.data }).where(eq(foundationsSessions.id, old.id));
   await db.insert(foundationsReviews).values({ sessionId: old.id, questionId: old.data.queue[0].id, sourceKey: everyday.key, rating: 0, independent: true, exercise: oldExercise, answer: "", grade: { verdict: "UNGRADED", corrected: oldExercise.target, explanation: "Old feedback", errorType: "none", provider: "self" }, ratedAt: new Date() });
@@ -188,7 +201,7 @@ async function main() {
   const replacement = await foundationsAction({ action: "start", mix: "blend" });
   assert.notEqual(replacement.id, old.id);
   assert.equal((await read(old.id)).status, "abandoned");
-  assert.equal((await read(replacement.id)).data.version, 2);
+  assert.equal((await read(replacement.id)).data.version, FOUNDATIONS_VERSION);
   assert.equal(replacement.question?.prompt, null, "An advanced cached exercise must be regenerated");
   assert.equal(replacement.question?.memory.lastRating, 0, "Its actual rating is still remembered");
   assert.deepEqual(await db.select().from(foundationsReviews), preservedReviews);

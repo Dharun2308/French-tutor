@@ -101,7 +101,6 @@ export default function MultipleChoicePage() {
   return (
     <PracticeShell
       title="Multiple choice"
-      subtitle="Pick the correct form. (1-4 or click)"
       current={index + 1}
       total={cards.length}
     >

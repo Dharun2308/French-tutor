@@ -5,7 +5,7 @@ import Link from "next/link";
 import { AlertTriangle, Clock3, Loader2, Pin, PinOff, RefreshCw, Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface WeakItem {
   id: number;
@@ -128,7 +128,6 @@ export default function WeakFrenchPage() {
           <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight sm:text-3xl">
             <Target className="h-6 w-6 text-rose-600 sm:h-7 sm:w-7" /> Weak French
           </h1>
-          <p className="mt-1 text-muted-foreground">The personal French worth targeting now.</p>
         </div>
         <Button asChild size="sm"><Link href="/practice/focus"><Clock3 className="h-4 w-4" />Practice</Link></Button>
       </div>
@@ -142,9 +141,6 @@ export default function WeakFrenchPage() {
       <Card>
         <CardHeader>
           <CardTitle>Active {active.items.length}</CardTitle>
-          <CardDescription>
-            These phrases appear automatically in Focus and Smart sessions. The list refreshes Monday; pinned items carry forward.
-          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           {active.items.length === 0 ? (
@@ -181,13 +177,6 @@ export default function WeakFrenchPage() {
               )}
             </div>
           ))}
-          <details className="rounded-md bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
-            <summary className="cursor-pointer font-medium text-foreground">Why these?</summary>
-            <p className="mt-2">
-              Active 10 balances fading recall, recent misses, tutor corrections, conversational usefulness,
-              and phrases you have already used naturally. It never changes your FSRS due dates.
-            </p>
-          </details>
         </CardContent>
       </Card>
 

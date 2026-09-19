@@ -35,7 +35,7 @@ export interface FoundationsQuestion {
   skipped?: boolean;
 }
 export interface FoundationsData {
-  version: 1 | 2;
+  version: 1 | 2 | 3;
   mix: FoundationsMix;
   sources: FoundationsSource[];
   queue: FoundationsQuestion[];

@@ -49,7 +49,8 @@ try {
   await cdp("Page.navigate", { url: "http://127.0.0.1:8097/practice/phrases" });
   if (process.env.FOUNDATIONS_UPGRADE_ONLY === "1") {
     await waitFor(`Boolean(document.querySelector('#foundations-answer:not(:disabled)'))`);
-    assert.ok(await evaluate(`document.body.innerText.includes('Easy words and short phrases')`));
+    assert.ok(!await evaluate(`document.body.innerText.includes('Easy words and short phrases')`));
+    assert.ok(!await evaluate(`document.body.innerText.includes('How this adapts to you')`));
     assert.ok(!await evaluate(`document.body.innerText.includes('bought shoes online')`));
     const upgraded = await state();
     assert.equal(upgraded.status, "active");
@@ -111,7 +112,8 @@ try {
   await waitFor(`Boolean(document.querySelector('[role=alert]'))`);
   assert.equal(await evaluate("window.ratingRequests"), 1);
   assert.equal((await state()).ratings[0], 1);
-  await click("Again"); await waitFor(`document.body.innerText.includes('original expression') && Boolean(document.querySelector('#foundations-answer:not(:disabled)'))`);
+  await click("Again"); await waitFor(`document.body.innerText.includes('Write in French: a coffee') && Boolean(document.querySelector('#foundations-answer:not(:disabled)'))`);
+  assert.equal((await state()).question.fallback, true);
   assert.equal((await state()).completed, 1);
   assert.equal((await state()).ratings[0], 1);
   assert.equal(await evaluate("window.ratingRequests"), 2);

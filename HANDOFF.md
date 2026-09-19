@@ -1,5 +1,31 @@
 # French Tutor — handoff for the next agent (Codex)
 
+## Latest update — 2026-09-19: simpler Foundations and less helper text
+
+- Owner still wants easy A1 **and** A2, blending notes and broader French. Short
+  A2-labelled note sources were admitting complex pronouns, including Claude's
+  `Oui, j’en ai 3` and saved retries such as `Je n’en ai jamais eu`.
+- Sources and generated answers now share grammar restrictions and a six-word
+  ceiling. Repeated struggles get at most four words, or the existing source
+  length if longer. Basic A2 past phrases remain eligible; full source expressions
+  must stay intact so a different tense cannot be rated as recall of the original.
+  This is a Foundations practice restriction, not a global CEFR reclassification.
+- Session version 3 replaces active version 1/2 rounds on reload. Old generated
+  exercises cannot return via retries/history, but all ratings still inform recall.
+  Schedules and rating transactions are unchanged; no schema migration is needed.
+- Removed explanatory subtitles, adaptation sections, "Why this session", "Why
+  these", "How progress works", and repetitive helper prose across the app.
+  Retained questions, feedback, controls, errors and essential setting information.
+- Passed: 79 tests, lint/TypeScript/build, actual rating/upgrade integration, real
+  Claude and Codex A1/A2 generation and grading, saved-round upgrade with unchanged
+  ratings/schedules/Smart state, all four browser ratings and save-retry flows,
+  and 23 pages at phone/desktop widths in light/dark themes. The upgraded learner
+  snapshot yielded six note and six everyday sources, covering both A1 and A2.
+- Deployed at 00:24 MDT. All 25 production table fingerprints were unchanged;
+  six read-only health checks and SQLite integrity/foreign-key checks passed.
+  Backup/runtime: `~/.cache/french-tutor-simple-20260919/before/`.
+  Provider settings and Codex medium effort are unchanged.
+
 ## Latest clarification — 2026-09-16: Foundations allows A1 and A2
 
 - Owner allows both A1 and A2. Foundations uses that range for notes and everyday

@@ -106,7 +106,7 @@ export default function LanguageTransferPage() {
           {active && <Headphones className="h-4 w-4 text-blue-600 dark:text-blue-400" />}
         </button>;
       })}</div>
-      <p className="text-xs text-muted-foreground">{storageError ? "Your browser couldn’t save listening progress. Audio still works." : "Your place is saved in this browser. Listening progress is separate from topic practice."}</p>
+      {storageError && <p role="alert" className="text-xs text-destructive">Your browser couldn’t save listening progress. Audio still works.</p>}
     </>}
     <p className="mt-5 text-xs leading-relaxed text-muted-foreground">Audio by <a href="https://www.languagetransfer.org/french" target="_blank" rel="noreferrer" className="underline">Language Transfer</a>, from their official free French course. <a href="https://www.languagetransfer.org/donations" target="_blank" rel="noreferrer" className="underline">Support the project</a>.</p>
   </main>;

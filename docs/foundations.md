@@ -3,7 +3,13 @@
 Foundations at `/practice/phrases` practices A1 and A2 words and short phrases using
 both approved lesson items and the broader French phrase library. B1 and above are
 excluded even when they have many misses. Lesson sources use the basic expression,
-not their longer example sentence. Sources are limited to eight French words.
+not their longer example sentence. Sources are limited to six French words.
+Both sources and generated answers pass the same conservative grammar check:
+no object `en`/`y`, stacked object pronouns, reflexive compound tenses, linked
+clauses or teaching annotations. Simple A2 phrases, basic past-tense statements,
+present-tense reflexives, `en France` and `il y a` remain eligible. This is a
+practice restriction, not a reassessment of a source's CEFR level. Excluded
+expressions and their learning history remain available in other modes.
 The default round reserves
 roughly half its places for each origin when enough eligible expressions exist;
 the other origin fills shortages. Suspended sources, future-due reviews, inactive
@@ -17,20 +23,21 @@ Rounds contain up to twelve independent expressions, bounded by the daily target
 ratings lead, followed by due reviews and new expressions. Legacy wrong counts
 still guide selection: an Again reset to zero repetitions is not a new card.
 Current practice uses recent rating evidence; all explicit Foundations ratings
-remain in the database. The UI shows the source and reason for each question.
+remain in the database. The UI keeps the question, source, feedback and controls;
+explanatory subtitles and adaptation sections have been removed across the app.
 
 ## Phrases and feedback
 
 The configured Codex → Claude → OpenAI chain generates each fresh exercise.
 Questions stay at A1–A2 with familiar everyday language. New contexts use the
-present; a short source expression can retain an already-taught construction. Supported
-questions are usually 1–4 words, standard 2–6, and even stretch stays at 3–8 words
-with at most one familiar detail. The validator caps targets at eight words and
-requires a short `Translate:` prompt (at most twenty words). No elaborate stories,
+present; a simple past-tense source retains its own construction. Supported
+questions are limited to four words, or the original source length if longer.
+Standard and stretch stay within six words, with at most one familiar detail.
+The validator also requires a short `Translate:` prompt (at most twelve words). No elaborate stories,
 extra clauses, advanced tenses or new rules are requested for novelty. Single
-words, short greetings and small variations are allowed. Short source words and
-expressions must appear in the target itself, so a related grammar example cannot
-silently replace the word being learned. Validation rejects repeated prompt/answer
+words, short greetings and small variations are allowed. The whole source expression
+must appear in the target itself, so a related word or a change of tense cannot
+silently replace the skill being rated. Validation rejects repeated prompt/answer
 pairs and leaked full answers. Vocabulary choice still depends on the tutor model.
 
 The learner types French, sees feedback, then always chooses Again,
@@ -39,7 +46,7 @@ use the existing meaning/grammar grader, which accepts valid alternatives and
 distinguishes writing slips from real grammar errors. Reveal supports self-review.
 Checking or revealing alone does not change the schedule. Skip adds no review.
 
-Failed generation produces a labelled original-expression fallback, stable across
+Failed generation uses the vetted original expression, stable across
 reloads. Failed grading produces UNGRADED feedback followed by the same explicit
 self-rating controls. Providers and their reasoning settings are unchanged:
 Codex remains `gpt-5.6-sol` at medium effort.
@@ -77,9 +84,9 @@ activating the new build. It only adds `foundations_sessions`, `foundations_revi
 and their indexes. It is repeatable and is included in the new-database Drizzle
 configuration. Do not run `db:push` against production.
 
-The September 16 difficulty correction needs no schema migration. New sessions
-have data version 2. Reloading an active version 1 round requests a new beginner
-round and retires the old round; all its ratings remain saved. Version 1 exercises
+The September 19 difficulty correction needs no schema migration. New sessions
+have data version 3. Reloading an active version 1 or 2 round requests a new beginner
+round and retires the old round; all its ratings remain saved. Older exercises
 are excluded from cached retries and generation history so old advanced text cannot
 return through a retry. Their ratings still contribute to recall memory.
 
@@ -155,3 +162,28 @@ remain valid. All 77 tests, lint, TypeScript/build, actual A2 rating transaction
 for both source types and real Codex A2 generation passed. All 25 production tables
 matched the backup after six read-only health checks; no migration was required.
 Backup/runtime: `~/.cache/french-tutor-foundations-a1-a2-20260916/before/`.
+
+## Simpler phrases and quieter screens, September 19, 2026
+
+The learner's version 2 round included short but complex A2 note expressions such
+as `Je n’en ai jamais eu` and Claude's `Oui, j’en ai 3`. Length and CEFR tags alone
+were insufficient. Version 3 adds the shared grammar restrictions above, shorter
+targets and prompts, and preservation of the whole source expression. A live
+Claude check initially changed a saved past-tense phrase to the present; requiring
+the complete source prevents that easier exercise from misrepresenting recall.
+
+All 79 unit tests, lint, TypeScript/build and the Foundations transaction/upgrade
+integration passed. Real Claude and Codex each generated short A1/A2 exercises,
+including `Un maillot bleu`, `En face de la gare` and `Nous avons joué au golf`,
+and passed alternative-answer/error grading. The actual learner-round upgrade
+produced six eligible note and six everyday sources, with both A1 and A2; every
+rating, source schedule and Smart session matched the original snapshot afterward.
+Browser checks passed for all four ratings, reload, offline generation, failed
+answers, duplicate keys, lost responses after commit, follow-ups and completion.
+The app's 23 page layouts were checked at 390px and 1280px in both themes after
+removing explanatory subtitles and adaptation sections, including "Why this session".
+
+Deployed at 00:24 MDT. All 25 production tables matched their pre-activation
+fingerprints; six read-only health checks and SQLite integrity/foreign-key checks
+passed. No migration or synthetic live reviews. Backup/runtime:
+`~/.cache/french-tutor-simple-20260919/before/`.

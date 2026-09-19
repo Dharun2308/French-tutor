@@ -93,7 +93,6 @@ export default function NotesPage() {
   return <main className="container max-w-4xl py-7">
     <header className="mb-5">
       <h1 className="flex items-center gap-2 text-2xl font-semibold"><NotebookPen className="h-6 w-6 text-emerald-600" />Notes</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Your lesson notes and personal French, saved in Google Docs.</p>
     </header>
     <div className="mb-5 grid gap-2 sm:grid-cols-3" aria-label="Choose a document">
       {listing?.documents.map(item => <Button key={item.id} variant={selected === item.id ? "secondary" : "outline"}
@@ -125,7 +124,6 @@ export default function NotesPage() {
         <input aria-label="Find in notes" placeholder="Find in notes…" value={query} onChange={e => setQuery(e.target.value)} className="min-w-0 flex-1 rounded-md border bg-background px-3 py-2 text-sm" />
         <Button disabled={busy || !doc.canWrite} onClick={() => begin()}><Plus className="h-4 w-4" />Add note</Button>
       </div>
-      <p className="mb-4 text-xs text-muted-foreground">Edit text a paragraph at a time. Unchanged text keeps its formatting; new text uses surrounding formatting. Images, comments and layout tools are available in Google Docs.</p>
     </>}
     {draft && <section className="mb-5 rounded-xl border border-emerald-500/40 bg-emerald-500/5 p-4" aria-label="Note editor">
       <label htmlFor="note-draft" className="mb-2 block font-medium">{draft.start === undefined ? "New note" : "Edit paragraph"}</label>

@@ -16,7 +16,7 @@ import {
   Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TranslateBox } from "@/components/translate-box";
 import { guessTimezone } from "@/lib/utils";
 
@@ -26,18 +26,18 @@ interface Stats {
 }
 
 const PRACTICE_LINKS = [
-  { href: "/practice/sentence", title: "Sentence builder", detail: "Produce full French", icon: MessageSquare },
-  { href: "/practice/phrases", title: "Foundations", detail: "Easy words and phrases", icon: Hash },
-  { href: "/practice/flashcards", title: "Verb cards", detail: "Reveal and rate", icon: Sparkles },
+  { href: "/practice/sentence", title: "Sentence builder", icon: MessageSquare },
+  { href: "/practice/phrases", title: "Foundations", icon: Hash },
+  { href: "/practice/flashcards", title: "Verb cards", icon: Sparkles },
 ] as const;
 
 const PRIMARY_LINKS = [
-  { href: "/practice/focus", title: "10-minute focus", detail: "Weekly phrases, review & listening", icon: Clock3 },
-  { href: "/practice/smart", title: "Smart session", detail: "AI coaching that adapts to you", icon: Zap },
-  { href: "/topics", title: "Topics", detail: "Learn a rule, then put it to use", icon: Target },
-  { href: "/practice/listening", title: "Listening", detail: "Hear it, then type it", icon: Ear },
-  { href: "/conversation", title: "AI conversation", detail: "Quietly targets weak French", icon: MessageSquare },
-  { href: "/practice/variations", title: "Fresh contexts", detail: "Same French, new situations", icon: Sparkles },
+  { href: "/practice/focus", title: "10-minute focus", icon: Clock3 },
+  { href: "/practice/smart", title: "Smart session", icon: Zap },
+  { href: "/topics", title: "Topics", icon: Target },
+  { href: "/practice/listening", title: "Listening", icon: Ear },
+  { href: "/conversation", title: "AI conversation", icon: MessageSquare },
+  { href: "/practice/variations", title: "Fresh contexts", icon: Sparkles },
 ] as const;
 
 function greeting(): string {
@@ -96,14 +96,12 @@ export default function DashboardPage() {
     <main className="container max-w-4xl py-7 sm:py-9">
       <header className="mb-5">
         <h1 className="text-3xl font-semibold tracking-tight">{greeting()}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Practice the French you want to use in conversation.</p>
       </header>
 
       {!hasLessonItems && (
         <Card className="mb-4 border-rose-500/40">
           <CardHeader>
             <CardTitle className="text-lg">Start with your lesson notes</CardTitle>
-            <CardDescription>Photograph a page and approve the French worth remembering.</CardDescription>
           </CardHeader>
           <CardContent><Button asChild><Link href="/import"><Camera className="h-4 w-4" />Import notes</Link></Button></CardContent>
         </Card>
@@ -112,7 +110,7 @@ export default function DashboardPage() {
       <section className="mb-7">
         <h2 className="mb-3 text-lg font-semibold">Practice now</h2>
         <div className="grid grid-cols-2 gap-2">
-          {PRIMARY_LINKS.map(({ href, title, detail, icon: Icon }) => <Link key={href} href={href} className="group rounded-lg border bg-card p-3 transition-colors hover:border-primary/50"><Icon className="mb-2 h-5 w-5 text-rose-600"/><div className="text-sm font-medium">{title}</div><div className="text-[11px] text-muted-foreground">{detail}</div></Link>)}
+          {PRIMARY_LINKS.map(({ href, title, icon: Icon }) => <Link key={href} href={href} className="group rounded-lg border bg-card p-3 transition-colors hover:border-primary/50"><Icon className="mb-2 h-5 w-5 text-rose-600"/><div className="text-sm font-medium">{title}</div></Link>)}
         </div>
       </section>
 
@@ -120,15 +118,14 @@ export default function DashboardPage() {
         <div className="mb-3 flex items-end justify-between">
           <div>
             <h2 className="text-lg font-semibold">More practice</h2>
-            <p className="text-xs text-muted-foreground">Short drills when you want them.</p>
           </div>
         </div>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-          {PRACTICE_LINKS.map(({ href, title, detail, icon: Icon }) => (
+          {PRACTICE_LINKS.map(({ href, title, icon: Icon }) => (
             <Link key={href} href={href} className="group rounded-lg border bg-card p-3 transition-colors hover:border-primary/50 hover:bg-accent/30">
               <Icon className="mb-2 h-4 w-4 text-muted-foreground group-hover:text-foreground" />
               <div className="text-sm font-medium">{title}</div>
-              <div className="text-[11px] text-muted-foreground">{detail}</div>
+
             </Link>
           ))}
         </div>

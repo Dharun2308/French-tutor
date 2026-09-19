@@ -98,7 +98,7 @@ export default function SmartPracticePage() {
   useHotkeys(Object.fromEntries(RATINGS.map(rating => [String(rating + 1), () => rate(rating)])), !!feedback && feedback.rating === null && !busy);
 
   return (
-    <PracticeShell title="Smart session" subtitle="Fresh exercises for your weak French, with feedback that shapes what comes next."
+    <PracticeShell title="Smart session"
       current={session?.completed ?? 0} total={session?.total ?? 0}>
       {error && <div role="alert" className="mb-4 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm">
         <p>{error}</p>
@@ -130,19 +130,12 @@ export default function SmartPracticePage() {
         </CardContent></Card>
       ) : session && question ? (
         <>
-          <details className="mb-4 rounded-lg border px-4 py-3 text-sm">
-            <summary className="cursor-pointer font-medium">Why this session?</summary>
-            <ul className="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">{session.focus.map(reason => <li key={reason}>{reason}</li>)}</ul>
-            <p className="mt-2 text-muted-foreground">Missed skills return in up to three follow-ups. These extra attempts help you practice without adding another scheduled review.</p>
-          </details>
           <Card><CardContent className="space-y-4 pt-6">
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
               <span>{question.label}</span><span className="flex items-center gap-1"><Sparkles className="h-3 w-3" />{question.followUp ? "Follow-up" : "Recall"}{question.provider ? ` · ${providerLabel[question.provider] ?? question.provider}` : ""}</span>
             </div>
-            <p className="text-xs text-muted-foreground">{question.reason}</p>
             {!question.prompt ? <div role="status" className="flex items-center gap-2 py-6 text-sm"><Loader2 className="h-4 w-4 animate-spin" />Preparing a fresh exercise…</div> : <>
               <h2 className="text-lg font-medium leading-relaxed">{question.prompt}</h2>
-              {question.fallback && <p className="rounded-md bg-muted/60 p-2 text-xs text-muted-foreground">AI couldn&apos;t create a fresh context. You can still practice this original card.</p>}
               {!feedback ? <form onSubmit={event => {
                 event.preventDefault();
                 if (input.trim()) void perform({ action: "answer", sessionId: session.id, questionId: question.id, answer: input.trim(), elapsedMs: Math.min(3_600_000, Math.max(0, Date.now() - startedAt.current)) });
@@ -151,7 +144,6 @@ export default function SmartPracticePage() {
                 <FrenchInput id="smart-answer" ref={inputRef} value={input} onChange={event => changeInput(event.target.value)} maxLength={500} disabled={!!busy} placeholder="Type your answer in French…" className="h-12 text-base" />
                 <fieldset disabled={!!busy}><AccentBar inputRef={inputRef} value={input} onChange={changeInput} /></fieldset>
                 <Button type="submit" className="w-full" disabled={!!busy || !input.trim()}>{busy === "answer" ? <><Loader2 className="h-4 w-4 animate-spin" />Checking your French…</> : "Check answer"}</Button>
-                {busy === "answer" && <p role="status" className="text-xs text-muted-foreground">The tutor is checking meaning and grammar. This can take a moment.</p>}
               </form> : <div aria-live="polite" className="space-y-4">
                 <div className={`rounded-lg border p-4 ${feedback.grade.verdict === "CORRECT" ? "border-green-500/30 bg-green-500/5" : "bg-muted/40"}`}>
                   <h3 className="font-semibold">{feedbackLabel[feedback.grade.verdict]}</h3>
@@ -161,14 +153,13 @@ export default function SmartPracticePage() {
                   {feedback.grade.corrected !== feedback.modelAnswer && <details className="mt-3 text-sm"><summary className="cursor-pointer text-muted-foreground">Another model answer</summary><p lang="fr" className="mt-1">{feedback.modelAnswer}</p></details>}
                 </div>
                 {feedback.rating === null ? <div className="space-y-2"><p className="text-sm text-muted-foreground">How well did you recall it before seeing the answer?</p><RateButtons disabled={!!busy} onRate={rate} /></div> : <>
-                  <p className="text-xs text-muted-foreground">{feedback.scheduled ? "Review saved." : "Follow-up saved; your review schedule is unchanged."}{feedback.rating < 2 && !question.followUp ? " We'll revisit missed skills as this round allows." : ""}</p>
+                  <p role="status" className="text-xs text-muted-foreground">Rating saved.</p>
                   <Button className="w-full" disabled={!!busy} onClick={() => act("next")}>{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}{session.completed + 1 === session.total ? "Finish session" : "Next exercise"}</Button>
                 </>}
               </div>}
             </>}
           </CardContent></Card>
           {feedback?.rating == null && <Button variant="ghost" size="sm" className="mt-3" disabled={!!busy} onClick={() => act("skip")}>Skip without a review</Button>}
-          <p className="mt-4 text-center text-xs text-muted-foreground">Your session saves as you go. Come back here to resume.</p>
         </>
       ) : null}
     </PracticeShell>

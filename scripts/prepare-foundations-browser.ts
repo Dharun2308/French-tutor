@@ -6,6 +6,7 @@ import { db } from "../src/lib/db/client";
 import { learningItems, phrases, settings } from "../src/lib/db/schema";
 import { foundationsCandidates } from "../src/lib/foundations/candidates";
 import { foundationsSessions } from "../src/lib/foundations/schema";
+import { FOUNDATIONS_VERSION } from "../src/lib/foundations/level";
 import type { FoundationsData } from "../src/lib/foundations/types";
 
 async function main() {
@@ -32,7 +33,7 @@ async function main() {
     { prompt: "Translate: A red car.", target: "Une voiture rouge." },
   ];
   await db.update(foundationsSessions).set({ status: "abandoned" }).where(eq(foundationsSessions.status, "active"));
-  const data: FoundationsData = { version: 2, mix: "blend", sources, history: [], activeTenses: ["present"], index: 0,
+  const data: FoundationsData = { version: FOUNDATIONS_VERSION, mix: "blend", sources, history: [], activeTenses: ["present"], index: 0,
     queue: sources.map((source, index) => ({ id: randomUUID(), sourceKey: source.key, followUp: false, exercise: exercises[index] ? { ...exercises[index]!, rubric: "Use natural everyday French.", provider: "fixture", fallback: false } : undefined })) };
   await db.insert(foundationsSessions).values({ id: randomUUID(), status: "active", data });
   console.log("Foundations browser fixture ready: four independent questions, providers disabled.");

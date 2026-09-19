@@ -144,7 +144,6 @@ export default function TopicPage() {
         </span>
         <Button variant="outline" size="sm" disabled={busy} onClick={toggleDone}>{marking && <Loader2 className="h-4 w-4 animate-spin" />}{detail.manualDone ? "Mark as unfinished" : "Mark as done"}</Button>
       </div>
-      <p className="mt-2 text-xs text-muted-foreground">Mark done when you know the rule. Your practice scores stay as they are.</p>
       {statusError && <p role="alert" className="mt-2 text-sm text-destructive">{statusError}</p>}
     </div>}
     {errorBlock}
@@ -156,7 +155,6 @@ export default function TopicPage() {
           <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Controlled accuracy</p><p className="mt-1">{detail.controlled.total ? `${detail.controlled.correct}/${detail.controlled.total} · ${detail.controlled.percent}%` : "Not assessed here"}</p></div>
           <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Independent production</p><p className="mt-1">{detail.production.total ? `${detail.production.correct}/${detail.production.total} · ${detail.production.percent}%` : "Not assessed here"}</p></div>
         </div>
-        {detail.production.total > 0 && <p className="mb-4 text-xs text-muted-foreground">Accuracy uses up to 20 recent questions. Hinted or revealed answers do not count as independent successes. Ungraded answers are excluded.</p>}
         {!!detail.errors.length && <p className="mb-4 text-sm text-muted-foreground">Focus on: {detail.errors.slice(0, 3).map((e) => e.tag.toLowerCase().replaceAll("_", " ")).join(", ")}.</p>}
         {!detail.ready && <p className="mb-4 text-sm">Build accuracy in the prerequisites first: {detail.prerequisites.map((p, i) => <span key={p}>{i ? ", " : ""}<Link className="underline" href={`/topics/${p}`}>{p.replaceAll("-", " ")}</Link></span>)}.</p>}
         <div className="flex flex-col gap-2">
@@ -166,7 +164,7 @@ export default function TopicPage() {
         </div>
         {!detail.manualDone && detail.dueAt && <p className="mt-3 text-xs text-muted-foreground">{new Date(detail.dueAt).getTime() <= Date.now() ? "Review due now" : `Next review: ${new Date(detail.dueAt).toLocaleDateString()}`}</p>}
         <TopicTheory key={id} topicId={id} />
-      </> : <Card><CardContent className="space-y-4 p-5"><p className="text-sm">Ten prompts mixing old rules, your current work, unpredictable translation and speaking. You decide which grammar fits.</p><Button disabled={busy} onClick={() => start("mixed")}>Start daily mix</Button></CardContent></Card>}
+      </> : <Card><CardContent className="space-y-4 p-5"><Button disabled={busy} onClick={() => start("mixed")}>Start daily mix</Button></CardContent></Card>}
     </> : session.stage === "theory" && session.theory ? <Card><CardContent className="space-y-5 p-5">
       <TheoryCard theory={session.theory} />
       {session.theory.teachBack && <div><label htmlFor="teach-back" className="text-sm">{session.theory.teachBack} <span className="text-muted-foreground">(optional)</span></label><textarea id="teach-back" className="mt-2 min-h-20 w-full rounded-md border bg-background p-3 text-sm" value={teachBack} maxLength={1000} onChange={(e) => setTeachBack(e.target.value)} placeholder="The rule in your own words…" /></div>}

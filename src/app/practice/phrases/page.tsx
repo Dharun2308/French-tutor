@@ -57,7 +57,7 @@ export default function FoundationsPage() {
     try {
       const saved = await request(action);
       setSession(saved);
-      if (action.action === "rate") setReceipt("Rating saved. Your recall history will guide future practice.");
+      if (action.action === "rate") setReceipt("Rating saved.");
       else if (action.action !== "prepare") setReceipt("");
       if ("questionId" in action && (saved?.question?.feedback || saved?.question?.id !== action.questionId)) {
         try { localStorage.removeItem(draftKey(action.sessionId, action.questionId)); } catch { /* Storage may be disabled. */ }
@@ -98,7 +98,7 @@ export default function FoundationsPage() {
   useHotkeys(Object.fromEntries(RATINGS.map(rating => [String(rating + 1), () => rate(rating)])), !!feedback && feedback.rating === null && !busy);
 
   return (
-    <PracticeShell title="Foundations" subtitle="Easy words and short phrases from your notes and everyday French. Your ratings guide what comes back."
+    <PracticeShell title="Foundations"
       current={session?.completed ?? 0} total={session?.total ?? 0}>
       {error && <div role="alert" className="mb-4 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm">
         <p>{error}</p>
@@ -112,7 +112,7 @@ export default function FoundationsPage() {
           <CheckCircle2 className="h-8 w-8 text-rose-600" />
           <div>
             <h2 className="text-xl font-semibold">{session.status === "abandoned" ? "This round has ended" : session.total ? "Round complete" : "You're caught up"}</h2>
-            <p className="mt-2 text-sm text-muted-foreground">{session.total ? "Your ratings are saved. Phrases that need practice return sooner; comfortable ones get more space." : "No basic expressions are due right now. Try Topics, add lesson notes, or check your practice filters."}</p>
+            {!session.total && <p className="mt-2 text-sm text-muted-foreground">No basic expressions are due right now.</p>}
           </div>
           {session.total > 0 && <>
             <dl className="grid grid-cols-4 gap-2 text-center">{RATINGS.map(rating => <div key={rating} className="rounded-lg bg-muted/50 py-3"><dt className="text-xs text-muted-foreground">{RATING_LABELS[rating]}</dt><dd className="text-xl font-semibold">{session.ratings[rating]}</dd></div>)}</dl>
@@ -133,22 +133,12 @@ export default function FoundationsPage() {
           </div>
         </CardContent></Card>
       ) : session && question ? <>
-        <details className="mb-4 rounded-lg border px-4 py-3 text-sm">
-          <summary className="cursor-pointer font-medium">How this adapts to you</summary>
-          <p className="mt-2 text-muted-foreground">Rounds mix short A1 and A2 expressions from your saved lesson notes and everyday French. Again and Hard ratings bring back phrases that need practice. Good and Easy give them longer gaps and small variations, while keeping the French simple.</p>
-          <p className="mt-2 text-muted-foreground">Phrases that need practice also return after a short gap in this round, with up to three extra attempts across the round. Those are saved separately from your first recall.</p>
-          <p className="mt-2 text-muted-foreground">{question.memory.again + question.memory.hard + question.memory.good + question.memory.easy > 0
-            ? `Recent ratings before this round: ${question.memory.again} Again · ${question.memory.hard} Hard · ${question.memory.good} Good · ${question.memory.easy} Easy.`
-            : "Your next rating will help decide when this expression returns."}</p>
-        </details>
         <Card><CardContent className="space-y-4 pt-6">
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
             <span>{question.origin} · {question.label}</span><span>{question.followUp ? "Recall again" : challengeLabel[question.challenge]}</span>
           </div>
-          <p className="text-xs text-muted-foreground">{question.reason}</p>
           {!question.prompt ? <div role="status" className="flex items-center gap-2 py-6 text-sm"><Loader2 className="h-4 w-4 animate-spin" />Preparing a short phrase…</div> : <>
             <h2 className="text-lg font-medium leading-relaxed">{question.prompt}</h2>
-            {question.fallback && <p className="rounded-md bg-muted/60 p-2 text-xs text-muted-foreground">Practice the original expression for this question while fresh practice is unavailable.</p>}
             {!feedback ? <form onSubmit={event => {
               event.preventDefault();
               if (input.trim()) void perform({ action: "answer", sessionId: session.id, questionId: question.id, answer: input.trim(), elapsedMs: Math.min(3_600_000, Math.max(0, Date.now() - startedAt.current)) });
@@ -158,7 +148,6 @@ export default function FoundationsPage() {
               <fieldset disabled={!!busy}><AccentBar inputRef={inputRef} value={input} onChange={changeInput} /></fieldset>
               <Button type="submit" className="w-full" disabled={!!busy || !input.trim()}>{busy === "answer" ? <><Loader2 className="h-4 w-4 animate-spin" />Checking your French…</> : "Check answer"}</Button>
               <Button type="button" variant="outline" className="w-full" disabled={!!busy} onClick={() => act("reveal")}>Reveal answer</Button>
-              {busy === "answer" && <p role="status" className="text-xs text-muted-foreground">Checking meaning and grammar. Your rating comes next.</p>}
             </form> : <div aria-live="polite" className="space-y-4">
               <div className={`rounded-lg border p-4 ${feedback.grade.verdict === "CORRECT" ? "border-green-500/30 bg-green-500/5" : "bg-muted/40"}`}>
                 <h3 className="font-semibold">{feedbackLabel[feedback.grade.verdict]}</h3>
@@ -169,13 +158,11 @@ export default function FoundationsPage() {
               </div>
               <p className="text-sm font-medium">How well did you recall it before seeing the answer?</p>
               <RateButtons disabled={!!busy} onRate={rate} />
-              <p className="text-xs text-muted-foreground">Again: couldn&apos;t recall · Hard: needed help · Good: recalled with effort · Easy: effortless.</p>
               {busy === "rate" && <p role="status" className="text-xs text-muted-foreground">Saving your rating…</p>}
             </div>}
           </>}
         </CardContent></Card>
         <Button variant="ghost" size="sm" className="mt-3" disabled={!!busy} onClick={() => act("skip")}>Skip without a review</Button>
-        <p className="mt-4 text-center text-xs text-muted-foreground">Your round saves as you go. Return here to resume.</p>
       </> : null}
     </PracticeShell>
   );
