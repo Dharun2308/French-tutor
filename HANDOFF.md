@@ -1,5 +1,27 @@
 # French Tutor — handoff for the next agent (Codex)
 
+## Latest correction — 2026-09-19: direct Foundations recall
+
+- The owner reported Claude's fresh version 3 question "I like to go for a hike"
+  as still too difficult. This was not a stale build: its four-word French answer
+  passed the previous checks, which still allowed expanding a saved expression.
+- Foundations now fixes both the English cue and French answer from the selected
+  source: "to go for a hike" → "faire une randonnée". Providers return only a
+  source key and private grading guide; they cannot add subjects, verbs, adjectives
+  or contexts to either side. Session validation independently rejects expansions.
+  AI grading and rating-based selection still work. Repetition is intentional.
+- A1 and A2 remain allowed with the existing source restrictions and blend of
+  notes/everyday French. New session version 4 replaces older active rounds on
+  reload without rewriting ratings, schedules or the active Smart session.
+- Passed: 79 tests, lint/TypeScript/build, rating/upgrade integration, real Claude
+  and Codex direct recall (including the exact hiking source), fragment/alternative
+  grading and article-error detection. The actual screenshot round upgraded in
+  the browser to the direct cue; all 21 saved reviews and other learner tables were
+  preserved. Full Foundations browser rating/reload/retry/follow-up tests passed.
+- Deployed at 08:10 MDT. Six read-only health checks passed; all 25 production
+  table fingerprints were unchanged. Backup/runtime:
+  `~/.cache/french-tutor-direct-foundations-20260919/before/`.
+
 ## Latest update — 2026-09-19: simpler Foundations and less helper text
 
 - Owner still wants easy A1 **and** A2, blending notes and broader French. Short

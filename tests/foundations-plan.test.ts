@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { challengeFor, foundationsSchedule, recallMemory, reinforce, selectFoundations } from "../src/lib/foundations/plan";
-import { foundationsExerciseSchema } from "../src/lib/foundations/exercise";
+import { foundationsExerciseSchema, foundationsRecall } from "../src/lib/foundations/exercise";
 import { FOUNDATIONS_VERSION, foundationsCard, isFoundationsSource, isSimpleFoundationsFrench } from "../src/lib/foundations/level";
 import type { FoundationsData, FoundationsSource } from "../src/lib/foundations/types";
 import type { Rating } from "../src/types";
@@ -83,27 +83,23 @@ test("Beginner eligibility beats weakness scores and uses the basic note express
   assert.deepEqual(foundationsCard(note), { promptEn: "some bread", targetFr: "du pain" });
 });
 
-test("Generated Foundations accept basic words and small variations, rejecting long scenarios and leaked answers", () => {
-  const original = { ...source("phrase", 1), prompt: "some bread", target: "du pain" };
-  const schema = foundationsExerciseSchema(original, [{ prompt: "Translate: I eat bread at home.", target: "Je mange du pain à la maison." }]);
-  const valid = { sourceKey: original.key, prompt: "Translate: I buy some bread.", target: "J’achète du pain.", rubric: "Use the partitive article." };
-  assert.equal(schema.safeParse(valid).success, true);
-  for (const invalid of [
-    { ...valid, sourceKey: "phrase:999" },
-    { ...valid, prompt: `Translate: ${valid.target}` },
-    { ...valid, prompt: "Translate: I eat bread at home.", target: "JE MANGE DU PAIN À LA MAISON!" },
-    { ...valid, target: "J’achète du pain pour ma sœur puis nous préparons le déjeuner." },
-    { ...valid, prompt: "You and your partner bought shoes online. Say that you can send these shoes back by mail.", target: "Nous pouvons renvoyer ces chaussures par la poste." },
-  ]) assert.equal(schema.safeParse(invalid).success, false);
-  assert.equal(schema.safeParse({ ...valid, target: "J’achète du pain frais." }).success, true, "Small beginner variations are allowed");
-  const word = { ...source("personal", 2), target: "de l’eau" };
-  const wordSchema = foundationsExerciseSchema(word, []);
-  assert.equal(wordSchema.safeParse({ ...valid, sourceKey: word.key, target: "Je bois de l’eau." }).success, true);
-  assert.equal(wordSchema.safeParse({ ...valid, sourceKey: word.key, target: "J’ajoute de l’huile dans la salade." }).success, false, "A related grammar rule cannot replace the actual word being learned");
-  assert.equal(wordSchema.safeParse({ ...valid, sourceKey: word.key, prompt: "Translate: Some water.", target: "De l’eau." }).success, true);
-  assert.equal(foundationsExerciseSchema({ ...word, level: "A2" }, []).safeParse({ ...valid, sourceKey: word.key, prompt: "Translate: Some water.", target: "De l’eau." }).success, true);
-  const article = { ...word, target: "le" };
-  assert.equal(foundationsExerciseSchema(article, []).safeParse({ ...valid, sourceKey: article.key, prompt: "Translate: The (masculine).", target: "le" }).success, true);
+test("Foundations recalls the exact source, allowing repeated words and phrases without added context", () => {
+  for (const original of [
+    { ...source("personal", 1), prompt: "to go for a hike", target: "faire une randonnée" },
+    { ...source("phrase", 2), prompt: "Write in French: some water", target: "de l’eau" },
+    { ...source("phrase", 3), prompt: "Write in French: red", target: "rouge" },
+    { ...source("personal", 4), prompt: "close to; near", target: "près de" },
+  ]) {
+    const schema = foundationsExerciseSchema(original);
+    const valid = { sourceKey: original.key, ...foundationsRecall(original), rubric: "Recall the saved expression." };
+    assert.equal(schema.safeParse(valid).success, true);
+    assert.equal(schema.safeParse({ ...valid, target: valid.target.toUpperCase() + "." }).success, true);
+    assert.equal(schema.safeParse({ ...valid, sourceKey: "phrase:999" }).success, false);
+    assert.equal(schema.safeParse({ ...valid, prompt: "Translate: A completely different task." }).success, false);
+    assert.equal(schema.safeParse({ ...valid, target: "bonjour" }).success, false);
+  }
+  const cloze = { prompt: "Fill the blank: Je bois ___ eau.", target: "de l’" };
+  assert.deepEqual(foundationsRecall(cloze), cloze);
 });
 
 test("Short A2 tags cannot admit complex pronouns or combined grammar into Foundations", () => {
@@ -127,20 +123,23 @@ test("Short A2 tags cannot admit complex pronouns or combined grammar into Found
     assert.equal(isSimpleFoundationsFrench(target), true, target);
 });
 
-test("AI output gets the same grammar guard and repeated misses get shorter phrases", () => {
-  const original = { ...source("phrase", 1), level: "A2", target: "du pain" };
-  const exercise = { sourceKey: original.key, prompt: "Translate: I eat some bread.", target: "Je mange du pain.", rubric: "Partitive article." };
+test("The reported Claude sentence is rejected in every challenge, including a mismatched English cue", () => {
+  const original = { ...source("personal", 58), level: "A2", prompt: "to go for a hike", target: "faire une randonnée" };
+  const direct = { sourceKey: original.key, ...foundationsRecall(original), rubric: "Use the infinitive phrase only." };
   for (const challenge of ["supported", "standard", "stretch"] as const) {
-    const schema = foundationsExerciseSchema({ ...original, challenge }, []);
-    assert.equal(schema.safeParse(exercise).success, true);
-    for (const target of ["J’en veux avec du pain.", "Du pain que j’aime.", "Je le lui donne, du pain.", "Je suis sorti acheter du pain frais."])
-      assert.equal(schema.safeParse({ ...exercise, target }).success, false, `${challenge}: ${target}`);
+    const schema = foundationsExerciseSchema({ ...original, challenge });
+    assert.equal(schema.safeParse(direct).success, true);
+    assert.equal(schema.safeParse({ ...direct, prompt: "Translate: I like to go for a hike.", target: "J’aime faire une randonnée." }).success, false);
+    assert.equal(schema.safeParse({ ...direct, prompt: "Translate: I like to go for a hike." }).success, false, "Locking only the French would leave the English task too hard");
+    assert.equal(schema.safeParse({ ...direct, target: "J’aime faire une randonnée." }).success, false);
   }
-  const supported = foundationsExerciseSchema({ ...original, challenge: "supported" }, []);
-  assert.equal(supported.safeParse({ ...exercise, target: "Je mange du pain frais." }).success, false);
-  assert.equal(foundationsExerciseSchema(original, []).safeParse({ ...exercise, target: "Je mange du pain frais." }).success, true);
-  const past = { ...original, target: "nous avons joué au golf" };
-  const pastSchema = foundationsExerciseSchema(past, []);
-  assert.equal(pastSchema.safeParse({ ...exercise, prompt: "Translate: We played golf.", target: "Nous avons joué au golf." }).success, true);
-  assert.equal(pastSchema.safeParse({ ...exercise, prompt: "Translate: We play golf.", target: "Nous jouons au golf." }).success, false, "A present-tense answer must not count as recall of the saved past-tense phrase");
+  const word = { ...original, prompt: "some bread", target: "du pain" };
+  const wordSchema = foundationsExerciseSchema(word);
+  assert.equal(wordSchema.safeParse({ ...direct, ...foundationsRecall(word) }).success, true);
+  for (const target of ["Je mange du pain.", "Du pain frais.", "J’en veux avec du pain."])
+    assert.equal(wordSchema.safeParse({ ...direct, ...foundationsRecall(word), target }).success, false);
+  const past = { ...original, prompt: "we played golf", target: "nous avons joué au golf" };
+  const pastSchema = foundationsExerciseSchema(past);
+  assert.equal(pastSchema.safeParse({ ...direct, ...foundationsRecall(past) }).success, true);
+  assert.equal(pastSchema.safeParse({ ...direct, prompt: "Translate: We play golf.", target: "Nous jouons au golf." }).success, false);
 });

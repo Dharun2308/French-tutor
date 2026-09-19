@@ -52,6 +52,7 @@ try {
     assert.ok(!await evaluate(`document.body.innerText.includes('Easy words and short phrases')`));
     assert.ok(!await evaluate(`document.body.innerText.includes('How this adapts to you')`));
     assert.ok(!await evaluate(`document.body.innerText.includes('bought shoes online')`));
+    assert.ok(!await evaluate(`document.body.innerText.includes('Translate: I like to go for a hike.')`));
     const upgraded = await state();
     assert.equal(upgraded.status, "active");
     assert.ok(upgraded.question.fallback, "Disabled fixture providers use a short original expression");
@@ -112,7 +113,7 @@ try {
   await waitFor(`Boolean(document.querySelector('[role=alert]'))`);
   assert.equal(await evaluate("window.ratingRequests"), 1);
   assert.equal((await state()).ratings[0], 1);
-  await click("Again"); await waitFor(`document.body.innerText.includes('Write in French: a coffee') && Boolean(document.querySelector('#foundations-answer:not(:disabled)'))`);
+  await click("Again"); await waitFor(`document.body.innerText.includes('Translate: a coffee') && Boolean(document.querySelector('#foundations-answer:not(:disabled)'))`);
   assert.equal((await state()).question.fallback, true);
   assert.equal((await state()).completed, 1);
   assert.equal((await state()).ratings[0], 1);
@@ -126,7 +127,7 @@ try {
   await click("Good"); await waitFor(`document.body.innerText.includes('Recall again') && Boolean(document.querySelector('#foundations-answer:not(:disabled)'))`);
   assert.equal((await state()).question.prompt, "Translate: Some warm bread.");
   await type("Du pain chaud."); await click("Check answer"); await waitFor(`document.body.innerText.includes('How well did you recall')`);
-  await click("Good"); await waitFor(`document.body.innerText.includes('Write in French: a coffee') && Boolean(document.querySelector('#foundations-answer:not(:disabled)'))`);
+  await click("Good"); await waitFor(`document.body.innerText.includes('Translate: a coffee') && Boolean(document.querySelector('#foundations-answer:not(:disabled)'))`);
   await click("Reveal answer"); await waitFor(`document.body.innerText.includes('How well did you recall')`); await click("Good");
   await waitFor(`document.body.innerText.includes('A red car') && Boolean(document.querySelector('#foundations-answer:not(:disabled)'))`);
   await click("Reveal answer"); await waitFor(`document.body.innerText.includes('How well did you recall')`); await click("Easy");

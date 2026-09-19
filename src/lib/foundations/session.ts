@@ -7,7 +7,7 @@ import { recordItemReview, type ReviewTransaction } from "@/lib/items/review";
 import { ensureSeeded } from "@/lib/seed/ensure-seeded";
 import { foundationsAI, type FoundationsAI } from "./ai";
 import { foundationsCandidates } from "./candidates";
-import { foundationsExerciseSchema } from "./exercise";
+import { foundationsExerciseSchema, foundationsRecall } from "./exercise";
 import { FOUNDATIONS_VERSION, foundationsCard, isFoundationsLevel, isFoundationsSource } from "./level";
 import { foundationsSchedule, reinforce } from "./plan";
 import { foundationsReviews, foundationsSessions } from "./schema";
@@ -155,10 +155,10 @@ export async function foundationsAction(action: FoundationsAction, ai: Foundatio
       const mistakes = source.evidence.concat(data.queue.flatMap(q => q.feedback?.rating != null && q.feedback.rating < 2 ? [`${q.feedback.answer} → ${q.feedback.grade.corrected}: ${q.feedback.grade.explanation}`] : []));
       try {
         const exercise = await ai.generate(source, history, data.activeTenses, mistakes);
-        foundationsExerciseSchema(source, history).parse({ ...exercise, sourceKey: source.key });
+        foundationsExerciseSchema(source).parse({ ...exercise, sourceKey: source.key });
         question.exercise = exercise;
       } catch {
-        question.exercise = { prompt: source.prompt, target: source.target, rubric: source.topic, provider: "original", fallback: true };
+        question.exercise = { ...foundationsRecall(source), rubric: source.topic, provider: "original", fallback: true };
       }
       return foundationsView(await persist(session, data));
     }

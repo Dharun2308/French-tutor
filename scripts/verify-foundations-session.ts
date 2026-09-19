@@ -8,6 +8,7 @@ import { itemReviews, learningItems, phrases, settings } from "../src/lib/db/sch
 import { foundationsCandidates } from "../src/lib/foundations/candidates";
 import { FoundationsConflict, foundationsAction, getFoundationsSession } from "../src/lib/foundations/session";
 import { foundationsReviews, foundationsSessions } from "../src/lib/foundations/schema";
+import { foundationsRecall } from "../src/lib/foundations/exercise";
 import { FOUNDATIONS_VERSION } from "../src/lib/foundations/level";
 import type { FoundationsAI } from "../src/lib/foundations/ai";
 import type { FoundationsData, FoundationsSource } from "../src/lib/foundations/types";
@@ -56,7 +57,7 @@ async function main() {
   };
   let generated = 0, graded = 0;
   const ai: FoundationsAI = {
-    generate: async source => ({ prompt: `Translate: I prepare it. (Exercise ${++generated}.)`, target: `Je prépare ${source.target}.`, rubric: "Partitive article in a short sentence.", provider: "fixture", fallback: false }),
+    generate: async source => { generated++; return { ...foundationsRecall(source), rubric: "Recall the word group.", provider: "fixture", fallback: false }; },
     grade: async (_source, exercise, answer) => {
       graded++;
       return { verdict: answer === exercise.target ? "CORRECT" : "WRONG", corrected: exercise.target, explanation: "Use the requested grammar.", errorType: answer === exercise.target ? "none" : "article", provider: "fixture" };
@@ -109,7 +110,7 @@ async function main() {
   assert.equal((await getFoundationsSession())?.status, "completed");
   assert.equal(complete.recap[0].french, follow.data.queue[0].exercise!.target);
 
-  // The next eligible round remembers the exact missed sentence, not just its original word.
+  // The next eligible round remembers the exact missed question and its grading guide.
   const tomorrow = new Date(Date.now() + 2 * 86_400_000);
   const again = (await foundationsCandidates("blend", tomorrow)).sources.find(s => s.key === personal.key)!;
   assert.equal(again.memory.again, 1);
@@ -117,7 +118,7 @@ async function main() {
   assert.deepEqual(again.retryExercise, follow.data.queue[0].exercise);
   assert.ok(!(await foundationsCandidates()).sources.some(s => s.key === everyday.key), "Easy leaves the due pool");
 
-  // Every self-rating survives subsequent round planning, including fresh contexts after success.
+  // Every self-rating survives subsequent planning; success permits a renewed grading guide.
   for (const rating of [0, 1, 2, 3] as Rating[]) {
     const round = await create([everyday]), questionId = round.data.queue[0].id;
     await foundationsAction({ action: "prepare", sessionId: round.id, questionId }, ai);
@@ -143,11 +144,11 @@ async function main() {
   await foundationsAction({ action: "rate", sessionId: fallback.id, questionId: fallbackId, rating: 1 });
   assert.equal((await readItem()).failureCount, beforeOffline.failureCount + 1);
 
-  // Even a successful provider response cannot inject advanced grammar into an easy source.
+  // Even an otherwise beginner sentence cannot expand a direct word/phrase recall card.
   for (const provider of ["claude", "codex"]) {
     const complex = await create([everyday]);
     const prepared = await foundationsAction({ action: "prepare", sessionId: complex.id, questionId: complex.data.queue[0].id }, {
-      ...ai, generate: async () => ({ prompt: "Translate: A coffee I like.", target: "Un café que j’aime.", rubric: "Relative clause.", provider, fallback: false }),
+      ...ai, generate: async () => ({ prompt: "Translate: I want a coffee.", target: "Je veux un café.", rubric: "A full sentence around the coffee phrase.", provider, fallback: false }),
     });
     assert.equal(prepared.question?.fallback, true);
     assert.equal((await read(complex.id)).data.queue[0].exercise?.target, everyday.target);
@@ -189,8 +190,8 @@ async function main() {
 
   // Earlier complex rounds and saved exercises cannot bypass the new beginner limits.
   const old = await create([everyday]);
-  old.data.version = 2;
-  const oldExercise = { prompt: "Translate: Yes, I have three of them.", target: "Oui, j’en ai 3.", rubric: "Quantity pronoun en.", provider: "claude", fallback: false };
+  old.data.version = 3;
+  const oldExercise = { prompt: "Translate: I like to go for a hike.", target: "J’aime faire une randonnée.", rubric: "Add a conjugated verb before the hiking phrase.", provider: "claude", fallback: false };
   old.data.queue[0].exercise = oldExercise;
   await db.update(foundationsSessions).set({ data: old.data }).where(eq(foundationsSessions.id, old.id));
   await db.insert(foundationsReviews).values({ sessionId: old.id, questionId: old.data.queue[0].id, sourceKey: everyday.key, rating: 0, independent: true, exercise: oldExercise, answer: "", grade: { verdict: "UNGRADED", corrected: oldExercise.target, explanation: "Old feedback", errorType: "none", provider: "self" }, ratedAt: new Date() });
@@ -208,7 +209,7 @@ async function main() {
   assert.deepEqual(await readItem(), preservedItem);
   assert.deepEqual(await readPhrase(), preservedPhrase);
   await assert.rejects(foundationsAction({ action: "rate", sessionId: old.id, questionId: old.data.queue[0].id, rating: 2 }), /easier/);
-  console.log("Passed: mixed/filtered selection, old misses, cooldown, concurrent starts/preparation/answers/ratings, explicit four-rating memory, both source schedules, exact-sentence retries, fresh contexts after success, reload, independent follow-ups, offline recovery, edited/suspended sources, atomic rollback and cross-worker conflicts.");
+  console.log("Passed: mixed/filtered selection, old misses, cooldown, concurrent starts/preparation/answers/ratings, explicit four-rating memory, both source schedules, exact-phrase retries, renewed guidance after success, reload, independent follow-ups, offline recovery, edited/suspended sources, atomic rollback and cross-worker conflicts.");
   console.log("Passed: A2 selection and reviews for both origins, B1 exclusion, basic note expressions, replacing obsolete rounds and discarding advanced retry text without changing saved ratings or schedules.");
 }
 

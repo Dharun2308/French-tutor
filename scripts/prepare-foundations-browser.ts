@@ -15,12 +15,12 @@ async function main() {
   await db.update(learningItems).set({ suspended: true });
   await db.update(phrases).set({ suspended: true });
   const notes = await db.insert(learningItems).values([
-    { french: "du pain", english: "some bread", type: "vocabulary", cefrLevel: "A1", normKey: randomUUID(), dueAt: new Date(0) },
-    { french: "Je suis prêt.", english: "I am ready.", type: "phrase", cefrLevel: "A1", normKey: randomUUID(), dueAt: new Date(0) },
+    { french: "du pain chaud", english: "Some warm bread.", type: "vocabulary", cefrLevel: "A1", normKey: randomUUID(), dueAt: new Date(0) },
+    { french: "Je suis prêt.", english: "I am ready. (A man.)", type: "phrase", cefrLevel: "A1", normKey: randomUUID(), dueAt: new Date(0) },
   ]).returning();
   const everyday = await db.insert(phrases).values([
     { french: "un café", english: "a coffee", category: "phrase", level: "A1", frequencyRank: 1, nextReviewAt: new Date(0) },
-    { french: "une voiture", english: "a car", category: "phrase", level: "A1", frequencyRank: 2, nextReviewAt: new Date(0) },
+    { french: "une voiture rouge", english: "A red car.", category: "phrase", level: "A1", frequencyRank: 2, nextReviewAt: new Date(0) },
   ]).returning();
   const plan = await foundationsCandidates();
   const keys = [`personal:${notes[0].id}`, `phrase:${everyday[0].id}`, `personal:${notes[1].id}`, `phrase:${everyday[1].id}`];

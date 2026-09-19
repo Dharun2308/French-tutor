@@ -4,7 +4,7 @@ Foundations at `/practice/phrases` practices A1 and A2 words and short phrases u
 both approved lesson items and the broader French phrase library. B1 and above are
 excluded even when they have many misses. Lesson sources use the basic expression,
 not their longer example sentence. Sources are limited to six French words.
-Both sources and generated answers pass the same conservative grammar check:
+Sources pass a conservative grammar check:
 no object `en`/`y`, stacked object pronouns, reflexive compound tenses, linked
 clauses or teaching annotations. Simple A2 phrases, basic past-tense statements,
 present-tense reflexives, `en France` and `il y a` remain eligible. This is a
@@ -28,17 +28,20 @@ explanatory subtitles and adaptation sections have been removed across the app.
 
 ## Phrases and feedback
 
-The configured Codex → Claude → OpenAI chain generates each fresh exercise.
-Questions stay at A1–A2 with familiar everyday language. New contexts use the
-present; a simple past-tense source retains its own construction. Supported
-questions are limited to four words, or the original source length if longer.
-Standard and stretch stay within six words, with at most one familiar detail.
-The validator also requires a short `Translate:` prompt (at most twelve words). No elaborate stories,
-extra clauses, advanced tenses or new rules are requested for novelty. Single
-words, short greetings and small variations are allowed. The whole source expression
-must appear in the target itself, so a related word or a change of tense cannot
-silently replace the skill being rated. Validation rejects repeated prompt/answer
-pairs and leaked full answers. Vocabulary choice still depends on the tutor model.
+Foundations uses direct recall of the selected word or expression. The app fixes
+both sides of the card: `Translate: to go for a hike` → `faire une randonnée`.
+The AI cannot add `J’aime`, other verbs, adjectives or a surrounding sentence.
+This applies to every recall challenge, including after Easy ratings. A complete
+phrase already saved as the source retains its words and tense. Repetition is
+intentional; novelty must not force a harder exercise.
+
+The configured Codex → Claude → OpenAI chain prepares a short private grading
+guide using the source and relevant recent mistakes. Its response schema contains
+only the source key and rubric; prompt and target are assembled by the app. A
+second validation at the session boundary rejects altered cues or French targets.
+English cues come from the saved source (at most 24 words before the instruction);
+existing fill-in-the-blank cues stay intact. Notes and the broader phrase library
+provide the vocabulary, and rating history selects which expressions are due.
 
 The learner types French, sees feedback, then always chooses Again,
 Hard, Good or Easy (keys 1–4). Exact answers use local comparison; other answers
@@ -46,7 +49,7 @@ use the existing meaning/grammar grader, which accepts valid alternatives and
 distinguishes writing slips from real grammar errors. Reveal supports self-review.
 Checking or revealing alone does not change the schedule. Skip adds no review.
 
-Failed generation uses the vetted original expression, stable across
+If the AI guide is unavailable, the same direct question remains usable across
 reloads. Failed grading produces UNGRADED feedback followed by the same explicit
 self-rating controls. Providers and their reasoning settings are unchanged:
 Codex remains `gpt-5.6-sol` at medium effort.
@@ -54,11 +57,12 @@ Codex remains `gpt-5.6-sol` at medium effort.
 ## Rating memory
 
 Each independent review stores its exact prompt, target, answer, feedback and
-chosen rating. Again/Hard expressions return with that same sentence in their
-next eligible round. Good/Easy success allows fresh contexts at the next due date.
+chosen rating. Again/Hard expressions return with the same saved question in their
+next eligible round. Good/Easy success spaces out recall and allows a renewed
+grading guide at the next due date, while preserving the direct question.
 Intervening practice in another mode can supersede a stale saved retry.
 
-Up to three difficult sentences also return after two other questions where the
+Up to three difficult expressions also return after two other questions where the
 remaining round allows. These extra attempts are stored with `independent=false`:
 they do not change source schedules, recall counters or independent accuracy a
 second time. Their success cannot erase the original independent lapse.
@@ -85,7 +89,7 @@ and their indexes. It is repeatable and is included in the new-database Drizzle
 configuration. Do not run `db:push` against production.
 
 The September 19 difficulty correction needs no schema migration. New sessions
-have data version 3. Reloading an active version 1 or 2 round requests a new beginner
+have data version 4. Reloading an active version 1, 2 or 3 round requests a new beginner
 round and retires the old round; all its ratings remain saved. Older exercises
 are excluded from cached retries and generation history so old advanced text cannot
 return through a retry. Their ratings still contribute to recall memory.
@@ -187,3 +191,24 @@ Deployed at 00:24 MDT. All 25 production tables matched their pre-activation
 fingerprints; six read-only health checks and SQLite integrity/foreign-key checks
 passed. No migration or synthetic live reviews. Backup/runtime:
 `~/.cache/french-tutor-simple-20260919/before/`.
+
+## Direct recall correction, September 19, 2026
+
+The owner then reported "Translate: I like to go for a hike." This was a newly
+generated Claude question in version 3: `J’aime faire une randonnée` passed the
+four-word/grammar checks while adding a conjugated verb around the saved phrase.
+Version 4 fixes both sides of each card in code. AI only prepares grading guidance;
+it cannot change `to go for a hike` → `faire une randonnée` into a larger task.
+The same direct card remains usable when that guidance is unavailable.
+
+All 79 tests, lint, TypeScript/build and the rating/upgrade integration passed.
+Real Claude and Codex each prepared the exact direct hiking card and other A1/A2
+expressions, accepted bare/equivalent answers and caught an article error. The
+actual saved screenshot round upgraded in a disposable browser to the direct cue;
+all 21 reviews, source schedules and Smart state remained intact. All four manual
+ratings, failed/lost saves, drafts, reload, follow-ups and completion passed the
+existing phone/desktop light/dark browser checks.
+
+Deployed at 08:10 MDT. All 25 production table fingerprints remained unchanged;
+six read-only health checks and SQLite integrity/foreign-key checks passed.
+Backup/runtime: `~/.cache/french-tutor-direct-foundations-20260919/before/`.

@@ -1,7 +1,7 @@
 import type { LearningItem } from "@/lib/db/schema";
 
 // Retire cached rounds/retries when the difficulty policy changes; keep their ratings.
-export const FOUNDATIONS_VERSION = 3;
+export const FOUNDATIONS_VERSION = 4;
 export const FOUNDATIONS_LEVELS = ["A1", "A2"] as const;
 export const FOUNDATIONS_MAX_WORDS = 6;
 export const wordCount = (text: string) => text.trim().split(/\s+/).filter(Boolean).length;
@@ -37,10 +37,6 @@ export function isSimpleFoundationsFrench(value: string): boolean {
   if (/\b(?:que|qu|qui|dont|lequel|laquelle|lesquels|lesquelles|lorsque|lorsqu|puisque|puisqu|afin|quoique|bien que|parce que|mais|puis|cependant|pourtant|sinon)\b/.test(grammar)) return false;
   if (/\b(?:et|quand|si) (?:je|j|tu|il|elle|on|nous|vous|ils|elles)\b/.test(grammar)) return false;
   return true;
-}
-
-export function foundationsWordLimit(source: { target: string; challenge: string }): number {
-  return source.challenge === "supported" ? Math.max(4, wordCount(source.target)) : FOUNDATIONS_MAX_WORDS;
 }
 
 export function isFoundationsSource(source: { level: string; target: string; prompt: string }): boolean {
