@@ -514,7 +514,8 @@ export class GoogleReconnectService {
     } catch (error) {
       return {
         ...base,
-        connection: error instanceof GoogleReconnectError && error.code === "needs-reconnect"
+        // Missing permissions (another shared-token writer dropped Docs) are fixed by reconnecting too.
+        connection: error instanceof GoogleReconnectError && (error.code === "needs-reconnect" || error.code === "scopes")
           ? "needs-reconnect" : "unavailable",
       };
     }

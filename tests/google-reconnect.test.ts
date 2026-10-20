@@ -250,6 +250,15 @@ test("a shared token that lost its Docs grant asks for Docs again and keeps ever
   assert.ok(current.scopes.every((scope: string) => saved.scopes.includes(scope)));
 });
 
+test("status asks for a reconnect when the shared token refreshes but has no Docs grant", async t => {
+  const f = await fixture(t);
+  const current = { ...f.original, scopes: permissions.slice(1) };
+  await writeFile(f.tokenPath, JSON.stringify(current));
+  f.replies.token = { access_token: "fake-new-access", expires_in: 3600, token_type: "Bearer", scope: current.scopes.join(" ") };
+  assert.equal((await f.service.status(origin)).connection, "needs-reconnect");
+  assert.deepEqual(JSON.parse(await readFile(f.tokenPath, "utf8")), current);
+});
+
 test("web client is detected and uses the public callback including its port", async t => {
   const f = await fixture(t, "web");
   const { begun, url, input } = await f.start();
