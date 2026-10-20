@@ -222,21 +222,32 @@ test("credentials changed during consent cannot be overwritten", async t => {
   assert.equal(f.requests.length, 0);
 });
 
-test("a shared token without a recorded Docs grant can reconnect without silently adding scopes", async t => {
+test("a shared token that lost its Docs grant asks for Docs again and keeps every other grant", async t => {
   const f = await fixture(t);
   const current = { ...f.original, scopes: permissions.slice(1), account: "" };
   await writeFile(f.tokenPath, JSON.stringify(current));
   f.replies.tokenStatus = 400;
   f.replies.token = { error: "invalid_grant" };
   assert.equal((await f.service.status(origin)).connection, "needs-reconnect");
-  const { input, url } = await f.start();
-  assert.deepEqual(url.searchParams.get("scope")!.split(" ").sort(), [...current.scopes].sort());
+  const docsRead = "https://www.googleapis.com/auth/documents.readonly";
+  const docsWrite = "https://www.googleapis.com/auth/documents";
+  const first = await f.start();
+  assert.deepEqual(first.url.searchParams.get("scope")!.split(" ").sort(), [...current.scopes, docsRead, docsWrite].sort());
+  // Unticking Docs on Google's consent screen saves nothing.
   f.replies.tokenStatus = 200;
   f.replies.token = { access_token: "fake-new-access", refresh_token: "fake-new-refresh", expires_in: 3600,
     token_type: "Bearer", scope: current.scopes.join(" ") };
-  f.replies.docStatus = 403;
-  await assert.rejects(f.service.finish(input), isError("scopes"));
+  await assert.rejects(f.service.finish(first.input), isError("scopes"));
   assert.deepEqual(JSON.parse(await readFile(f.tokenPath, "utf8")), current);
+  // Approving it restores Docs; Google may fold documents.readonly into documents.
+  const second = await f.start();
+  f.replies.token = { access_token: "fake-new-access", refresh_token: "fake-new-refresh", expires_in: 3600,
+    token_type: "Bearer", scope: [...current.scopes, docsWrite].join(" ") };
+  await f.service.finish(second.input);
+  const saved = JSON.parse(await readFile(f.tokenPath, "utf8"));
+  assert.equal(saved.refresh_token, "fake-new-refresh");
+  assert.ok(saved.scopes.includes(docsWrite));
+  assert.ok(current.scopes.every((scope: string) => saved.scopes.includes(scope)));
 });
 
 test("web client is detected and uses the public callback including its port", async t => {

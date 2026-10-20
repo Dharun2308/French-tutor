@@ -286,9 +286,12 @@ export class GoogleReconnectService {
     if (!text(client.client_id) || !text(client.client_secret)) {
       return fail("configuration", "Google connection is not configured.");
     }
-    const granted = scopes(token.value.scopes);
-    // Preserve the current grants even if another shared-token writer removed
-    // Docs access. Only Google's read-only metadata check can confirm access.
+    // Keep every current grant (the token is shared with Hermes' Gmail and Calendar tools). If a
+    // shared-token writer dropped this app's Docs scopes, ask for them again, as
+    // connect-google-docs-editor.py set them up: the import reads the notes and the editor writes
+    // them. Google's consent screen lists them and the owner approves them there (2026-10-20).
+    const current = scopes(token.value.scopes);
+    const granted = current.includes(DOCS_READ) || current.includes(DOCS_WRITE) ? current : [...current, DOCS_READ, DOCS_WRITE];
     return {
       tokenPath, tokenResolved, token: token.value, tokenHash: hash(token.raw),
       clientHash: hash(clientFile.raw),
