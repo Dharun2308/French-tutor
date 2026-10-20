@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ExternalLink, Loader2, NotebookPen, Plus, RefreshCw, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { GoogleConnection, type GoogleConnectionState } from "@/components/google-connection";
 
 type Block = { start: number; text: string; editable: boolean; table: boolean; heading: string;
   runs: { text: string; bold: boolean; italic: boolean; strike: boolean }[] };
@@ -30,6 +31,7 @@ export default function NotesPage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [query, setQuery] = useState("");
+  const [connection, setConnection] = useState<GoogleConnectionState | null>(null);
   const generation = useRef(0);
   const editor = useRef<HTMLTextAreaElement>(null);
   const dirty = Boolean(draft && draft.text !== draft.original);
@@ -45,6 +47,15 @@ export default function NotesPage() {
     return () => { window.removeEventListener("beforeunload", leave); document.removeEventListener("click", navigate, true); };
   }, [dirty]);
   useEffect(() => { editor.current?.focus(); }, [draft?.start, draft?.docId, draft?.tabId]);
+
+  async function refreshConnection() {
+    try {
+      setListing(await api());
+      setError("");
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }
 
   async function load(id: string, keepDraft = false) {
     if (!keepDraft && dirty && !window.confirm("Discard your unsaved note and switch documents?")) return;
@@ -94,19 +105,20 @@ export default function NotesPage() {
     <header className="mb-5">
       <h1 className="flex items-center gap-2 text-2xl font-semibold"><NotebookPen className="h-6 w-6 text-emerald-600" />Notes</h1>
     </header>
+    <GoogleConnection onConnected={refreshConnection} onConnectionChange={setConnection} />
     <div className="mb-5 grid gap-2 sm:grid-cols-3" aria-label="Choose a document">
       {listing?.documents.map(item => <Button key={item.id} variant={selected === item.id ? "secondary" : "outline"}
         disabled={busy} onClick={() => load(item.id)} className="justify-start whitespace-normal text-left h-auto min-h-11">{item.label}</Button>)}
       {listing && !listing.hasPersonal && <Button variant="outline" disabled={busy || !listing.canWrite} onClick={create}><Plus className="h-4 w-4" />Create Personal Notes</Button>}
     </div>
     {listing && !listing.canWrite && <p className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm">Google is connected for reading. Enable Google Docs write access to edit and create Personal Notes.</p>}
-    {error && <div role="alert" className="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm">{error}
+    {error && (connection !== "needs-reconnect" || draft) && <div role="alert" className="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm">{error}
       {selected ? <Button variant="outline" size="sm" className="mt-2 block" disabled={busy} onClick={() => load(selected, true)}>Reload document, keep draft</Button>
         : <Button variant="outline" size="sm" className="mt-2 block" onClick={() => { setError(""); api().then(setListing).catch(e => setError(e.message)); }}>Retry connection</Button>}
     </div>}
     {notice && <p role="status" className="mb-4 rounded-lg bg-emerald-500/10 p-3 text-sm">{notice}</p>}
     {busy && <p role="status" className="mb-3 flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />{draft ? "Saving…" : "Connecting to Google Docs…"}</p>}
-    {!doc && !busy && !error && !selected && <p className="rounded-xl border bg-card p-6 text-sm text-muted-foreground">Choose a document to start writing.</p>}
+    {listing && !doc && !busy && !error && !selected && <p className="rounded-xl border bg-card p-6 text-sm text-muted-foreground">Choose a document to start writing.</p>}
     {selected && !doc && !busy && !error && <Button variant="outline" onClick={() => load(selected)}>Reload document</Button>}
     {doc && <>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">

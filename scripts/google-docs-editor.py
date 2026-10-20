@@ -7,8 +7,8 @@ import os
 from pathlib import Path
 import sys
 
-CONFIG = Path.home() / ".hermes/french-google-docs.json"
-PERSONAL = Path.home() / ".hermes/french-personal-notes.json"
+CONFIG = Path(os.environ.get("FRENCH_GOOGLE_DOCS_CONFIG", str(Path.home() / ".hermes/french-google-docs.json"))).expanduser()
+PERSONAL = Path(os.environ.get("FRENCH_GOOGLE_PERSONAL_NOTES", str(Path.home() / ".hermes/french-personal-notes.json"))).expanduser()
 WRITE_SCOPE = "https://www.googleapis.com/auth/documents"
 
 

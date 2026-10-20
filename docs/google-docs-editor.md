@@ -35,11 +35,16 @@ POST `/api/notes` validates input and same-origin requests; this is a private
 single-user app served through the existing Tailscale access boundary. Do not
 publish the app on an unauthenticated public endpoint. The backend uses bounded
 subprocess/API timeouts and sanitized errors. Refreshed editor tokens stay in memory
-to avoid racing the weekly worker's token-file writes.
+to avoid overwriting reconnected credentials. Weekly worker refreshes now also
+stay in memory.
 
 ## Connection
 
-Write access was connected September 6, 2026. If reauthorization is needed:
+Write access was connected September 6, 2026. Reauthorize from **Notes →
+Reconnect Google**; the existing Desktop client works on a phone by pasting the
+complete loopback callback address. See [Reconnect Google](google-reconnect.md).
+This preserves the existing permissions and checks access without editing notes.
+The terminal helper remains available for recovery:
 
 ```
 ~/.hermes/hermes-agent/venv/bin/python scripts/connect-google-docs-editor.py begin

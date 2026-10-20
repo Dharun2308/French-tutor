@@ -2,7 +2,9 @@ import importlib.util
 import json
 from pathlib import Path
 import tempfile
+from types import SimpleNamespace
 import unittest
+from unittest.mock import Mock, patch
 
 spec = importlib.util.spec_from_file_location("sync_google_docs", Path(__file__).with_name("sync-google-docs.py"))
 sync = importlib.util.module_from_spec(spec)
@@ -50,6 +52,40 @@ class FakeClient:
 
 
 class SyncTests(unittest.TestCase):
+    def test_refresh_uses_memory_without_rewriting_shared_token(self):
+        with tempfile.TemporaryDirectory() as folder:
+            token = Path(folder) / "fake-token.json"
+            original = b'{"token":"old-fake-access","refresh_token":"fake-refresh"}\n'
+            token.write_bytes(original)
+            credentials = Mock(valid=False, token="old-fake-access")
+
+            def refresh(_request):
+                credentials.token = "new-fake-access"
+                credentials.valid = True
+
+            credentials.refresh.side_effect = refresh
+            credentials.to_json.return_value = '{"token":"new-fake-access"}'
+            credential_type = Mock()
+            credential_type.from_authorized_user_file.return_value = credentials
+            http = Mock()
+            http.get.return_value.status_code = 200
+            http.get.return_value.json.return_value = {"documentId": "fake-document"}
+            request_type = Mock()
+            modules = {
+                "requests": SimpleNamespace(Session=Mock(return_value=http)),
+                "google.oauth2.credentials": SimpleNamespace(Credentials=credential_type),
+                "google.auth.transport.requests": SimpleNamespace(Request=request_type),
+            }
+            with patch.dict("sys.modules", modules):
+                client = sync.Client({"google_token_file": str(token), "tutor_url": "http://127.0.0.1:18000"})
+                client.document("fake-document")
+
+            credential_type.from_authorized_user_file.assert_called_once_with(str(token))
+            credentials.refresh.assert_called_once_with(request_type.return_value)
+            self.assertEqual(http.get.call_args.kwargs["headers"], {"Authorization": "Bearer new-fake-access"})
+            self.assertEqual(token.read_bytes(), original)
+            self.assertEqual(list(Path(folder).iterdir()), [token])
+
     def test_nested_tabs_tables_and_unicode(self):
         doc = document(["Je suis prêt."])
         doc["tabs"][0]["childTabs"] = [{"tabProperties": {"tabId": "child", "title": "Later lesson"},

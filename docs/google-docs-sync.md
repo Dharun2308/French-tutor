@@ -26,6 +26,11 @@ for unattended weekly operation. Reauthorization is still needed if access is re
 
 ## Behavior and recovery
 
+Reconnect from **Notes** or **Import** using **Reconnect Google**. The Desktop
+client uses a short consent-and-paste flow that works from a phone; see
+[Reconnect Google](google-reconnect.md) for setup, security and verification.
+Reconnecting checks document metadata only and does not run an import.
+
 - The first run reads all selected documents, including nested tabs and text in
   tables. Crossed-out text is explicitly marked to retain correction context.
   Images, comments, and handwritten annotations are not imported as text.
@@ -44,8 +49,8 @@ for unattended weekly operation. Reauthorization is still needed if access is re
   prepared batch does not regenerate or overwrite the draft.
 - A file lock and the systemd service prevent overlapping workers. Success is
   silent; errors are recorded in local state and the service journal. No messages
-  are sent to other people. The Import page shows the schedule, last successful
-  update, source links, pending preparation and whether attention is needed.
+  are sent to other people. The Import page shows the Google connection and last
+  import result/time above the existing imports.
 
 Manual retry: `systemctl --user start french-google-docs-sync.service`.
 Status: `systemctl --user show french-google-docs-sync.service -p ActiveState -p Result`.

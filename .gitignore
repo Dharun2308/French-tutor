@@ -13,6 +13,7 @@ dist
 .env
 .env.local
 .env.*.local
+.env.*
 
 # drizzle
 drizzle/
@@ -43,3 +44,14 @@ audio/
 topic-theory-cache/
 .google-docs-sync/
 __pycache__/
+
+# Google reconnect credentials, state, backups and local verification artifacts
+.french-google-reconnect/
+.google-reconnect/
+google_token*.json*
+google_client_secret*.json*
+google_oauth_pending*.json*
+*.reconnect.lock
+*.reconnect-*.tmp
+*.bak-reconnect-*
+screenshots/

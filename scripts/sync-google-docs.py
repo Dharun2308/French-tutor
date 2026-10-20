@@ -115,9 +115,7 @@ class Client:
         self.credentials = Credentials.from_authorized_user_file(str(self.token_path))
         if not self.credentials.valid:
             self.credentials.refresh(Request())
-            payload = json.loads(self.credentials.to_json())
-            payload["type"] = "authorized_user"
-            save_json(self.token_path, payload)
+        # Keep refreshes in memory so a worker cannot overwrite a fresh reconnect.
 
     def document(self, doc_id):
         response = self.http.get("https://docs.googleapis.com/v1/documents/" + doc_id,

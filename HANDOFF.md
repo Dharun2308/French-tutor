@@ -1,5 +1,37 @@
 # French Tutor — handoff for the next agent (Codex)
 
+## Ready for review — 2026-10-20: Google reconnect
+
+- Notes and Import now show Google connection state, the last import result/time,
+  and **Reconnect Google**. The existing Desktop client uses consent in a new tab
+  followed by one pasted loopback address; Web clients are detected automatically
+  and use the public HTTPS callback. No new permissions or import are triggered.
+- OAuth state is browser/origin bound, single-use and valid for ten minutes, with
+  PKCE S256 and exact same-origin POST checks. Account and read-only document
+  metadata checks precede atomic 0600 token replacement and a private backup.
+  The weekly worker now refreshes in memory to avoid overwriting reconnected tokens.
+- See [docs/google-reconnect.md](docs/google-reconnect.md) for configuration,
+  shared-token readers, root-cause limits, risks and recovery. Testing-mode expiry
+  fits the failure timing; the local journal only proves `RefreshError`.
+- Passed: 101 JS tests, 7 sync and 6 editor Python tests, lint, TypeScript and
+  production build in the worktree. The built copy ran at loopback :18170 with a
+  copied SQLite DB and fake credentials/endpoints; no live consent or token write.
+  Browser checks cover paste/reload/retry, blocked popups, Web callback/replay,
+  clipboard, same-origin rejection and the forwarded HTTPS host/port.
+  All 25 copied table fingerprints stayed unchanged; SQLite integrity passed.
+- Screenshots: `/tmp/french-google-reconnect-verification/screenshots/`, phone
+  390×844 and tablet 1024×1366, light/dark, connected/reconnect-needed; all inspected.
+  Verification scripts/logs and the private DB copy remain in that scratch directory.
+  Not deployed, pushed or merged; the orchestrator reviews and deploys per room brief.
+- Deployment issue found during final configuration validation: the current
+  shared token's recorded scope list contains no grant accepted by Docs
+  `documents.get` (neither Docs nor Drive), despite the historical editor setup.
+  The flow deliberately preserves those scopes, as instructed, and will not save
+  replacement credentials if the read-only document check fails. Adding Docs
+  readonly requires owner authorization; no permission was silently added.
+  The permitted live status attempt did not confirm a usable Docs connection;
+  the real token's inode, size and modification time stayed unchanged.
+
 ## Latest correction — 2026-09-19: direct Foundations recall
 
 - The owner reported Claude's fresh version 3 question "I like to go for a hike"
