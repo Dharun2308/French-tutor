@@ -9,13 +9,20 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const shows = await Promise.all(SHOWS.map(async (show) => {
-      const feed = await getFeed(show);
+    // One unreachable feed shouldn't hide the other shows.
+    const loaded = await Promise.all(SHOWS.map(async (show) => {
+      const feed = await getFeed(show).catch((error) => {
+        console.error(`[podcasts] feed ${show.id}:`, error);
+        return null;
+      });
+      if (!feed) return null;
       const episodes = await Promise.all(feed.episodes.map(async ({ id, title, published, duration }) => ({
         id, title, published, duration, status: await listStatus(show.id, id),
       })));
       return { id: show.id, title: feed.title || show.title, image: feed.image, episodes };
     }));
+    const shows = loaded.filter((show) => show !== null);
+    if (!shows.length) throw new Error("no feed loaded");
     return jsonOk({ shows });
   } catch (error) {
     console.error("[podcasts] feed:", error);

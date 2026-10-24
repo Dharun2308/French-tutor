@@ -1,7 +1,7 @@
 # Podcasts tab
 
 `/podcasts` lists episodes of the shows in `SHOWS` (`src/lib/podcasts/model.ts`;
-currently *Little Talk in Slow French*, public Spreaker RSS). Opening an episode:
+currently *Little Talk in Slow French* and *InnerFrench*, public RSS; a switcher picks the show). Opening an episode:
 
 1. downloads the feed's MP3 to `podcasts/<show>/<episode>/audio.mp3` (gitignored);
 2. transcribes it once with faster-whisper `large-v3-turbo` on the GPU

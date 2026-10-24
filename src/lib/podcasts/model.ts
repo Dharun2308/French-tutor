@@ -10,6 +10,7 @@ export interface Show {
 /** Shows are fixed in code: the server only ever downloads from these feeds. */
 export const SHOWS: Show[] = [
   { id: "little-talk-slow-french", title: "Little Talk in Slow French", feed: "https://www.spreaker.com/show/6084166/episodes/feed" },
+  { id: "innerfrench", title: "InnerFrench", feed: "https://podcast.innerfrench.com/feed.xml" },
 ];
 
 export interface Episode {

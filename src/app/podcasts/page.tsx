@@ -3,16 +3,28 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { FileText, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { formatClock } from "@/lib/podcasts/model";
 
 interface EpisodeRow { id: string; title: string; published: string | null; duration: number | null; status: "ready" | "working" | null }
 interface ShowRow { id: string; title: string; image: string | null; episodes: EpisodeRow[] }
 
+const SHOW_KEY = "podcast-show";
 const dateFormat = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
 export default function PodcastsPage() {
   const [shows, setShows] = useState<ShowRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
+
+  useEffect(() => {
+    try { setSelected(localStorage.getItem(SHOW_KEY)); } catch { /* first show */ }
+  }, []);
+  const choose = (id: string) => {
+    setSelected(id);
+    try { localStorage.setItem(SHOW_KEY, id); } catch { /* still switches */ }
+  };
+  const visible = shows?.find((show) => show.id === selected) ?? shows?.[0];
 
   useEffect(() => {
     fetch("/api/podcasts", { cache: "no-store" })
@@ -26,7 +38,21 @@ export default function PodcastsPage() {
       <h1 className="mb-5 text-2xl font-semibold">Podcasts</h1>
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
       {!shows && !error && <div className="h-64 animate-pulse rounded-xl bg-muted" />}
-      {shows?.map((show) => (
+      {shows && shows.length > 1 && (
+        <div role="tablist" aria-label="Shows" className="mb-5 flex gap-1 rounded-lg bg-muted p-1">
+          {shows.map((show) => (
+            <button
+              key={show.id}
+              type="button"
+              role="tab"
+              aria-selected={show.id === visible?.id}
+              onClick={() => choose(show.id)}
+              className={cn("min-w-0 flex-1 truncate rounded-md px-3 py-2 text-sm font-medium transition-colors", show.id === visible?.id ? "bg-background shadow-sm" : "text-muted-foreground")}
+            >{show.title}</button>
+          ))}
+        </div>
+      )}
+      {visible && [visible].map((show) => (
         <section key={show.id} aria-label={show.title} className="mb-8">
           <div className="mb-3 flex items-center gap-3">
             {show.image && (
