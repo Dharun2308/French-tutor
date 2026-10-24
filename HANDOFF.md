@@ -1,5 +1,19 @@
 # French Tutor — handoff for the next agent (Codex)
 
+## Latest update — 2026-10-24: Podcasts tab with Whisper transcripts
+
+- Owner asked for French transcripts while listening to *Little Talk in Slow
+  French* (no subtitles on Spotify); audio inside the tab, English toggle off by
+  default, lines only (no SRS adding yet). New nav tab **Podcasts** → episode list
+  → player with a tappable, auto-following French transcript.
+- Audio comes from the show's public RSS; transcription is the server's
+  faster-whisper large-v3-turbo on the RTX 3090. English is generated on first EN
+  toggle through Codex → Claude. Feed-inserted English ads collapse to a skippable
+  row. Details: [docs/podcasts.md](docs/podcasts.md). No schema change.
+- Passed: 107 tests, lint, TypeScript, isolated build; three real episodes
+  transcribed end to end on a copy (:18195, copied DB); phone 390×844 light/dark
+  browser checks of list, progress, playback, line tap/next, Follow, English.
+
 ## Ready for review — 2026-10-20: Google reconnect
 
 - Notes and Import now show Google connection state, the last import result/time,

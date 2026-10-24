@@ -55,3 +55,6 @@ google_oauth_pending*.json*
 *.reconnect-*.tmp
 *.bak-reconnect-*
 screenshots/
+
+# podcast audio and transcripts (large, re-downloadable)
+/podcasts/

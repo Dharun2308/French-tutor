@@ -25,7 +25,8 @@ A personal, adaptive French verb conjugation tutor. SRS-backed drills plus an AI
 
 The app now also includes imported lesson items with FSRS scheduling, Focus/Smart
 practice, listening, fresh sentence contexts, conversation practice, weekly reviews,
-112 grammar topics, 40 Language Transfer audio lessons, and a Google Docs Notes editor.
+112 grammar topics, 40 Language Transfer audio lessons, a Google Docs Notes editor, and
+a Podcasts tab with Whisper transcripts of French podcast episodes.
 Structured AI uses the enabled Codex → Claude → OpenAI provider chain. Browser speech
 is free; OpenAI speech is opt-in. Foundations now mixes lesson notes and everyday
 French in short A1–A2 word and phrase practice, with explicit saved ratings. Its lesson items
@@ -46,14 +47,14 @@ recheck them with `npm audit` when upgrading Next.js or Drizzle tooling.
 
 Back up SQLite before schema changes. **Do not run `db:push` or seed against the
 existing production database as an audit or repair step.** Use the additive migrations
-for the feature being installed. Keep `local.db`, uploads, audio, TTS/theory caches,
+for the feature being installed. Keep `local.db`, uploads, audio, podcasts, TTS/theory caches,
 Google Docs sync state, and private environment/auth files out of Git.
 
 - Service: `systemctl --user status french-tutor.service`
 - Logs: `journalctl --user -u french-tutor.service -n 50`
 - Restart: `systemctl --user restart french-tutor.service`
 - [Google Docs sync](docs/google-docs-sync.md), [Notes editor](docs/google-docs-editor.md)
-- [Focus practice](docs/focus-practice.md), [Language Transfer](docs/language-transfer.md)
+- [Focus practice](docs/focus-practice.md), [Language Transfer](docs/language-transfer.md), [Podcasts](docs/podcasts.md)
 - [Adaptive Smart sessions and migration](docs/smart-sessions.md)
 - [Adaptive Foundations and migration](docs/foundations.md)
 - [Audit and validation, September 9](docs/audit-2026-09-09.md)
