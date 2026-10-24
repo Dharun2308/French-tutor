@@ -20,11 +20,11 @@ interface Data {
   translateError: string | null;
   lines: Line[] | null;
   en: Record<number, string> | null;
+  position: { seconds: number; done: boolean } | null;
 }
 
 const SPEEDS = [0.75, 0.85, 1, 1.25];
 const PREFS_KEY = "podcast-prefs";
-const positionKey = (show: string, episode: string) => `podcast-position:${show}/${episode}`;
 
 function readPrefs(): { speed: number; english: boolean } {
   try {
@@ -95,6 +95,11 @@ export default function PodcastEpisodePage() {
   const list = useRef<HTMLDivElement>(null);
   const programmaticUntil = useRef(0);
   const lastSaved = useRef(0);
+  // Saved listening position, applied once the audio can seek (iPhone loads nothing until play).
+  const pending = useRef<number | null>(null);
+  const restored = useRef(false);
+  const lastTime = useRef(0);
+  const listened = useRef(false);
   const started = useRef(false);
   const translateAsked = useRef(false);
 
@@ -114,6 +119,15 @@ export default function PodcastEpisodePage() {
     const d = await r.json();
     if (!r.ok) throw new Error(d.error ?? "Couldn't load this episode");
     setData(d);
+    if (!restored.current) {
+      restored.current = true;
+      const saved = d.position && !d.position.done ? d.position.seconds : 0;
+      if (saved > 0) {
+        pending.current = saved;
+        lastTime.current = saved;
+        setTime(saved);
+      }
+    }
     return d as Data;
   }, [base, english]);
 
@@ -163,20 +177,34 @@ export default function PodcastEpisodePage() {
 
   useEffect(() => { if (audio.current && prefs) audio.current.playbackRate = prefs.speed; }, [prefs]);
 
-  const savePosition = useCallback(() => {
+  // Saved on the server so the phone and the iPad share it. Nothing is saved until
+  // playback has actually started here, so opening an episode can't reset it.
+  const savePosition = useCallback((done = false, beacon = false) => {
+    if (!listened.current) return;
+    const body = JSON.stringify({ action: "position", seconds: lastTime.current, done });
+    if (beacon && navigator.sendBeacon?.(base, body)) return;
+    void fetch(base, { method: "POST", headers: { "content-type": "application/json" }, body, keepalive: true }).catch(() => {});
+  }, [base]);
+
+  const applyPending = useCallback(() => {
     const player = audio.current;
-    if (!player || player.readyState === 0) return;
-    try { localStorage.setItem(positionKey(params.show, params.episode), String(player.ended ? 0 : player.currentTime)); } catch { /* ignore */ }
-  }, [params.show, params.episode]);
+    const target = pending.current;
+    if (!player || target === null || player.readyState === 0) return;
+    if (Math.abs(player.currentTime - target) > 0.5) player.currentTime = Math.min(target, Number.isFinite(player.duration) ? player.duration - 1 : target);
+    if (Math.abs(player.currentTime - target) <= 1) pending.current = null;
+  }, []);
 
   const seekTo = useCallback((seconds: number, play = false) => {
     const player = audio.current;
     if (!player) return;
-    player.currentTime = Math.max(0, Math.min(seconds, Number.isFinite(player.duration) ? player.duration : seconds));
-    setTime(player.currentTime);
+    const target = Math.max(0, Math.min(seconds, Number.isFinite(player.duration) ? player.duration : seconds));
+    pending.current = target;
+    lastTime.current = target;
+    applyPending();
+    setTime(target);
     setFollowing(true);
     if (play) void player.play().catch(() => setAudioError(true));
-  }, []);
+  }, [applyPending]);
 
   const selectLine = useCallback((index: number) => {
     if (lines?.[index]) seekTo(lines[index].start, true);
@@ -185,9 +213,11 @@ export default function PodcastEpisodePage() {
   const toggle = useCallback(() => {
     const player = audio.current;
     if (!player) return;
-    if (player.paused) void player.play().catch(() => setAudioError(true));
-    else player.pause();
-  }, []);
+    if (player.paused) {
+      applyPending();
+      void player.play().catch(() => setAudioError(true));
+    } else player.pause();
+  }, [applyPending]);
 
   // Previous/next move between spoken lines, stepping over ad breaks.
   const step = useCallback((delta: number) => {
@@ -235,7 +265,7 @@ export default function PodcastEpisodePage() {
   }, [data?.episode.title, data?.show.title, seekTo]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const flush = () => savePosition();
+    const flush = () => savePosition(false, true);
     const hidden = () => { if (document.visibilityState === "hidden") flush(); };
     window.addEventListener("pagehide", flush);
     document.addEventListener("visibilitychange", hidden);
@@ -313,18 +343,22 @@ export default function PodcastEpisodePage() {
               const player = audio.current!;
               setDuration(player.duration);
               player.playbackRate = prefs.speed;
-              const saved = Number(localStorage.getItem(positionKey(params.show, params.episode)));
-              if (saved > 0 && saved < player.duration - 5) { player.currentTime = saved; setTime(saved); }
+              applyPending();
               setAudioError(false);
             }}
+            onCanPlay={applyPending}
             onTimeUpdate={() => {
               const player = audio.current!;
+              // Until the saved position is applied, keep showing it rather than 0:00.
+              if (pending.current !== null) { applyPending(); if (pending.current !== null) return; }
+              lastTime.current = player.currentTime;
               setTime(player.currentTime);
-              if (Date.now() - lastSaved.current > 5000) { lastSaved.current = Date.now(); savePosition(); }
+              if (!player.paused && Date.now() - lastSaved.current > 10000) { lastSaved.current = Date.now(); savePosition(); }
             }}
-            onPlay={() => setPlaying(true)}
-            onPause={() => { setPlaying(false); savePosition(); }}
-            onEnded={() => { setPlaying(false); savePosition(); }}
+            onPlay={() => { listened.current = true; setPlaying(true); }}
+            onPause={() => { setPlaying(false); if (pending.current === null) savePosition(); }}
+            onSeeked={() => { if (pending.current === null && listened.current) { lastTime.current = audio.current!.currentTime; savePosition(); } }}
+            onEnded={() => { setPlaying(false); savePosition(true); }}
             onError={() => setAudioError(true)}
           />
         )}

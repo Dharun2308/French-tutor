@@ -2,7 +2,7 @@
 
 import { jsonError, jsonOk } from "@/lib/api";
 import { SHOWS } from "@/lib/podcasts/model";
-import { getFeed, listStatus } from "@/lib/podcasts/server";
+import { getFeed, listStatus, readPosition } from "@/lib/podcasts/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,7 +17,7 @@ export async function GET() {
       });
       if (!feed) return null;
       const episodes = await Promise.all(feed.episodes.map(async ({ id, title, published, duration }) => ({
-        id, title, published, duration, status: await listStatus(show.id, id),
+        id, title, published, duration, status: await listStatus(show.id, id), position: await readPosition(show.id, id),
       })));
       return { id: show.id, title: feed.title || show.title, image: feed.image, episodes };
     }));

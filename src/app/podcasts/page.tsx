@@ -6,7 +6,7 @@ import { FileText, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatClock } from "@/lib/podcasts/model";
 
-interface EpisodeRow { id: string; title: string; published: string | null; duration: number | null; status: "ready" | "working" | null }
+interface EpisodeRow { id: string; title: string; published: string | null; duration: number | null; status: "ready" | "working" | null; position: { seconds: number; done: boolean } | null }
 interface ShowRow { id: string; title: string; image: string | null; episodes: EpisodeRow[] }
 
 const SHOW_KEY = "podcast-show";
@@ -72,6 +72,10 @@ export default function PodcastsPage() {
                     <span className="block text-sm font-medium leading-snug" lang="fr">{episode.title}</span>
                     <span className="mt-0.5 block text-xs text-muted-foreground">
                       {[episode.published && dateFormat.format(new Date(episode.published)), episode.duration && formatClock(episode.duration)].filter(Boolean).join(" · ")}
+                      {episode.position && !episode.position.done && episode.position.seconds >= 5 && (
+                        <span className="text-blue-700 dark:text-blue-300"> · Resume at {formatClock(episode.position.seconds)}</span>
+                      )}
+                      {episode.position?.done && <span> · Listened</span>}
                     </span>
                   </span>
                   {episode.status === "ready" && <FileText aria-label="Transcript ready" className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />}

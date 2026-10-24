@@ -20,7 +20,10 @@ currently *Little Talk in Slow French* and *InnerFrench*, public RSS; a switcher
 - Jobs run in the server process, one Whisper run at a time. A restart drops a
   running job; reopening the episode restarts it. No database tables.
 - Player: tap a line to play it, previous/next/replay line, speed 0.75–1.25×,
-  Follow pill after manual scroll, lock-screen controls, position saved per episode
-  in localStorage.
+  Follow pill after manual scroll, lock-screen controls.
+- Resume: the listening position is saved on the server (`position.json` beside the
+  episode, shared by phone and iPad) every 10 s while playing, on pause/seek and when
+  leaving. Opening an episode shows the saved line; play resumes there even on iPhone
+  Safari, which loads no audio before play. The list shows "Resume at m:ss".
 - Env overrides: `PODCASTS_DIR`, `PODCAST_PYTHON`, `PODCAST_WHISPER_MODEL`.
 - Tests: `tests/podcasts.test.ts` (feed parsing, line lookup, chunk order, ads).

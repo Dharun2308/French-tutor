@@ -48,6 +48,7 @@ const dirFor = (show: string, episode: string) => path.join(ROOT, show, episode)
 export const audioPath = (show: string, episode: string) => path.join(dirFor(show, episode), "audio.mp3");
 const linesPath = (show: string, episode: string) => path.join(dirFor(show, episode), "lines.json");
 const englishPath = (show: string, episode: string) => path.join(dirFor(show, episode), "en.json");
+const positionPath = (show: string, episode: string) => path.join(dirFor(show, episode), "position.json");
 
 async function writeAtomic(file: string, data: string) {
   await fs.mkdir(path.dirname(file), { recursive: true });
@@ -107,6 +108,23 @@ function jobFor(show: string, episode: string): Job {
 export async function readLines(show: string, episode: string): Promise<Line[] | null> {
   const lines = (await readJson<{ lines: Line[] }>(linesPath(show, episode)))?.lines;
   return lines ? markAds(lines) : null;
+}
+
+export interface Position {
+  seconds: number;
+  done: boolean;
+  at: string;
+}
+
+/** Where listening stopped, shared by every device. Only episodes that were opened have a folder. */
+export async function readPosition(show: string, episode: string): Promise<Position | null> {
+  return readJson<Position>(positionPath(show, episode));
+}
+
+export async function writePosition(show: string, episode: string, seconds: number, done: boolean) {
+  if (!(await fs.stat(dirFor(show, episode)).catch(() => null))) return;
+  const position: Position = { seconds: done ? 0 : Math.round(seconds * 10) / 10, done, at: new Date().toISOString() };
+  await writeAtomic(positionPath(show, episode), JSON.stringify(position));
 }
 
 export async function readEnglish(show: string, episode: string): Promise<Record<number, string>> {
