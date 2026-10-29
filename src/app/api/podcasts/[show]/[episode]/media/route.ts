@@ -12,7 +12,7 @@ type Context = { params: Promise<{ show: string; episode: string }> };
 
 async function serve(request: Request, context: Context, head = false) {
   const params = await context.params;
-  const show = findShow(params.show);
+  const show = await findShow(params.show);
   if (!show || !/^[0-9a-z]{1,32}$/.test(params.episode)) return new Response("Episode not found", { status: 404 });
   const file = audioPath(show.id, params.episode);
   const info = await stat(file).catch(() => null);

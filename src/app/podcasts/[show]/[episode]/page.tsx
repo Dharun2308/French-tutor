@@ -10,7 +10,7 @@ import { formatClock, lineAt, type Line } from "@/lib/podcasts/model";
 
 type Stage = "idle" | "queued" | "downloading" | "transcribing" | "ready" | "failed";
 interface Data {
-  show: { id: string; title: string };
+  show: { id: string; title: string; language: "fr" | "en" };
   episode: { id: string; title: string; duration: number | null };
   stage: Stage;
   progress: number;
@@ -26,18 +26,23 @@ interface Data {
 const SPEEDS = [0.75, 0.85, 1, 1.25];
 const PREFS_KEY = "podcast-prefs";
 
-function readPrefs(): { speed: number; english: boolean } {
+/** `english`: English of French shows (off by default); `original`: what English shows say, under the French (on by default). */
+interface Prefs { speed: number; english: boolean; original: boolean }
+
+function readPrefs(): Prefs {
   try {
     const saved = JSON.parse(localStorage.getItem(PREFS_KEY) ?? "{}");
-    return { speed: SPEEDS.includes(saved.speed) ? saved.speed : 1, english: saved.english === true };
+    return { speed: SPEEDS.includes(saved.speed) ? saved.speed : 1, english: saved.english === true, original: saved.original !== false };
   } catch {
-    return { speed: 1, english: false };
+    return { speed: 1, english: false, original: true };
   }
 }
 
 const Row = memo(function Row({ index, line, en, active, past, onSelect }: {
   index: number; line: Line; en: string | null; active: boolean; past: boolean; onSelect: (index: number) => void;
 }) {
+  // English shows: French translation on top; until it arrives, what is said, greyed.
+  const main = line.pending ? line.source ?? "" : line.fr;
   return (
     <button
       type="button"
@@ -51,8 +56,8 @@ const Row = memo(function Row({ index, line, en, active, past, onSelect }: {
     >
       <span className="w-10 shrink-0 pt-0.5 text-xs tabular-nums text-muted-foreground">{formatClock(line.start)}</span>
       <span className="min-w-0 flex-1">
-        <span lang="fr" className={cn("block text-[17px] leading-relaxed", past && !active && "text-muted-foreground")}>{line.fr}</span>
-        {en !== null && <span className="mt-0.5 block text-sm leading-snug text-muted-foreground">{en || "…"}</span>}
+        <span lang={line.pending ? "en" : "fr"} className={cn("block text-[17px] leading-relaxed", (line.pending || (past && !active)) && "text-muted-foreground", line.pending && "italic")}>{main}</span>
+        {en !== null && !line.pending && <span lang="en" className="mt-0.5 block text-sm leading-snug text-muted-foreground">{en || "…"}</span>}
       </span>
     </button>
   );
@@ -85,7 +90,7 @@ export default function PodcastEpisodePage() {
   const params = useParams<{ show: string; episode: string }>();
   const [data, setData] = useState<Data | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [prefs, setPrefs] = useState<{ speed: number; english: boolean } | null>(null);
+  const [prefs, setPrefs] = useState<Prefs | null>(null);
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -102,14 +107,19 @@ export default function PodcastEpisodePage() {
   const listened = useRef(false);
   const started = useRef(false);
   const translateAsked = useRef(false);
+  // English shows: the line the French translation was last asked to start from.
+  const frenchAskedFrom = useRef<number | null>(null);
 
   const lines = data?.lines ?? null;
   const active = lines ? lineAt(lines, time) : -1;
-  const english = prefs?.english ?? false;
+  const englishShow = data?.show.language === "en";
+  // French shows ask for English on demand; English shows always carry their source text.
+  const english = englishShow ? false : prefs?.english ?? false;
+  const subtitle = englishShow ? prefs?.original ?? true : english;
   const base = `/api/podcasts/${params.show}/${params.episode}`;
 
   useEffect(() => setPrefs(readPrefs()), []);
-  const savePrefs = (next: { speed: number; english: boolean }) => {
+  const savePrefs = (next: Prefs) => {
     setPrefs(next);
     try { localStorage.setItem(PREFS_KEY, JSON.stringify(next)); } catch { /* playback still works */ }
   };
@@ -151,7 +161,8 @@ export default function PodcastEpisodePage() {
         }
         const working = d.stage === "queued" || d.stage === "downloading" || d.stage === "transcribing" || (d.stage === "idle" && started.current);
         const englishMissing = english && d.lines && d.en && !d.translateError && d.lines.some((_, i) => !(i in d.en!));
-        if (working || englishMissing) timer = setTimeout(tick, working ? 2000 : 4000);
+        const frenchMissing = d.show.language === "en" && d.lines && !d.translateError && d.lines.some((line) => line.pending);
+        if (working || englishMissing || frenchMissing) timer = setTimeout(tick, working ? 2000 : 4000);
       } catch (e) {
         if (stopped) return;
         setLoadError(e instanceof Error ? e.message : String(e));
@@ -169,8 +180,24 @@ export default function PodcastEpisodePage() {
     void post({ action: "translate", from: Math.max(0, active) }).then(() => load().catch(() => {}));
   }, [english, lines, active, post, load]);
 
+  // English shows are translated into French as soon as the transcript exists. The
+  // server starts this itself; asking again resumes after a restart and, after a
+  // jump into lines not yet translated, moves the translation to where you are.
+  const activePending = lines?.[Math.max(0, active)]?.pending ?? false;
+  const askFrench = useCallback((from: number) => {
+    frenchAskedFrom.current = from;
+    void post({ action: "translate", from }).then(() => load().catch(() => {}));
+  }, [post, load]);
+  useEffect(() => {
+    if (!englishShow || !lines || data?.translateError) return;
+    const from = Math.max(0, active);
+    const asked = frenchAskedFrom.current;
+    if (asked === null ? lines.some((line) => line.pending) && !data?.translating : activePending && Math.abs(from - asked) > 20) askFrench(from);
+  }, [englishShow, lines, active, activePending, data?.translating, data?.translateError, askFrench]);
+
   const toggleEnglish = () => {
     if (!prefs) return;
+    if (englishShow) return savePrefs({ ...prefs, original: !prefs.original });
     if (!prefs.english) translateAsked.current = false;
     savePrefs({ ...prefs, english: !prefs.english });
   };
@@ -286,10 +313,13 @@ export default function PodcastEpisodePage() {
     box.scrollTo({ top: target, behavior: far ? "auto" : "smooth" });
   }, [activeRow]);
 
-  useEffect(() => { if (following) scrollToActive(false); }, [activeRow, following, scrollToActive, english]);
+  useEffect(() => { if (following) scrollToActive(false); }, [activeRow, following, scrollToActive, subtitle]);
   const manualScroll = () => { if (Date.now() > programmaticUntil.current) setFollowing(false); };
 
-  const englishLines = useMemo(() => (english && lines ? lines.map((_, i) => data?.en?.[i] ?? "") : null), [english, lines, data?.en]);
+  const englishLines = useMemo(() => {
+    if (!lines || !subtitle) return null;
+    return englishShow ? lines.map((line) => line.source ?? "") : lines.map((_, i) => data?.en?.[i] ?? "");
+  }, [subtitle, englishShow, lines, data?.en]);
 
   if (loadError && !data) {
     return <main className="container max-w-2xl py-6"><p role="alert" className="text-sm text-destructive">{loadError}</p></main>;
@@ -304,7 +334,7 @@ export default function PodcastEpisodePage() {
     <main className="container flex h-[calc(100dvh-3.5rem)] max-w-2xl flex-col pt-3">
       <div className="mb-2 shrink-0">
         <Link href="/podcasts" className="inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" />Podcasts</Link>
-        <h1 lang="fr" className="mt-1 line-clamp-2 text-lg font-semibold leading-snug">{data.episode.title}</h1>
+        <h1 lang={data.show.language} className="mt-1 line-clamp-2 text-lg font-semibold leading-snug">{data.episode.title}</h1>
       </div>
 
       <div className="relative min-h-0 flex-1">
@@ -395,14 +425,17 @@ export default function PodcastEpisodePage() {
           <button
             type="button"
             onClick={toggleEnglish}
-            aria-pressed={english}
-            aria-label="English translation"
-            className={cn("h-10 w-14 rounded-md text-sm font-medium transition-colors", english ? "bg-blue-500/15 text-blue-700 dark:text-blue-300" : "text-muted-foreground hover:bg-accent")}
-          >EN{english && data.translating ? <Loader2 className="ml-1 inline h-3 w-3 animate-spin" /> : null}</button>
+            aria-pressed={subtitle}
+            aria-label={englishShow ? "Show the English under the French" : "English translation"}
+            className={cn("h-10 w-14 rounded-md text-sm font-medium transition-colors", subtitle ? "bg-blue-500/15 text-blue-700 dark:text-blue-300" : "text-muted-foreground hover:bg-accent")}
+          >EN{(english || englishShow) && data.translating ? <Loader2 className="ml-1 inline h-3 w-3 animate-spin" /> : null}</button>
         </div>
-        {(audioError || (english && data.translateError)) && (
+        {(audioError || ((english || englishShow) && data.translateError)) && (
           <p role="alert" className="mt-2 text-center text-xs text-destructive">
-            {audioError ? <>Couldn’t play the audio. <button className="underline" onClick={() => { setAudioError(false); audio.current?.load(); }}>Retry</button></> : data.translateError}
+            {audioError ? <>Couldn’t play the audio. <button className="underline" onClick={() => { setAudioError(false); audio.current?.load(); }}>Retry</button></> : <>
+              {data.translateError}
+              {englishShow && <> <button className="underline" onClick={() => askFrench(Math.max(0, active))}>Retry</button></>}
+            </>}
           </p>
         )}
       </div>

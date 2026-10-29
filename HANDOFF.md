@@ -1,6 +1,19 @@
 # French Tutor — handoff for the next agent (Codex)
 
-## Latest update — 2026-10-24: Podcasts tab with Whisper transcripts
+## Latest update — 2026-10-29: Podcasts from pasted links, English shows in French
+
+- Owner wants French subtitles for any podcast he'd play on Spotify, English ones
+  included, but fully inside the tutor. Paste a Spotify / Apple Podcasts / RSS link on
+  `/podcasts` → the show's public feed is found (Spotify embed page + Apple directory,
+  no accounts) → preview → the show is added (`podcasts/shows.json`) and the episode
+  opens. English shows are transcribed in English and every line is translated into
+  French automatically (French large, English small underneath). Spotify-only shows
+  can't be done (no public audio). Video is phase 2. Details: docs/podcasts.md.
+- Passed: tests, lint, TypeScript, isolated build at :18196 with a copied DB; real
+  Spotify (Up First, Joe Rogan) and Apple (RFI Journal en français facile) links;
+  phone 390×844 light/dark screenshots. No schema change.
+
+## 2026-10-24: Podcasts tab with Whisper transcripts
 
 - Owner asked for French transcripts while listening to *Little Talk in Slow
   French* (no subtitles on Spotify); audio inside the tab, English toggle off by

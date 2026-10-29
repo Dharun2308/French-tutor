@@ -26,7 +26,7 @@ A personal, adaptive French verb conjugation tutor. SRS-backed drills plus an AI
 The app now also includes imported lesson items with FSRS scheduling, Focus/Smart
 practice, listening, fresh sentence contexts, conversation practice, weekly reviews,
 112 grammar topics, 40 Language Transfer audio lessons, a Google Docs Notes editor, and
-a Podcasts tab with Whisper transcripts of French podcast episodes.
+a Podcasts tab with Whisper transcripts of French podcast episodes (add any show from a Spotify/Apple/RSS link; English shows get French subtitles).
 Structured AI uses the enabled Codex → Claude → OpenAI provider chain. Browser speech
 is free; OpenAI speech is opt-in. Foundations now mixes lesson notes and everyday
 French in short A1–A2 word and phrase practice, with explicit saved ratings. Its lesson items

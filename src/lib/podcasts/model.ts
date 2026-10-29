@@ -1,16 +1,22 @@
 // Pure helpers for the Podcasts tab: RSS parsing, transcript lines and
 // translation chunks. No I/O here so node --test can cover it.
 
+export type Language = "fr" | "en";
+
 export interface Show {
   id: string;
   title: string;
   feed: string;
+  /** Spoken language. English shows get a French translation of every line. */
+  language: Language;
+  /** Added from a pasted link (stored in podcasts/shows.json) rather than built in. */
+  added?: boolean;
 }
 
-/** Shows are fixed in code: the server only ever downloads from these feeds. */
+/** Built-in shows; more are added from pasted links. */
 export const SHOWS: Show[] = [
-  { id: "little-talk-slow-french", title: "Little Talk in Slow French", feed: "https://www.spreaker.com/show/6084166/episodes/feed" },
-  { id: "innerfrench", title: "InnerFrench", feed: "https://podcast.innerfrench.com/feed.xml" },
+  { id: "little-talk-slow-french", title: "Little Talk in Slow French", feed: "https://www.spreaker.com/show/6084166/episodes/feed", language: "fr" },
+  { id: "innerfrench", title: "InnerFrench", feed: "https://podcast.innerfrench.com/feed.xml", language: "fr" },
 ];
 
 export interface Episode {
@@ -25,13 +31,20 @@ export interface Episode {
 export interface FeedInfo {
   title: string;
   image: string | null;
+  /** The feed's <language>, e.g. "fr" or "en-us". */
+  language?: string | null;
   episodes: Episode[];
 }
 
 export interface Line {
   start: number;
   end: number;
+  /** French: what is said (French shows) or its translation (English shows; "" until translated). */
   fr: string;
+  /** English shows: what is said. */
+  source?: string;
+  /** English show line whose French translation hasn't arrived yet. */
+  pending?: boolean;
   /** Inserted English ad (feeds add these per download); hidden behind one "Ad" row. */
   ad?: boolean;
 }
@@ -114,6 +127,7 @@ export function parseFeed(xml: string): FeedInfo {
   return {
     title: tag(channel, "title") || "Podcast",
     image: attr(channel, "itunes:image", "href"),
+    language: tag(channel, "language"),
     episodes,
   };
 }
@@ -214,4 +228,114 @@ export function formatClock(seconds: number): string {
   const m = Math.floor((s % 3600) / 60);
   const rest = String(s % 60).padStart(2, "0");
   return h ? `${h}:${String(m).padStart(2, "0")}:${rest}` : `${m}:${rest}`;
+}
+
+/** "fr-FR" → fr, "en-us" → en; anything else is unknown. */
+export function feedLanguage(value: string | null | undefined): Language | null {
+  const code = value?.trim().toLowerCase().slice(0, 2);
+  return code === "fr" || code === "en" ? code : null;
+}
+
+export type ParsedLink =
+  | { kind: "spotify"; type: "episode" | "show"; id: string }
+  | { kind: "spotify-short"; url: string }
+  | { kind: "apple"; showId: string; episodeId: string | null }
+  | { kind: "feed"; url: string };
+
+/** A pasted Spotify, Apple Podcasts or RSS link. Text around the link (share sheets add some) is ignored. */
+export function parseLink(input: string): ParsedLink | null {
+  const raw = /https?:\/\/\S+/i.exec(input.trim())?.[0] ?? input.trim();
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    return null;
+  }
+  const host = url.hostname.toLowerCase().replace(/^www\./, "");
+  if (host === "open.spotify.com") {
+    const match = /\/(episode|show)\/([A-Za-z0-9]{10,32})/.exec(url.pathname);
+    return match ? { kind: "spotify", type: match[1] as "episode" | "show", id: match[2] } : null;
+  }
+  if (host === "spotify.link" || host === "spoti.fi") return url.protocol === "https:" ? { kind: "spotify-short", url: url.href } : null;
+  if (host === "podcasts.apple.com" || host === "itunes.apple.com") {
+    const show = /\/id(\d{3,15})/.exec(url.pathname)?.[1];
+    if (!show) return null;
+    const episode = url.searchParams.get("i");
+    return { kind: "apple", showId: show, episodeId: episode && /^\d{3,20}$/.test(episode) ? episode : null };
+  }
+  if (url.protocol === "https:" || url.protocol === "http:") return { kind: "feed", url: url.href };
+  return null;
+}
+
+/** Lowercase words without accents or punctuation, for comparing titles across apps. */
+export function titleWords(title: string): string[] {
+  return title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().match(/[a-z0-9]+/g) ?? [];
+}
+
+/** 1 for the same words, down to 0 for nothing shared. */
+export function titleSimilarity(a: string, b: string): number {
+  const left = titleWords(a);
+  const right = titleWords(b);
+  if (!left.length || !right.length) return 0;
+  if (left.join(" ") === right.join(" ")) return 1;
+  const pool = new Map<string, number>();
+  for (const word of right) pool.set(word, (pool.get(word) ?? 0) + 1);
+  let shared = 0;
+  for (const word of left) {
+    const n = pool.get(word) ?? 0;
+    if (n > 0) {
+      shared++;
+      pool.set(word, n - 1);
+    }
+  }
+  return (2 * shared) / (left.length + right.length);
+}
+
+export interface EpisodeHint {
+  title: string;
+  published?: string | null;
+  /** Seconds. */
+  duration?: number | null;
+}
+
+/** The feed episode another app's link points at: a near-identical title, or a close one released the same day. */
+export function matchEpisode(episodes: Episode[], hint: EpisodeHint): Episode | null {
+  const hintDay = hint.published ? Date.parse(hint.published) : NaN;
+  let best: { episode: Episode; score: number } | null = null;
+  for (const episode of episodes) {
+    let score = titleSimilarity(hint.title, episode.title);
+    const days = episode.published && Number.isFinite(hintDay) ? Math.abs(Date.parse(episode.published) - hintDay) / 86_400_000 : null;
+    const sameDay = days !== null && days <= 1.5;
+    if (score < 0.9 && !(sameDay && score >= 0.4)) continue;
+    if (sameDay) score += 0.5;
+    if (hint.duration && episode.duration && Math.abs(hint.duration - episode.duration) <= Math.max(60, hint.duration * 0.05)) score += 0.2;
+    if (!best || score > best.score) best = { episode, score };
+  }
+  return best?.episode ?? null;
+}
+
+/** URL-safe show id from its title, unique among `taken`. */
+export function showSlug(title: string, taken: ReadonlySet<string>): string {
+  const base = titleWords(title).join("-").slice(0, 40).replace(/-+$/, "") || "show";
+  let id = base;
+  for (let n = 2; taken.has(id); n++) id = `${base}-${n}`;
+  return id;
+}
+
+/**
+ * Pasted links make the server fetch addresses it was given, so only public
+ * HTTPS hosts: no loopback, private ranges, tailnet or bare hostnames.
+ */
+export function isPublicHttps(raw: string): boolean {
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    return false;
+  }
+  if (url.protocol !== "https:" || url.username || url.password || (url.port && url.port !== "443")) return false;
+  const host = url.hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  if (!host.includes(".") || /\.(local|localhost|internal|lan|home|ts\.net|arpa)$/.test(host) || host === "localhost") return false;
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(host) || host.includes(":")) return false;
+  return true;
 }

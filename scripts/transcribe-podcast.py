@@ -1,13 +1,14 @@
-"""Transcribe one French audio file into timed lines with faster-whisper.
+"""Transcribe one podcast episode into timed lines with faster-whisper.
 
-Usage: transcribe-podcast.py <audio> <out.json>
+Usage: transcribe-podcast.py <audio> <out.json> [fr|en]   (default fr)
 
-Writes {"model", "duration", "lines": [{"start", "end", "fr"}]} atomically. Whisper
+Writes {"model", "language", "duration", "lines": [{"start", "end", "text"}]} atomically. Whisper
 segments can run for several sentences, so lines are re-cut at sentence ends using
 word timestamps. Progress goes to stderr as `progress <seconds>`.
 """
 import json
 import os
+import re
 import sys
 
 from faster_whisper import WhisperModel
@@ -15,6 +16,14 @@ from faster_whisper import WhisperModel
 MODEL = os.environ.get("PODCAST_WHISPER_MODEL", "mobiuslabsgmbh/faster-whisper-large-v3-turbo")
 MAX_WORDS = 28
 SENTENCE_END = (".", "?", "!", "…")
+# "U.S.", "Mr." or "M." end in a full stop without ending the sentence.
+ABBREVIATION = re.compile(r"^(?:(?:[A-Za-z]\.){2,3}|[B-HJ-Z]\.|Mr|Mrs|Ms|Dr|St|Jr|Sr|Mme|Mlle|vs)\.?$")
+
+
+def sentence_end(words):
+    # Whisper can split a word into pieces (" U", ".S."), so look at the whole last word.
+    last = "".join(w.word for w in words[-3:]).split()[-1:]
+    return bool(last) and last[0].endswith(SENTENCE_END) and not ABBREVIATION.match(last[0])
 
 
 def lines_from(segments):
@@ -23,7 +32,7 @@ def lines_from(segments):
     def flush():
         text = "".join(w.word for w in words).strip()
         if text:
-            lines.append({"start": round(words[0].start, 2), "end": round(words[-1].end, 2), "fr": text})
+            lines.append({"start": round(words[0].start, 2), "end": round(words[-1].end, 2), "text": text})
         words.clear()
 
     for segment in segments:
@@ -31,7 +40,7 @@ def lines_from(segments):
         for word in segment.words or []:
             words.append(word)
             token = word.word.strip()
-            if token.endswith(SENTENCE_END) or (len(words) >= MAX_WORDS and token.endswith((",", ";", ":"))) or len(words) >= 2 * MAX_WORDS:
+            if sentence_end(words) or (len(words) >= MAX_WORDS and token.endswith((",", ";", ":"))) or len(words) >= 2 * MAX_WORDS:
                 flush()
         # A segment boundary is a pause: end a long line there at a clause break.
         if words and len(words) >= MAX_WORDS // 2 and words[-1].word.strip().endswith((",", ";", ":")):
@@ -42,6 +51,9 @@ def lines_from(segments):
 
 def main():
     audio, out = sys.argv[1], sys.argv[2]
+    language = sys.argv[3] if len(sys.argv) > 3 else "fr"
+    if language not in ("fr", "en"):
+        sys.exit(f"unsupported language {language}")
     try:
         model = WhisperModel(MODEL, device="cuda", compute_type="float16")
     except Exception as error:  # GPU busy or unavailable: slower, but still works.
@@ -49,14 +61,14 @@ def main():
         model = WhisperModel(MODEL, device="cpu", compute_type="int8")
     segments, info = model.transcribe(
         audio,
-        language="fr",
+        language=language,
         word_timestamps=True,
         vad_filter=True,
         condition_on_previous_text=False,
         beam_size=5,
     )
     print(f"duration {info.duration:.1f}", file=sys.stderr, flush=True)
-    result = {"model": MODEL, "duration": round(info.duration, 2), "lines": lines_from(segments)}
+    result = {"model": MODEL, "language": language, "duration": round(info.duration, 2), "lines": lines_from(segments)}
     tmp = f"{out}.tmp"
     with open(tmp, "w", encoding="utf-8") as handle:
         json.dump(result, handle, ensure_ascii=False)

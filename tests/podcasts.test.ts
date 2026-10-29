@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { TRANSLATION_CHUNK, episodeId, formatClock, lineAt, markAds, parseDuration, parseFeed, pendingChunks } from "../src/lib/podcasts/model";
+import { TRANSLATION_CHUNK, episodeId, feedLanguage, formatClock, isPublicHttps, lineAt, markAds, matchEpisode, parseDuration, parseFeed, parseLink, pendingChunks, showSlug, titleSimilarity } from "../src/lib/podcasts/model";
 
 const FEED = `<?xml version="1.0"?><rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"><channel>
 <title>Little Talk in Slow French</title><itunes:image href="https://img.example/a.jpg"/>
@@ -77,4 +77,48 @@ test("English ad breaks are flagged as runs; the host's one-line glosses are not
   const ads = markAds(lines).map((line, i) => (line.ad ? i : -1)).filter((i) => i >= 0);
   assert.deepEqual(ads, [0, 1, 2, 3, 4, 13, 14, 15]);
   assert.equal(markAds([fr("Excuse my French, it's a joke for you.")])[0].ad, undefined);
+});
+
+test("pasted links: Spotify, Apple, feeds; share-sheet text around them", () => {
+  assert.deepEqual(parseLink("Check this out https://open.spotify.com/episode/16E8oK7YNhSlyMPlxyP1D1?si=abc123"), { kind: "spotify", type: "episode", id: "16E8oK7YNhSlyMPlxyP1D1" });
+  assert.deepEqual(parseLink("https://open.spotify.com/intl-fr/show/4rOoJ6Egrf8K2IrywzwOMk"), { kind: "spotify", type: "show", id: "4rOoJ6Egrf8K2IrywzwOMk" });
+  assert.deepEqual(parseLink("https://spotify.link/AbCdEf"), { kind: "spotify-short", url: "https://spotify.link/AbCdEf" });
+  assert.deepEqual(parseLink("https://podcasts.apple.com/fr/podcast/innerfrench/id1301811218?i=1000712345678"), { kind: "apple", showId: "1301811218", episodeId: "1000712345678" });
+  assert.deepEqual(parseLink("https://podcast.innerfrench.com/feed.xml"), { kind: "feed", url: "https://podcast.innerfrench.com/feed.xml" });
+  assert.equal(parseLink("not a link"), null);
+  assert.equal(parseLink("https://open.spotify.com/track/abc"), null);
+});
+
+test("only public HTTPS hosts are fetched", () => {
+  assert.equal(isPublicHttps("https://feeds.megaphone.fm/GLT1412515089"), true);
+  for (const bad of ["http://feeds.example.com/a", "https://localhost/a", "https://127.0.0.1/a", "https://[::1]/a", "https://intranet/a",
+    "https://multimind.tail8a8aef.ts.net:10000/", "https://printer.local/", "https://user:pw@example.com/", "https://example.com:8095/"]) {
+    assert.equal(isPublicHttps(bad), false, bad);
+  }
+});
+
+test("feed language, titles and episode matching across apps", () => {
+  assert.equal(feedLanguage("fr-FR"), "fr");
+  assert.equal(feedLanguage(" en-us"), "en");
+  assert.equal(feedLanguage("de"), null);
+  assert.equal(feedLanguage(null), null);
+  assert.equal(titleSimilarity("The Joe Rogan Experience", "the joe rogan experience!"), 1);
+  assert.equal(titleSimilarity("L'été à Paris", "L’ete a Paris"), 1);
+  assert.ok(titleSimilarity("The Joe Rogan Experience", "The Joe Rogan AI Experience") < 0.9);
+  const episodes = [
+    { id: "a", title: "#2572 - Colum Tyrrell", published: "2026-10-29T17:00:00.000Z", duration: 10730, audioUrl: "https://x/a.mp3", bytes: null },
+    { id: "b", title: "#2571 - Someone Else", published: "2026-10-28T17:00:00.000Z", duration: 9000, audioUrl: "https://x/b.mp3", bytes: null },
+    { id: "c", title: "Episode 12: Bonjour", published: "2026-01-02T08:00:00.000Z", duration: 1200, audioUrl: "https://x/c.mp3", bytes: null },
+  ];
+  assert.equal(matchEpisode(episodes, { title: "#2572 - Colum Tyrrell", published: "2026-10-29T17:00:00Z" })?.id, "a");
+  // Spotify sometimes words a title a little differently; the same release day settles it.
+  assert.equal(matchEpisode(episodes, { title: "Bonjour (Ep. 12)", published: "2026-01-02T00:00:00Z" })?.id, "c");
+  assert.equal(matchEpisode(episodes, { title: "Something unrelated", published: "2025-05-05T00:00:00Z" }), null);
+  assert.equal(matchEpisode(episodes, { title: "Bonjour", published: null }), null);
+});
+
+test("show ids from titles stay unique", () => {
+  assert.equal(showSlug("The Joe Rogan Experience", new Set()), "the-joe-rogan-experience");
+  assert.equal(showSlug("Café crème", new Set(["cafe-creme"])), "cafe-creme-2");
+  assert.equal(showSlug("!!!", new Set()), "show");
 });
