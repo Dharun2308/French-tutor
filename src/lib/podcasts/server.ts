@@ -4,6 +4,7 @@
 // work in progress, which the player restarts on its next visit.
 
 import { spawn } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
 import { createWriteStream, promises as fs } from "node:fs";
@@ -153,7 +154,8 @@ const positionPath = (show: string, episode: string) => path.join(dirFor(show, e
 
 async function writeAtomic(file: string, data: string) {
   await fs.mkdir(path.dirname(file), { recursive: true });
-  const tmp = `${file}.${process.pid}.tmp`;
+  // Unique per write: two saves of the same file (e.g. position on pause and on seek) can overlap.
+  const tmp = `${file}.${process.pid}.${randomUUID()}.tmp`;
   await fs.writeFile(tmp, data);
   await fs.rename(tmp, file);
 }

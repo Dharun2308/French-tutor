@@ -59,7 +59,14 @@ shows included, played inside the tutor (no Spotify account or player).
   for translating in his head). A 13-min NPR episode: ~30 s Whisper, ~45 s French.
   Ad detection is off for English shows (ads are English too).
 - Transcripts now store `text` (older files have `fr`; both are read). Lines no
-  longer break after abbreviations such as "U.S." or "M.".
+  longer break after abbreviations such as "U.S." or "M." (Whisper splits them into
+  pieces like " U" + ".S.").
+- Short lines for every show (owner: long lines were too hard to follow in French):
+  `LIMITS` in `scripts/transcribe-podcast.py` ends a line at a sentence end, at a comma
+  from 12 words, at a pause from 10, and cuts anything past 24 at a comma or the longest
+  pause. Whisper sometimes drops punctuation for minutes (seen on Modern Wisdom); those
+  runs are cut the same way. Existing transcripts were redone on 2026-10-29 (old files
+  in `~/.cache/french-tutor-podlinks-20261029/old-transcripts/`).
 - Phase 2 (not built): video via YouTube links.
 
 - Env overrides: `PODCASTS_DIR`, `PODCAST_PYTHON`, `PODCAST_WHISPER_MODEL`.
