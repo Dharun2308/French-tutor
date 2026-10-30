@@ -255,6 +255,29 @@ export default function PodcastEpisodePage() {
     seekTo(lines[target].start);
   }, [lines, active, seekTo]);
 
+  // Keyboard (iPad keyboard, desktop): Space plays/pauses, arrows step lines.
+  const audioReady = !!data?.audioReady;
+  useEffect(() => {
+    if (!audioReady) return;
+    const typing = (target: EventTarget | null) =>
+      target instanceof HTMLElement && (target.isContentEditable || /^(TEXTAREA|SELECT)$/.test(target.tagName) || (target instanceof HTMLInputElement && target.type !== "range"));
+    const down = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || typing(e.target)) return;
+      if (e.key === " ") {
+        e.preventDefault();
+        if (!e.repeat) toggle();
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        step(e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 1);
+      }
+    };
+    // A focused line or button would otherwise also "click" on Space's keyup.
+    const up = (e: KeyboardEvent) => { if (e.key === " " && !typing(e.target)) e.preventDefault(); };
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    return () => { window.removeEventListener("keydown", down); window.removeEventListener("keyup", up); };
+  }, [audioReady, toggle, step]);
+
   const blocks = useMemo<Block[]>(() => {
     const out: Block[] = [];
     lines?.forEach((line, index) => {
